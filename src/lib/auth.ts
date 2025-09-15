@@ -1,7 +1,7 @@
-import { NextAuthOptions, Session, User } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
+import { NextAuthOptions } from 'next-auth';
 import Auth0Provider from 'next-auth/providers/auth0';
-import { IUser } from '@/types';
+import { UserAuthClaims } from '@/types/auth';
+import { fetchUserByAuth0Id, parseAuthClaims } from './userService';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -27,21 +27,36 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
       if (user) {
-        token.id = user.id;
-        // Ensure the role is one of the allowed values
-        const userRole = (user as IUser).role;
-        if (userRole && ['admin', 'moderator', 'user'].includes(userRole)) {
-          token.role = userRole as 'admin' | 'moderator' | 'user';
-        } else {
-          token.role = 'user'; // Default role
+        const formattedUserId = user.id.replace('auth0|', '');
+        token.id = formattedUserId;
+        token.auth0Id = formattedUserId;
+        
+        // Fetch user data from MongoDB to get AuthClaims
+        try {
+          const apiUser = await fetchUserByAuth0Id(token.auth0Id, token);
+          if (apiUser) {
+            token.authClaims = parseAuthClaims(apiUser.AuthClaims);
+            token.userName = apiUser.UserName;
+            token.associatedAreaId = apiUser.AssociatedAreaId;
+          } else {
+            // Default empty claims for new users
+            token.authClaims = { roles: [], specificClaims: [] };
+          }
+        } catch (error) {
+          console.error('Error fetching user claims:', error);
+          token.authClaims = { roles: [], specificClaims: [] };
         }
-      }
+      } 
       return token;
     },
     async session({ session, token }) {
+      debugger
       if (session.user) {
+        debugger
         session.user.id = token.id as string;
-        session.user.role = token.role as 'admin' | 'moderator' | 'user';
+        session.user.auth0Id = token.auth0Id as string;
+        session.user.authClaims = token.authClaims as UserAuthClaims;
+        session.user.userName = token.userName as string;
         session.accessToken = token.accessToken as string;
       }
       return session;
