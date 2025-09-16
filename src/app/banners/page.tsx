@@ -134,10 +134,10 @@ export default function BannersPage() {
 
   const getTemplateTypeColor = (type: string) => {
     switch (type) {
-      case 'giving-campaign': return 'bg-green-100 text-green-800';
-      case 'partnership-charter': return 'bg-blue-100 text-blue-800';
-      case 'resource-project': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'giving-campaign': return 'service-tag open';
+      case 'partnership-charter': return 'service-tag verified';
+      case 'resource-project': return 'service-tag limited';
+      default: return 'service-tag closed';
     }
   };
 
@@ -149,12 +149,12 @@ export default function BannersPage() {
 
   return (
     <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
-      <div className="space-y-6">
+      <div className="page-container section-spacing space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Banner Management</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="heading-2">Banner Management</h1>
+            <p className="text-body">
               Create and manage promotional banners across the platform
             </p>
           </div>
@@ -168,36 +168,36 @@ export default function BannersPage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-lg shadow">
+          <div className="card-grid cols-4">
+            <div className="card card-compact">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">Total Banners</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.overview.totalBanners}</p>
+                  <p className="text-small text-brand-f">Total Banners</p>
+                  <p className="heading-3 text-brand-k">{stats.overview.totalBanners}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="card card-compact">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">Active</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.overview.activeBanners}</p>
+                  <p className="text-small text-brand-f">Active</p>
+                  <p className="heading-3 text-brand-b">{stats.overview.activeBanners}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="card card-compact">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">Inactive</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.overview.inactiveBanners}</p>
+                  <p className="text-small text-brand-f">Inactive</p>
+                  <p className="heading-3 text-brand-g">{stats.overview.inactiveBanners}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="card card-compact">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">Templates</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.byTemplate.length}</p>
+                  <p className="text-small text-brand-f">Templates</p>
+                  <p className="heading-3 text-brand-h">{stats.byTemplate.length}</p>
                 </div>
               </div>
             </div>
@@ -205,16 +205,16 @@ export default function BannersPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="card card-compact">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-small text-brand-k font-medium mb-1">
                 Template Type
               </label>
               <select
                 value={filters.templateType}
                 onChange={(e) => setFilters(prev => ({ ...prev, templateType: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-brand-q rounded-md focus:ring-2 focus:ring-brand-a focus:border-brand-a text-brand-k"
               >
                 <option value="">All Types</option>
                 <option value="giving-campaign">Giving Campaign</option>
@@ -223,13 +223,13 @@ export default function BannersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-small text-brand-k font-medium mb-1">
                 Status
               </label>
               <select
                 value={filters.isActive}
                 onChange={(e) => setFilters(prev => ({ ...prev, isActive: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-brand-q rounded-md focus:ring-2 focus:ring-brand-a focus:border-brand-a text-brand-k"
               >
                 <option value="">All Status</option>
                 <option value="true">Active</option>
@@ -237,13 +237,13 @@ export default function BannersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-small text-brand-k font-medium mb-1">
                 Location
               </label>
               <select
                 value={filters.location}
                 onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-brand-q rounded-md focus:ring-2 focus:ring-brand-a focus:border-brand-a text-brand-k"
               >
                 <option value="">All Locations</option>
                 <option value="manchester">Manchester</option>
@@ -265,61 +265,61 @@ export default function BannersPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="card card-compact border-brand-g bg-red-50">
+            <p className="text-small text-brand-g">{error}</p>
           </div>
         )}
 
         {/* Banners Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="card overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">
               <LoadingSpinner />
             </div>
           ) : banners.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500">No banners found</p>
+            <div className="card-content text-center">
+              <p className="text-body text-brand-f">No banners found</p>
               <Link href="/banners/new" className="mt-2 inline-block">
                 <Button>Create your first banner</Button>
               </Link>
             </div>
           ) : (
             <>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-brand-q">
+                <thead className="bg-brand-q">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Title
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Priority
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-caption font-medium text-brand-f uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-caption font-medium text-brand-f uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-brand-q">
                   {banners.map((banner) => (
-                    <tr key={banner._id} className="hover:bg-gray-50">
+                    <tr key={banner._id} className="hover:bg-brand-i transition-colors duration-200">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-small font-medium text-brand-k">
                             {banner.title}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-caption text-brand-f">
                             by {banner.createdBy.UserName}
                           </div>
                         </div>
@@ -330,17 +330,17 @@ export default function BannersPage() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                        <Badge className={banner.isActive ? 'service-tag open' : 'service-tag closed'}>
                           {banner.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-small text-brand-k">
                         {banner.priority}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-small text-brand-k">
                         {banner.locationSlug || 'All Locations'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-small text-brand-f">
                         {new Date(banner.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -359,7 +359,7 @@ export default function BannersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleBannerStatus(banner._id)}
-                            className={banner.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                            className={banner.isActive ? 'text-brand-g hover:text-red-700' : 'text-brand-b hover:text-brand-c'}
                           >
                             {banner.isActive ? 'Deactivate' : 'Activate'}
                           </Button>
@@ -367,7 +367,7 @@ export default function BannersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteBanner(banner._id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-brand-g hover:text-red-700"
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -380,7 +380,7 @@ export default function BannersPage() {
 
               {/* Pagination */}
               {pagination.pages > 1 && (
-                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="card-footer">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <Button
                       variant="outline"
@@ -399,7 +399,7 @@ export default function BannersPage() {
                   </div>
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-small text-brand-l">
                         Showing{' '}
                         <span className="font-medium">
                           {(pagination.page - 1) * pagination.limit + 1}
@@ -418,10 +418,10 @@ export default function BannersPage() {
                           <button
                             key={page}
                             onClick={() => setPagination(prev => ({ ...prev, page }))}
-                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            className={`relative inline-flex items-center px-4 py-2 border text-small font-medium transition-colors duration-200 ${
                               page === pagination.page
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                ? 'z-10 bg-brand-i border-brand-a text-brand-a'
+                                : 'bg-white border-brand-q text-brand-f hover:bg-brand-i'
                             }`}
                           >
                             {page}

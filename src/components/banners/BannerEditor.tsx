@@ -273,8 +273,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     switch (formData.templateType) {
       case 'giving-campaign':
         return (
-          <div className="space-y-4 border-t pt-4">
-            <h3 className="text-md font-medium text-gray-900">Campaign Settings</h3>
+          <div className="space-y-4 border-t border-brand-q pt-6">
+            <h3 className="heading-5 border-b border-brand-q pb-2">Campaign Settings</h3>
             
             <FormField label="Urgency Level">
               <Select
@@ -315,8 +315,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
       case 'partnership-charter':
         return (
-          <div className="space-y-4 border-t pt-4">
-            <h3 className="text-md font-medium text-gray-900">Charter Settings</h3>
+          <div className="space-y-4 border-t border-brand-q pt-6">
+            <h3 className="heading-5 border-b border-brand-q pb-2">Charter Settings</h3>
             
             <FormField label="Charter Type">
               <Select
@@ -351,8 +351,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
       case 'resource-project':
         return (
-          <div className="space-y-4 border-t pt-4">
-            <h3 className="text-md font-medium text-gray-900">Resource Settings</h3>
+          <div className="space-y-4 border-t border-brand-q pt-6">
+            <h3 className="heading-5 border-b border-brand-q pb-2">Resource Settings</h3>
             
             <FormField label="Resource Type">
               <Select
@@ -396,14 +396,15 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
-      <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold text-gray-900">Banner Editor</h2>
+    <div className="card">
+      <div className="card-header border-b border-brand-q">
+        <h2 className="heading-4">Banner Editor</h2>
       </div>
       
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="card-content space-y-6">
         {/* Basic Content */}
         <div className="space-y-4">
+          <h3 className="heading-5 border-b border-brand-q pb-2 pt-4">Basic Information</h3>
           <FormField label="Banner Type *">
             <Select
               value={formData.templateType}
@@ -440,8 +441,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* Media Assets */}
-        <div className="space-y-4">
-          <h3 className="text-md font-medium text-gray-900">Media Assets</h3>
+        <div className="space-y-4 border-t border-brand-q pt-6">
+          <h3 className="heading-5 border-b border-brand-q pb-2">Media Assets</h3>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
@@ -463,8 +464,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* Styling Options */}
-        <div className="space-y-4">
-          <h3 className="text-md font-medium text-gray-900">Styling</h3>
+        <div className="space-y-4 border-t border-brand-q pt-6">
+          <h3 className="heading-5 border-b border-brand-q pb-2">Styling Options</h3>
           
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Layout Style">
@@ -492,10 +493,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   key={type.value}
                   type="button"
                   onClick={() => updateFormData('background.type', type.value)}
-                  className={`px-3 py-2 text-sm border rounded-md hover:bg-gray-50 ${
+                  className={`btn-base btn-sm ${
                     formData.background.type === type.value
-                      ? 'bg-blue-50 border-blue-300 text-blue-700'
-                      : 'border-gray-300'
+                      ? 'btn-primary'
+                      : 'btn-secondary'
                   }`}
                 >
                   {type.label}
@@ -535,9 +536,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* CTA Buttons */}
-        <div className="space-y-4 border-t pt-4">
+        <div className="space-y-4 border-t border-brand-q pt-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-md font-medium text-gray-900">Call-to-Action Buttons</h3>
+            <h3 className="heading-5">Call-to-Action Buttons</h3>
             {formData.ctaButtons.length < 3 && (
               <Button type="button" variant="outline" size="sm" onClick={addCTAButton}>
                 <Plus className="h-4 w-4 mr-1" />
@@ -547,12 +548,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
           
           {errors.ctaButtons && (
-            <p className="text-sm text-red-600">{errors.ctaButtons}</p>
+            <p className="text-small text-brand-g">{errors.ctaButtons}</p>
           )}
           
           <div className="space-y-3">
             {formData.ctaButtons.map((button, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
+              <div key={index} className="card-compact border border-brand-q">
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <FormField label="Button Label">
                     <Input
@@ -605,8 +606,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         {renderTemplateSpecificFields()}
 
         {/* Publishing Options */}
-        <div className="space-y-4 border-t pt-4">
-          <h3 className="text-md font-medium text-gray-900">Publishing</h3>
+        <div className="space-y-4 border-t border-brand-q pt-6">
+          <h3 className="heading-5 border-b border-brand-q pb-2">Publishing Options</h3>
           
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Location">
@@ -636,7 +637,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        <div className="card-footer">
           <Button type="button" variant="outline">
             Cancel
           </Button>

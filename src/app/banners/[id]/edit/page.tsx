@@ -95,8 +95,8 @@ export default function EditBannerPage() {
   if (loading) {
     return (
       <RoleGuard requiredPage="/banners">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="page-container section-spacing flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
         </div>
       </RoleGuard>
     );
@@ -105,10 +105,10 @@ export default function EditBannerPage() {
   if (error && !bannerData) {
     return (
       <RoleGuard requiredPage="/banners">
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="page-container section-spacing flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <h1 className="heading-2 mb-4">Error</h1>
+            <p className="text-body mb-4">{error}</p>
             <Link href="/banners">
               <Button>Back to Banners</Button>
             </Link>
@@ -120,68 +120,43 @@ export default function EditBannerPage() {
 
   return (
     <RoleGuard requiredPage="/banners">
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-brand-q">
+        <div className="nav-container">
+          <div className="page-container">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
-                <Link href="/banners">
-                  <Button variant="ghost" size="sm">
-                    ← Back
-                  </Button>
-                </Link>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="heading-4">
                   Edit Banner
                 </h1>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="page-container section-spacing">
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="mb-6 card card-compact border-brand-g bg-red-50">
               <div className="flex">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <div className="mt-2 text-sm text-red-700">{error}</div>
+                  <h3 className="text-small font-medium text-brand-g">Error</h3>
+                  <div className="mt-2 text-small text-brand-g">{error}</div>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">
-                  Banner Editor
-                </h2>
-                <BannerEditor
-                  initialData={bannerData}
-                  onDataChange={(data) => setBannerData(data)}
-                  onSave={() => { /* Save handled by header button */ }}
-                  saving={saving}
-                />
-              </div>
-            </div>
+          {/* Full-width Preview at Top */}
+          <div className="mb-8">
+            <BannerPreview data={bannerData} />
+          </div>
 
-            <div className="space-y-6">
-              <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">
-                  Live Preview
-                </h2>
-                <BannerPreview data={bannerData} />
-              </div>
-            </div>
+          <div className="space-y-6">
+            <BannerEditor
+              initialData={bannerData}
+              onDataChange={(data) => setBannerData(data)}
+              onSave={handleSave}
+              saving={saving}
+            />
           </div>
         </div>
       </div>

@@ -60,43 +60,44 @@ export default function NewBannerPage() {
 
   return (
     <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/banners">
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Banners
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create New Banner</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Design and configure a new promotional banner
-            </p>
+      <div className="min-h-screen bg-brand-q">
+        <div className="nav-container">
+          <div className="page-container">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <h1 className="heading-4">
+                  Create New Banner
+                </h1>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
+        <div className="page-container section-spacing">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 card card-compact border-brand-g bg-red-50">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-small font-medium text-brand-g">Error</h3>
+                  <div className="mt-2 text-small text-brand-g">{error}</div>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* Editor and Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="order-2 lg:order-1">
+          {/* Full-width Preview at Top */}
+          <div className="mb-8">
+            <BannerPreview data={bannerData} />
+          </div>
+
+          <div className="space-y-6">
             <BannerEditor
               initialData={{}}
               onDataChange={setBannerData}
               onSave={handleSave}
               saving={saving}
             />
-          </div>
-          
-          <div className="order-1 lg:order-2">
-            <BannerPreview data={bannerData} />
           </div>
         </div>
       </div>

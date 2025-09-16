@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
 interface BannerPreviewProps {
@@ -9,17 +8,17 @@ interface BannerPreviewProps {
 }
 
 export function BannerPreview({ data }: BannerPreviewProps) {
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   if (!data) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
+      <div className="card">
+        <div className="card-header">
+          <h2 className="heading-5">Live Preview</h2>
         </div>
-        <div className="p-6">
-          <div className="bg-gray-100 rounded-lg p-8 text-center">
-            <p className="text-gray-500">Configure banner settings to see preview</p>
+        <div className="card-content">
+          <div className="bg-brand-q rounded-lg p-8 text-center">
+            <p className="text-body text-brand-f">Configure banner settings to see preview</p>
           </div>
         </div>
       </div>
@@ -30,14 +29,19 @@ export function BannerPreview({ data }: BannerPreviewProps) {
     switch (previewMode) {
       case 'mobile':
         return 'max-w-sm mx-auto';
-      case 'tablet':
-        return 'max-w-2xl mx-auto';
+      case 'desktop':
+        return 'w-full';
       default:
         return 'w-full';
     }
   };
 
   const getLayoutClass = () => {
+    // For mobile preview mode, always use single column layout
+    if (previewMode === 'mobile') {
+      return 'space-y-6';
+    }
+    
     switch (data.layoutStyle) {
       case 'split':
         return 'grid md:grid-cols-2 gap-8 items-center';
@@ -76,11 +80,11 @@ export function BannerPreview({ data }: BannerPreviewProps) {
 
   const getUrgencyBadgeColor = () => {
     switch (data.urgencyLevel) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'low': return 'service-tag open';
+      case 'medium': return 'service-tag limited';
+      case 'high': return 'service-tag emergency';
+      case 'critical': return 'service-tag emergency';
+      default: return 'service-tag closed';
     }
   };
 
@@ -143,7 +147,7 @@ export function BannerPreview({ data }: BannerPreviewProps) {
             {/* Charter Badge */}
             {data.charterType && (
               <div className="flex items-center gap-3 mb-4">
-                <Badge className="bg-blue-100 text-blue-800">
+                <Badge className="service-tag verified">
                   {data.charterType.split('-').map((word: string) => 
                     word.charAt(0).toUpperCase() + word.slice(1)
                   ).join(' ')}
@@ -169,11 +173,11 @@ export function BannerPreview({ data }: BannerPreviewProps) {
             {/* Resource Badge */}
             {data.resourceType && (
               <div className="flex items-center gap-3 mb-4">
-                <Badge className="bg-purple-100 text-purple-800">
+                <Badge className="service-tag limited">
                   📄 {data.resourceType.charAt(0).toUpperCase() + data.resourceType.slice(1)}
                 </Badge>
                 {data.fileType && (
-                  <Badge className="bg-gray-100 text-gray-800">
+                  <Badge className="service-tag closed">
                     {data.fileType.toUpperCase()}
                   </Badge>
                 )}
@@ -206,22 +210,22 @@ export function BannerPreview({ data }: BannerPreviewProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
-      <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
+    <div className="card">
+      <div className="card-header">
+        <h2 className="heading-5">Live Preview</h2>
       </div>
       
-      <div className="p-6">
-        {/* Preview Controls */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Preview Options</h3>
+      <div className="card-content">
+        {/* Preview Controls - Only shown on desktop */}
+        <div className="mb-6 p-4 bg-brand-q rounded-lg hidden lg:block">
+          <h3 className="text-small font-medium text-brand-k mb-3">Preview Options</h3>
           <div className="flex gap-2">
-            {(['desktop', 'tablet', 'mobile'] as const).map(mode => (
+            {(['desktop', 'mobile'] as const).map(mode => (
               <button
                 key={mode}
                 onClick={() => setPreviewMode(mode)}
-                className={`px-3 py-1 text-xs border rounded hover:bg-gray-50 ${
-                  previewMode === mode ? 'bg-white border-gray-300' : 'border-gray-200'
+                className={`btn-base btn-sm ${
+                  previewMode === mode ? 'btn-primary' : 'btn-secondary'
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -231,7 +235,7 @@ export function BannerPreview({ data }: BannerPreviewProps) {
         </div>
 
         {/* Banner Preview */}
-        <div className={getPreviewContainerClass()}>
+        <div className={`w-full lg:${getPreviewContainerClass()}`}>
           <div 
             className={`relative overflow-hidden py-12 px-6 rounded-lg ${getTextColorClass()}`}
             style={getBackgroundStyle()}
@@ -249,111 +253,200 @@ export function BannerPreview({ data }: BannerPreviewProps) {
 
             {/* Content */}
             <div className={`relative z-10 ${getLayoutClass()}`}>
-              <div className="space-y-4">
-                {/* Badge Text */}
-                {data.badgeText && (
-                  <Badge className="bg-white/20 backdrop-blur-sm text-white">
-                    {data.badgeText}
-                  </Badge>
-                )}
+              {previewMode === 'mobile' ? (
+                // Mobile layout - single column, stacked
+                <>
+                  <div className="space-y-4 text-center">
+                    {/* Badge Text */}
+                    {data.badgeText && (
+                      <Badge className="bg-white/20 backdrop-blur-sm text-white">
+                        {data.badgeText}
+                      </Badge>
+                    )}
 
-                {/* Template-specific content */}
-                {renderTemplateContent()}
+                    {/* Template-specific content */}
+                    {renderTemplateContent()}
 
-                {/* Title */}
-                <h1 className="text-3xl font-bold leading-tight">
-                  {data.title || 'Banner Title'}
-                </h1>
-                
-                {/* Subtitle */}
-                {data.subtitle && (
-                  <h2 className="text-xl font-semibold opacity-90">
-                    {data.subtitle}
-                  </h2>
-                )}
-                
-                {/* Description */}
-                {data.description && (
-                  <p className="text-lg opacity-80 leading-relaxed max-w-2xl">
-                    {data.description}
-                  </p>
-                )}
-
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  {data.ctaButtons.map((button: any, index: number) => {
-                    const baseClasses = "inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200";
+                    {/* Title */}
+                    <h1 className="text-2xl font-bold leading-tight">
+                      {data.title || 'Banner Title'}
+                    </h1>
                     
-                    let buttonClasses = baseClasses;
-                    switch (button.variant) {
-                      case 'primary':
-                        buttonClasses += data.textColour === 'white' 
-                          ? " bg-white text-gray-900 hover:bg-gray-100"
-                          : " bg-gray-900 text-white hover:bg-gray-800";
-                        break;
-                      case 'secondary':
-                        buttonClasses += data.textColour === 'white'
-                          ? " bg-white/20 text-white border border-white/40 hover:bg-white/30"
-                          : " bg-gray-100 text-gray-900 border border-gray-300 hover:bg-gray-200";
-                        break;
-                      case 'outline':
-                        buttonClasses += data.textColour === 'white'
-                          ? " bg-transparent text-white border-2 border-white hover:bg-white hover:text-gray-900"
-                          : " bg-transparent text-gray-900 border-2 border-gray-900 hover:bg-gray-900 hover:text-white";
-                        break;
-                    }
+                    {/* Subtitle */}
+                    {data.subtitle && (
+                      <h2 className="text-lg font-semibold opacity-90">
+                        {data.subtitle}
+                      </h2>
+                    )}
+                    
+                    {/* Description */}
+                    {data.description && (
+                      <p className="text-base opacity-80 leading-relaxed">
+                        {data.description}
+                      </p>
+                    )}
 
-                    return (
-                      <button
-                        key={index}
-                        className={buttonClasses}
-                        disabled
-                      >
-                        {button.label || `Button ${index + 1}`}
-                        {button.external && (
-                          <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                    {/* CTA Buttons - stacked on mobile */}
+                    <div className="flex flex-col gap-3 pt-4">
+                      {data.ctaButtons.map((button: any, index: number) => {
+                        const baseClasses = "inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 w-full";
+                        
+                        let buttonClasses = baseClasses;
+                        switch (button.variant) {
+                          case 'primary':
+                            buttonClasses += data.textColour === 'white' 
+                              ? " bg-white text-gray-900 hover:bg-gray-100"
+                              : " bg-gray-900 text-white hover:bg-gray-800";
+                            break;
+                          case 'secondary':
+                            buttonClasses += data.textColour === 'white'
+                              ? " bg-white/20 text-white border border-white/40 hover:bg-white/30"
+                              : " bg-gray-100 text-gray-900 border border-gray-300 hover:bg-gray-200";
+                            break;
+                          case 'outline':
+                            buttonClasses += data.textColour === 'white'
+                              ? " bg-transparent text-white border-2 border-white hover:bg-white hover:text-gray-900"
+                              : " bg-transparent text-gray-900 border-2 border-gray-900 hover:bg-gray-900 hover:text-white";
+                            break;
+                        }
 
-              {/* Logo/Media placeholder */}
-              {data.layoutStyle === 'split' && (
-                <div className="flex justify-center">
-                  <div className="w-48 h-32 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                    <span className="text-sm opacity-70">Logo/Image</span>
+                        return (
+                          <button
+                            key={index}
+                            className={buttonClasses}
+                            disabled
+                          >
+                            {button.label || `Button ${index + 1}`}
+                            {button.external && (
+                              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+
+                  {/* Logo/Media placeholder - below content on mobile */}
+                  {data.layoutStyle === 'split' && (
+                    <div className="flex justify-center mt-6">
+                      <div className="w-40 h-28 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                        <span className="text-sm opacity-70">Logo/Image</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Desktop layout - original layout
+                <>
+                  <div className="space-y-4">
+                    {/* Badge Text */}
+                    {data.badgeText && (
+                      <Badge className="bg-white/20 backdrop-blur-sm text-white">
+                        {data.badgeText}
+                      </Badge>
+                    )}
+
+                    {/* Template-specific content */}
+                    {renderTemplateContent()}
+
+                    {/* Title */}
+                    <h1 className="text-3xl font-bold leading-tight">
+                      {data.title || 'Banner Title'}
+                    </h1>
+                    
+                    {/* Subtitle */}
+                    {data.subtitle && (
+                      <h2 className="text-xl font-semibold opacity-90">
+                        {data.subtitle}
+                      </h2>
+                    )}
+                    
+                    {/* Description */}
+                    {data.description && (
+                      <p className="text-lg opacity-80 leading-relaxed max-w-2xl">
+                        {data.description}
+                      </p>
+                    )}
+
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                      {data.ctaButtons.map((button: any, index: number) => {
+                        const baseClasses = "inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200";
+                        
+                        let buttonClasses = baseClasses;
+                        switch (button.variant) {
+                          case 'primary':
+                            buttonClasses += data.textColour === 'white' 
+                              ? " bg-white text-gray-900 hover:bg-gray-100"
+                              : " bg-gray-900 text-white hover:bg-gray-800";
+                            break;
+                          case 'secondary':
+                            buttonClasses += data.textColour === 'white'
+                              ? " bg-white/20 text-white border border-white/40 hover:bg-white/30"
+                              : " bg-gray-100 text-gray-900 border border-gray-300 hover:bg-gray-200";
+                            break;
+                          case 'outline':
+                            buttonClasses += data.textColour === 'white'
+                              ? " bg-transparent text-white border-2 border-white hover:bg-white hover:text-gray-900"
+                              : " bg-transparent text-gray-900 border-2 border-gray-900 hover:bg-gray-900 hover:text-white";
+                            break;
+                        }
+
+                        return (
+                          <button
+                            key={index}
+                            className={buttonClasses}
+                            disabled
+                          >
+                            {button.label || `Button ${index + 1}`}
+                            {button.external && (
+                              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Logo/Media placeholder - side by side on desktop */}
+                  {data.layoutStyle === 'split' && (
+                    <div className="flex justify-center">
+                      <div className="w-48 h-32 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                        <span className="text-sm opacity-70">Logo/Image</span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
         {/* Banner Info */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Banner Information</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+        <div className="mt-6 p-4 bg-brand-q rounded-lg">
+          <h3 className="text-small font-medium text-brand-k mb-2">Banner Information</h3>
+          <div className="grid grid-cols-2 gap-4 text-small text-brand-l">
             <div>
-              <span className="font-medium">Template:</span> {data.templateType}
+              <span className="font-medium text-brand-k">Template:</span> {data.templateType}
             </div>
             <div>
-              <span className="font-medium">Layout:</span> {data.layoutStyle}
+              <span className="font-medium text-brand-k">Layout:</span> {data.layoutStyle}
             </div>
             <div>
-              <span className="font-medium">Text Color:</span> {data.textColour}
+              <span className="font-medium text-brand-k">Text Color:</span> {data.textColour}
             </div>
             <div>
-              <span className="font-medium">Priority:</span> {data.priority}
+              <span className="font-medium text-brand-k">Priority:</span> {data.priority}
             </div>
             <div>
-              <span className="font-medium">Location:</span> {data.locationSlug || 'All Locations'}
+              <span className="font-medium text-brand-k">Location:</span> {data.locationSlug || 'All Locations'}
             </div>
             <div>
-              <span className="font-medium">Status:</span> {data.isActive ? 'Active' : 'Inactive'}
+              <span className="font-medium text-brand-k">Status:</span> {data.isActive ? 'Active' : 'Inactive'}
             </div>
           </div>
         </div>
