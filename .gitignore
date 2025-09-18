@@ -50,3 +50,7 @@ next-env.d.ts
 
 # Windsurf
 .windsurf
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
