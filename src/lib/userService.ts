@@ -1,7 +1,6 @@
-import { UserAuthClaims, UserRole } from '@/types/auth';
+import { UserAuthClaims, UserRole, HttpMethod, ApiEndpointPermission } from '@/types/auth';
 import { authenticatedFetch } from './api';
 import { JWT } from 'next-auth/jwt';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
 export interface ApiUser {
   _id: string;
@@ -72,7 +71,7 @@ export function hasPageAccess(userAuthClaims: UserAuthClaims, page: string): boo
   // Check role-based page access
   for (const role of userAuthClaims.roles) {
     const permissions = getRolePermissions(role);
-    if (permissions.pages.includes(page)) {
+    if (permissions.pages.includes(page) || permissions.pages.includes('*')) {
       return true;
     }
   }
@@ -83,8 +82,12 @@ export function hasPageAccess(userAuthClaims: UserAuthClaims, page: string): boo
 /**
  * Check if user has access to a specific API endpoint
  */
-export function hasApiAccess(userAuthClaims: UserAuthClaims, endpoint: string): boolean {
-  // SuperAdmin has access to everything
+export function hasApiAccess(
+  userAuthClaims: UserAuthClaims, 
+  endpoint: string, 
+  method: HttpMethod
+): boolean {
+  // SuperAdmin has access to everything if configured with a wildcard
   if (userAuthClaims.roles.includes('SuperAdmin')) {
     return true;
   }
@@ -92,8 +95,14 @@ export function hasApiAccess(userAuthClaims: UserAuthClaims, endpoint: string): 
   // Check role-based API access
   for (const role of userAuthClaims.roles) {
     const permissions = getRolePermissions(role);
-    if (permissions.apiEndpoints.includes(endpoint)) {
-      return true;
+    for (const p of permissions.apiEndpoints) {
+      const permission = p as ApiEndpointPermission;
+        if (permission.path === endpoint || permission.path === '*') {
+          if (permission.methods.includes(method) || permission.methods.includes('*')) {
+            // TODO: Add logic for params check if needed in the future
+            return true;
+          }
+        }
     }
   }
 

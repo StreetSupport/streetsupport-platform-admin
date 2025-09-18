@@ -3,8 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { hasApiAccess } from '@/lib/userService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has access to cities API
-    if (!hasApiAccess(session.user.authClaims, '/api/cities')) {
+    if (!hasApiAccess(session.user.authClaims, '/api/cities', 'GET')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
@@ -60,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has access to cities API
-    if (!hasApiAccess(session.user.authClaims, '/api/cities')) {
+    if (!hasApiAccess(session.user.authClaims, '/api/cities', 'POST')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }

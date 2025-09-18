@@ -24,12 +24,12 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    name: 'Content',
-    href: '/content',
+    name: 'Advice',
+    href: '/advice',
     children: [
-      { name: 'All Pages', href: '/content-pages' },
-      { name: 'Create Page', href: '/content-pages/new' },
-      { name: 'Drafts', href: '/content-pages/drafts' },
+      { name: 'All Pages', href: '/advice' },
+      { name: 'Create Page', href: '/advice/new' },
+      { name: 'Drafts', href: '/advice/drafts' },
     ],
   },
   {

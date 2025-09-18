@@ -1,6 +1,6 @@
 import { getSession } from 'next-auth/react';
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
 
 class ApiClient {
   private async getAuthHeaders(): Promise<Record<string, string>> {

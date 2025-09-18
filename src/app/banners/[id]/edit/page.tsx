@@ -14,8 +14,8 @@ export default function EditBannerPage() {
   const params = useParams();
   const bannerId = params.id as string;
   
-  const [bannerData, setBannerData] = useState<Partial<BannerFormData> | undefined>(undefined);
-  const [originalData, setOriginalData] = useState<Partial<BannerFormData> | undefined>(undefined);
+  const [bannerData, setBannerData] = useState<Partial<BannerFormData> | null>(null);
+  const [originalData, setOriginalData] = useState<Partial<BannerFormData> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +49,10 @@ export default function EditBannerPage() {
     }
   };
 
+  const handleCancel = () => {
+    setBannerData(originalData);
+  };
+
   const handleSave = async () => {
     if (!bannerData) return;
 
@@ -57,18 +61,20 @@ export default function EditBannerPage() {
       setError(null);
 
       const formData = new FormData();
-      
-      // Add banner data to form
-      Object.entries(bannerData).forEach(([key, value]) => {
-        if (key === 'ctaButtons' && Array.isArray(value)) {
+
+      // Add text fields
+      Object.keys(bannerData).forEach(key => {
+        const typedKey = key as keyof BannerFormData;
+        const value = bannerData[typedKey];
+        
+        if (key === 'logo' || key === 'image' || key === 'partnerLogos') {
+          // Handle file uploads separately
+          if (value && typeof value === 'object' && 'file' in value) {
+            formData.append(key, (value as any).file);
+          }
+        } else if (typeof value === 'object' && value !== null) {
           formData.append(key, JSON.stringify(value));
-        } else if (key === 'backgroundImage' && value instanceof File) {
-          formData.append('backgroundImage', value);
-        } else if (key === 'logoFile' && value instanceof File) {
-          formData.append('logoFile', value);
-        } else if (key === 'resourceFile' && value instanceof File) {
-          formData.append('resourceFile', value);
-        } else if (value !== null && value !== undefined) {
+        } else if (value !== undefined) {
           formData.append(key, String(value));
         }
       });
@@ -152,10 +158,11 @@ export default function EditBannerPage() {
 
           <div className="space-y-6">
             <BannerEditor
-              initialData={bannerData}
+              initialData={bannerData || {}}
               onDataChange={(data) => setBannerData(data)}
               onSave={handleSave}
               saving={saving}
+              onCancel={handleCancel}
             />
           </div>
         </div>

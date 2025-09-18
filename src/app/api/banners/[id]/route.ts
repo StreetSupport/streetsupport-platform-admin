@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { hasApiAccess } from '@/lib/userService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function GET(
   request: NextRequest,
@@ -11,10 +12,18 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${API_BASE_URL}/banners/${params.id}`, {
+    // Check if user has access to banners [id] GET API
+    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'GET')) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -44,12 +53,20 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user has access to banners [id] PUT API
+    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'PUT')) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const formData = await request.formData();
     
-    const response = await fetch(`${API_BASE_URL}/banners/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
@@ -80,10 +97,18 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const response = await fetch(`${API_BASE_URL}/banners/${params.id}`, {
+    // Check if user has access to banners [id] DELETE API
+    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'DELETE')) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,

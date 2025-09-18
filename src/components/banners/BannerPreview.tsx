@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/Badge';
 
 interface BannerPreviewProps {
@@ -9,6 +9,45 @@ interface BannerPreviewProps {
 
 export function BannerPreview({ data }: BannerPreviewProps) {
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewImageUrls, setPreviewImageUrls] = useState<{ logo?: string; image?: string; partnerLogos?: string[] }>({});
+
+  useEffect(() => {
+    const urls: { logo?: string; image?: string; partnerLogos?: string[] } = {};
+    
+    // Handle logo
+    if (data?.logo instanceof File) {
+      urls.logo = URL.createObjectURL(data.logo);
+    } else if (typeof data?.logo === 'string') {
+      urls.logo = data.logo;
+    }
+    
+    // Handle background image
+    if (data?.image instanceof File) {
+      urls.image = URL.createObjectURL(data.image);
+    } else if (typeof data?.image === 'string') {
+      urls.image = data.image;
+    }
+    
+    // Handle partner logos
+    if (data?.partnerLogos && Array.isArray(data.partnerLogos)) {
+      urls.partnerLogos = data.partnerLogos.map((logo: File | string) => 
+        logo instanceof File ? URL.createObjectURL(logo) : logo as string
+      );
+    }
+    
+    setPreviewImageUrls(urls);
+
+    return () => {
+      // Clean up object URLs
+      if (urls.logo && urls.logo.startsWith('blob:')) URL.revokeObjectURL(urls.logo);
+      if (urls.image && urls.image.startsWith('blob:')) URL.revokeObjectURL(urls.image);
+      if (urls.partnerLogos) {
+        urls.partnerLogos.forEach(url => {
+          if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+        });
+      }
+    };
+  }, [data?.logo, data?.image, data?.partnerLogos]);
 
   if (!data) {
     return (
@@ -64,10 +103,13 @@ export function BannerPreview({ data }: BannerPreviewProps) {
         style.background = background.value;
         break;
       case 'image':
-        style.backgroundImage = `url(${background.value})`;
-        style.backgroundSize = 'cover';
-        style.backgroundPosition = 'center';
-        style.backgroundRepeat = 'no-repeat';
+        const imageUrl = previewImageUrls.image || (typeof background.value === 'string' ? background.value : '');
+        if (imageUrl) {
+          style.backgroundImage = `url(${imageUrl})`;
+          style.backgroundSize = 'cover';
+          style.backgroundPosition = 'center';
+          style.backgroundRepeat = 'no-repeat';
+        }
         break;
     }
 
@@ -257,6 +299,13 @@ export function BannerPreview({ data }: BannerPreviewProps) {
                 // Mobile layout - single column, stacked
                 <>
                   <div className="space-y-4 text-center">
+                    {/* Logo */}
+                    {(previewImageUrls.logo || (data.logo && typeof data.logo === 'string')) && (
+                      <div className="flex justify-center mb-4">
+                        <img src={previewImageUrls.logo || data.logo as string} alt="Logo" className="max-h-16 object-contain" />
+                      </div>
+                    )}
+
                     {/* Badge Text */}
                     {data.badgeText && (
                       <Badge className="bg-white/20 backdrop-blur-sm text-white">
@@ -328,12 +377,16 @@ export function BannerPreview({ data }: BannerPreviewProps) {
                     </div>
                   </div>
 
-                  {/* Logo/Media placeholder - below content on mobile */}
+                  {/* Logo/Media - below content on mobile */}
                   {data.layoutStyle === 'split' && (
                     <div className="flex justify-center mt-6">
-                      <div className="w-40 h-28 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                        <span className="text-sm opacity-70">Logo/Image</span>
-                      </div>
+                      {previewImageUrls.image || (data.image && typeof data.image === 'string') ? (
+                        <img src={previewImageUrls.image || data.image as string} alt="Banner media" className="rounded-lg max-h-48 object-contain" />
+                      ) : (
+                        <div className="w-40 h-28 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                          <span className="text-sm opacity-70">Logo/Image</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
@@ -341,6 +394,13 @@ export function BannerPreview({ data }: BannerPreviewProps) {
                 // Desktop layout - original layout
                 <>
                   <div className="space-y-4">
+                    {/* Logo */}
+                    {(previewImageUrls.logo || (data.logo && typeof data.logo === 'string')) && (
+                      <div className="flex justify-start mb-4">
+                        <img src={previewImageUrls.logo || data.logo as string} alt="Logo" className="max-h-20 object-contain" />
+                      </div>
+                    )}
+
                     {/* Badge Text */}
                     {data.badgeText && (
                       <Badge className="bg-white/20 backdrop-blur-sm text-white">
@@ -412,12 +472,25 @@ export function BannerPreview({ data }: BannerPreviewProps) {
                     </div>
                   </div>
 
-                  {/* Logo/Media placeholder - side by side on desktop */}
+                  {/* Logo/Media - side by side on desktop */}
                   {data.layoutStyle === 'split' && (
-                    <div className="flex justify-center">
-                      <div className="w-48 h-32 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                        <span className="text-sm opacity-70">Logo/Image</span>
-                      </div>
+                    <div className="flex justify-center items-center">
+                      {previewImageUrls.image || (data.image && typeof data.image === 'string') ? (
+                        <img src={previewImageUrls.image || data.image as string} alt="Banner media" className="rounded-lg max-h-64 object-contain" />
+                      ) : (
+                        <div className="w-48 h-32 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                          <span className="text-sm opacity-70">Logo/Image</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Partner Logos for partnership-charter template */}
+                  {data.templateType === 'partnership-charter' && (previewImageUrls.partnerLogos && previewImageUrls.partnerLogos.length > 0) && (
+                    <div className="flex flex-wrap justify-center items-center gap-4 mt-6">
+                      {previewImageUrls.partnerLogos.map((logoUrl: string, index: number) => (
+                        <img key={index} src={logoUrl} alt={`Partner Logo ${index + 1}`} className="max-h-12 object-contain bg-white p-1 rounded" />
+                      ))}
                     </div>
                   )}
                 </>

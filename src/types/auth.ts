@@ -6,31 +6,64 @@ export type UserRole =
   | 'OrgAdmin'
   | 'SwepAdmin';
 
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | '*';
+
+export interface ApiEndpointPermission {
+  path: string;
+  methods: HttpMethod[];
+  params?: {
+    [key: string]: string | string[];
+  };
+}
+
 export interface RolePermissions {
   pages: string[];
-  apiEndpoints: string[];
+
+  apiEndpoints: ApiEndpointPermission[];
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   SuperAdmin: {
-    pages: ['/', '/cities', '/organisations', '/content', '/users', '/resources'],
-    apiEndpoints: ['/api/categories', '/api/cities', '/api/service-providers', '/api/faqs', '/api/users']
+    pages: ['*'],
+    apiEndpoints: [{ path: '*', methods: ['*'] }]
   },
   CityAdmin: {
-    pages: ['/cities', '/resources'],
-    apiEndpoints: ['/api/cities']
+    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/resources'],
+    apiEndpoints: [
+      { path: '/api/cities', methods: ['*'] },
+      { path: '/api/service-providers', methods: ['*'] },
+      { path: '/api/services', methods: ['*'] },
+      { path: '/api/faqs', methods: ['*'] },
+      { path: '/api/banners', methods: ['*'] },
+      { path: '/api/swep-banners', methods: ['*'] },
+      { path: '/api/resources', methods: ['*'] },
+      { path: '/api/users', methods: ['*'] }
+    ]
   },
   VolunteerAdmin: {
-    pages: ['/content'],
-    apiEndpoints: ['/api/faqs']
+    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/resources'],
+    apiEndpoints: [
+      { path: '/api/cities', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/service-providers', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/services', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/faqs', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/banners', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/swep-banners', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/resources', methods: ['GET', 'POST', 'PUT'] },
+      { path: '/api/users', methods: ['POST'] }
+    ]
   },
   OrgAdmin: {
     pages: ['/organisations'],
-    apiEndpoints: ['/api/service-providers']
+    apiEndpoints: [
+      { path: '/api/service-providers', methods: ['*'] },
+      { path: '/api/services', methods: ['*'] },
+      { path: '/api/users', methods: ['POST'] }
+    ]
   },
   SwepAdmin: {
-    pages: ['/users'],
-    apiEndpoints: ['/api/users']
+    pages: ['/swep-banners'],
+    apiEndpoints: [{ path: '/api/swep-banners', methods: ['*'] }]
   }
 };
 

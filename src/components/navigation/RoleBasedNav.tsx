@@ -12,8 +12,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/organisations', label: 'Organisations', page: '/organisations' },
-  { href: '/content', label: 'Content', page: '/content' },
+  { href: '/advice', label: 'Advice', page: '/advice' },
   { href: '/banners', label: 'Banners', page: '/banners' },
+  { href: '/swep-banners', label: 'SWEP', page: '/swep-banners' },
   { href: '/cities', label: 'Cities', page: '/cities' },
   { href: '/users', label: 'Users', page: '/users' },
 ];

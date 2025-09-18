@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { FormField } from '@/components/ui/FormField';
+import type { ICity } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -43,7 +44,10 @@ export interface BannerFormData {
     currency: string;
   };
   urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
+  startDate: string;
+  endDate: string;
   campaignEndDate: string;
+  showDates: boolean;
   charterType: 'homeless-charter' | 'real-change' | 'alternative-giving' | 'partnership';
   signatoriesCount: number;
   resourceType: 'guide' | 'toolkit' | 'research' | 'training' | 'event';
@@ -61,6 +65,7 @@ interface BannerEditorProps {
   onDataChange: (data: BannerFormData) => void;
   onSave: (data: BannerFormData) => void;
   saving?: boolean;
+  onCancel?: () => void;
 }
 
 const TEMPLATE_TYPES = [
@@ -114,14 +119,24 @@ const RESOURCE_TYPES = [
   { value: 'event', label: 'Event' }
 ];
 
-const LOCATIONS = [
-  { value: '', label: 'All Locations' },
-  { value: 'manchester', label: 'Manchester' },
-  { value: 'birmingham', label: 'Birmingham' },
-  { value: 'leeds', label: 'Leeds' }
-];
 
-export function BannerEditor({ initialData, onDataChange, onSave, saving = false }: BannerEditorProps) {
+export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel }: BannerEditorProps) {
+  const [cities, setCities] = useState<ICity[]>([]);
+
+  useEffect(() => {
+    async function fetchCities() {
+      try {
+        const response = await fetch('/api/cities');
+        const result = await response.json();
+        if (result.success) {
+          setCities(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
+      }
+    }
+    fetchCities();
+  }, []);
   const [formData, setFormData] = useState<BannerFormData>(() => {
     const defaults: BannerFormData = {
       title: '',
@@ -156,7 +171,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         currency: 'GBP'
       },
       urgencyLevel: 'medium',
+      startDate: '',
+      endDate: '',
       campaignEndDate: '',
+      showDates: false,
       charterType: 'homeless-charter',
       signatoriesCount: 0,
       resourceType: 'guide',
@@ -196,15 +214,22 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   const updateFormData = (path: string, value: any) => {
     setFormData(prev => {
       const keys = path.split('.');
-      const newData = JSON.parse(JSON.stringify(prev)); // Deep copy to avoid mutation issues
-      let current = newData;
-
+      // Start with a shallow copy of the root
+      const newData: any = Array.isArray(prev) ? [...(prev as any)] : { ...(prev as any) };
+      // Walk the path, cloning each branch as we go
+      let current: any = newData;
+      let source: any = prev as any;
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+        const key = keys[i];
+        const nextSource = source[key];
+        // Clone arrays vs objects appropriately to maintain immutability
+        const next = Array.isArray(nextSource) ? [...nextSource] : { ...nextSource };
+        current[key] = next;
+        current = next;
+        source = nextSource;
       }
-
       current[keys[keys.length - 1]] = value;
-      return newData;
+      return newData as BannerFormData;
     });
   };
 
@@ -574,7 +599,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   <FormField label="Button Style">
                     <Select
                       value={button.variant}
-                      onChange={(value) => updateCTAButton(index, 'variant', value)}
+                      onChange={(e) => updateCTAButton(index, 'variant', (e.target as HTMLSelectElement).value as any)}
                       options={CTA_VARIANTS}
                     />
                   </FormField>
@@ -594,7 +619,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   <Checkbox
                     label="External link (opens in new tab)"
                     checked={button.external}
-                    onChange={(checked) => updateCTAButton(index, 'external', checked)}
+                    onChange={(e) => updateCTAButton(index, 'external', (e.target as HTMLInputElement).checked)}
                   />
                 </div>
               </div>
@@ -611,11 +636,17 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Location">
-              <Select
+              <select
+                id="locationSlug"
+                className="form-input"
                 value={formData.locationSlug}
                 onChange={(e) => updateFormData('locationSlug', e.target.value)}
-                options={LOCATIONS}
-              />
+              >
+                <option value="general">All Locations</option>
+                {cities.map(city => (
+                  <option key={city.Key} value={city.Key}>{city.Name}</option>
+                ))}
+              </select>
             </FormField>
             
             <FormField label="Priority (1-10)">
@@ -632,15 +663,44 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <Checkbox
             label="Active (visible to users)"
             checked={formData.isActive}
-            onChange={(checked) => updateFormData('isActive', checked)}
+            onChange={(e) => updateFormData('isActive', (e.target as HTMLInputElement).checked)}
           />
+
+          <div className="border-t border-brand-q pt-4">
+            <h4 className="heading-6 pb-2">Scheduling</h4>
+            <Checkbox
+              label="Enable visibility date range"
+              checked={formData.showDates}
+              onChange={(e) => updateFormData('showDates', (e.target as HTMLInputElement).checked)}
+            />
+            {formData.showDates && (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <FormField label="Start Date">
+                  <Input
+                    type="datetime-local"
+                    value={formData.startDate}
+                    onChange={(e) => updateFormData('startDate', e.target.value)}
+                  />
+                </FormField>
+                <FormField label="End Date">
+                  <Input
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={(e) => updateFormData('endDate', e.target.value)}
+                  />
+                </FormField>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Submit Button */}
         <div className="card-footer">
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
           <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : 'Save Banner'}
           </Button>

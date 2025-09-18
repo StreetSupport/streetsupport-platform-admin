@@ -173,7 +173,7 @@ export default function BannersPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-small text-brand-f">Total Banners</p>
-                  <p className="heading-3 text-brand-k">{stats.overview.totalBanners}</p>
+                  <p className="heading-3 text-brand-k">{stats?.overview?.totalBanners}</p>
                 </div>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function BannersPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-small text-brand-f">Active</p>
-                  <p className="heading-3 text-brand-b">{stats.overview.activeBanners}</p>
+                  <p className="heading-3 text-brand-b">{stats?.overview?.activeBanners}</p>
                 </div>
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function BannersPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-small text-brand-f">Inactive</p>
-                  <p className="heading-3 text-brand-g">{stats.overview.inactiveBanners}</p>
+                  <p className="heading-3 text-brand-g">{stats?.overview?.inactiveBanners}</p>
                 </div>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function BannersPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-small text-brand-f">Templates</p>
-                  <p className="heading-3 text-brand-h">{stats.byTemplate.length}</p>
+                  <p className="heading-3 text-brand-h">{stats?.byTemplate?.length}</p>
                 </div>
               </div>
             </div>
