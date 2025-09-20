@@ -2,20 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BannerEditor, BannerFormData } from '@/components/banners/BannerEditor';
+import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
-import { Button } from '@/components/ui/Button';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 
 export default function NewBannerPage() {
   const router = useRouter();
-  const [bannerData, setBannerData] = useState<BannerFormData | null>(null);
+  const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = async (data: BannerFormData) => {
+  const handleSave = async (data: IBannerFormData) => {
     try {
       setSaving(true);
       setError(null);
@@ -24,13 +21,21 @@ export default function NewBannerPage() {
       
       // Add text fields
       Object.keys(data).forEach(key => {
-        const typedKey = key as keyof BannerFormData;
+        const typedKey = key as keyof IBannerFormData;
         const value = data[typedKey];
         
-        if (key === 'logo' || key === 'image' || key === 'partnerLogos') {
+        if (key === 'Logo' || key === 'BackgroundImage' || key === 'SplitImage' || key === 'PartnerLogos') {
           // Handle file uploads separately
-          if (value && typeof value === 'object' && 'file' in value) {
-            formData.append(key, (value as any).file);
+          if (value instanceof File) {
+            // Single new file
+            formData.append(`new_${key}`, value);
+          } else if (Array.isArray(value) && key === 'PartnerLogos') {
+            // Handle multiple files (partnerLogos) - all new in create mode
+            (value as File[]).forEach((file: File) => {
+              if (file instanceof File) {
+                formData.append(`new_${key}`, file);
+              }
+            });
           }
         } else if (typeof value === 'object' && value !== null) {
           formData.append(key, JSON.stringify(value));

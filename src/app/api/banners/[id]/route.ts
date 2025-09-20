@@ -1,31 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { withAuth, AuthContext, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user has access to banners [id] GET API
-    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'GET')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'GET')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
+    const { id } = context.params;
+    const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -44,32 +35,23 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+};
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user has access to banners [id] PUT API
-    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'PUT')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'PUT')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const formData = await request.formData();
-    
-    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
+    const formData = await req.formData();
+    const { id } = context.params;
+    const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
       body: formData,
     });
@@ -88,30 +70,22 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+};
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user has access to banners [id] DELETE API
-    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'DELETE')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'DELETE')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/banners/${params.id}`, {
+    const { id } = context.params;
+    const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -130,4 +104,8 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const PUT = withAuth(putHandler);
+export const DELETE = withAuth(deleteHandler);

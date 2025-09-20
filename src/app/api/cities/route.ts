@@ -1,34 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
 
-    // Check if user has access to cities API
-    if (!hasApiAccess(session.user.authClaims, '/api/cities', 'GET')) {
+const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
+  try {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/cities', 'GET')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    // Forward request to backend API
     const response = await fetch(`${API_BASE_URL}/api/cities`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
     });
 
@@ -45,35 +34,24 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
 
-export async function POST(request: NextRequest) {
+const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user has access to cities API
-    if (!hasApiAccess(session.user.authClaims, '/api/cities', 'POST')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/cities', 'POST')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const body = await request.json();
+    const body = await req.json();
 
-    // Forward request to backend API
     const response = await fetch(`${API_BASE_URL}/api/cities`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
       body: JSON.stringify(body),
     });
@@ -91,4 +69,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

@@ -1,31 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
-export async function GET(request: NextRequest) {
+const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user has access to banners API
-    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'GET')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'GET')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const queryString = searchParams.toString();
     
-    const response = await fetch(`${API_BASE_URL}/banners?${queryString}`, {
+    const response = await fetch(`${API_BASE_URL}/api/banners?${queryString}`, {
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -43,29 +36,23 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
 
-export async function POST(request: NextRequest) {
+const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user has access to banners API
-    if (!hasApiAccess(session.user.authClaims, '/api/banners', 'POST')) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'POST')) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - insufficient permissions' },
         { status: 403 }
       );
     }
 
-    const formData = await request.formData();
+    const formData = await req.formData();
     
-    const response = await fetch(`${API_BASE_URL}/banners`, {
+    const response = await fetch(`${API_BASE_URL}/api/banners`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
       body: formData,
     });
@@ -84,4 +71,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

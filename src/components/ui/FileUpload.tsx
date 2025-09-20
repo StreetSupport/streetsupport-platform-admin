@@ -80,6 +80,8 @@ export function FileUpload({
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
+      // Reset the input value to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -88,11 +90,17 @@ export function FileUpload({
       const newFiles = prev.filter((_, i) => i !== index);
       if (multiple) {
         onUpload(newFiles);
-      } else if (newFiles.length > 0) {
-        onUpload(newFiles[0]);
+      } else {
+        // For single file uploads, pass null when no files remain
+        onUpload(newFiles.length > 0 ? newFiles[0] : null as any);
       }
       return newFiles;
     });
+    
+    // Reset the input value to allow re-uploading the same file
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
   const formatFileSize = (bytes: number) => {

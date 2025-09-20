@@ -50,9 +50,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      debugger
       if (session.user) {
-        debugger
         session.user.id = token.id as string;
         session.user.auth0Id = token.auth0Id as string;
         session.user.authClaims = token.authClaims as UserAuthClaims;

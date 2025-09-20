@@ -9,61 +9,14 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { ArrowLeft, Edit, Trash, Eye, EyeOff } from 'lucide-react';
-
-interface Banner {
-  _id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  templateType: 'giving-campaign' | 'partnership-charter' | 'resource-project';
-  layoutStyle: 'split' | 'full-width' | 'card';
-  textColour: 'white' | 'black';
-  background: {
-    type: 'solid' | 'gradient' | 'image';
-    value: string;
-    overlay: {
-      colour: string;
-      opacity: number;
-    };
-  };
-  ctaButtons: Array<{
-    label: string;
-    url: string;
-    variant: 'primary' | 'secondary' | 'outline';
-    external: boolean;
-  }>;
-  isActive: boolean;
-  priority: number;
-  locationSlug: string;
-  badgeText: string;
-  donationGoal?: {
-    target: number;
-    current: number;
-    currency: string;
-  };
-  urgencyLevel?: 'low' | 'medium' | 'high' | 'critical';
-  campaignEndDate?: string;
-  charterType?: 'homeless-charter' | 'real-change' | 'alternative-giving' | 'partnership';
-  signatoriesCount?: number;
-  resourceType?: 'guide' | 'toolkit' | 'research' | 'training' | 'event';
-  downloadCount?: number;
-  fileSize?: string;
-  fileType?: string;
-  lastUpdated: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: {
-    UserName: string;
-    Email: string;
-  };
-}
+import { IBanner } from '@/types';
 
 export default function BannerDetailPage() {
   const params = useParams();
   const router = useRouter();
   const bannerId = params.id as string;
   
-  const [banner, setBanner] = useState<Banner | null>(null);
+  const [banner, setBanner] = useState<IBanner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -109,7 +62,7 @@ export default function BannerDetailPage() {
         throw new Error('Failed to toggle banner status');
       }
       
-      setBanner(prev => prev ? { ...prev, isActive: !prev.isActive } : null);
+      setBanner(prev => prev ? { ...prev, IsActive: !prev.IsActive } : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle status');
     } finally {
@@ -185,36 +138,33 @@ export default function BannerDetailPage() {
       <div className="page-container section-spacing space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/banners">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Banners
-              </Button>
-            </Link>
-            <div>
-              <h1 className="heading-2">{banner.title}</h1>
-              <p className="text-body">
-                Created by {banner.createdBy.UserName} on {new Date(banner.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-          
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
               onClick={toggleBannerStatus}
               disabled={actionLoading}
               className={`flex items-center gap-2 ${
-                banner.isActive ? 'text-brand-g hover:text-red-700' : 'text-brand-b hover:text-brand-c'
+                banner.IsActive ? 'text-brand-g hover:text-red-700' : 'text-brand-b hover:text-brand-c'
               }`}
             >
-              {banner.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {banner.isActive ? 'Deactivate' : 'Activate'}
+              {banner.IsActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {banner.IsActive ? 'Deactivate' : 'Activate'}
             </Button>
             
             <Link href={`/banners/${bannerId}/edit`}>
-              <Button className="flex items-center gap-2">
+              <Button
+                className="flex items-center gap-2"
+                onClick={() => {
+                  try {
+                    console.log(sessionStorage);
+                    // Persist full banner payload for edit page prefill
+                    sessionStorage.setItem('editBannerPrefill', JSON.stringify(banner));
+                  } catch (e) {
+                    // Non-fatal: if storage fails, edit page will fetch
+                    console.warn('Failed to persist banner prefill to sessionStorage', e);
+                  }
+                }}
+              >
                 <Edit className="h-4 w-4" />
                 Edit Banner
               </Button>
@@ -253,164 +203,164 @@ export default function BannerDetailPage() {
                   <div>
                     <label className="text-small font-medium text-brand-k">Template Type</label>
                     <div className="mt-1">
-                      <Badge className={getTemplateTypeColor(banner.templateType)}>
-                        {formatTemplateType(banner.templateType)}
+                      <Badge className={getTemplateTypeColor(banner.TemplateType)}>
+                        {formatTemplateType(banner.TemplateType)}
                       </Badge>
                     </div>
                   </div>
                   <div>
                     <label className="text-small font-medium text-brand-k">Status</label>
                     <div className="mt-1">
-                      <Badge className={banner.isActive ? 'service-tag open' : 'service-tag closed'}>
-                        {banner.isActive ? 'Active' : 'Inactive'}
+                      <Badge className={banner.IsActive ? 'service-tag open' : 'service-tag closed'}>
+                        {banner.IsActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
                   </div>
                   <div>
                     <label className="text-small font-medium text-brand-k">Priority</label>
-                    <p className="text-body">{banner.priority}</p>
+                    <p className="text-body">{banner.Priority}</p>
                   </div>
                   <div>
                     <label className="text-small font-medium text-brand-k">Location</label>
-                    <p className="text-body">{banner.locationSlug || 'All Locations'}</p>
+                    <p className="text-body">{banner.LocationSlug || 'All Locations'}</p>
                   </div>
                   <div>
                     <label className="text-small font-medium text-brand-k">Layout Style</label>
-                    <p className="text-body">{banner.layoutStyle}</p>
+                    <p className="text-body">{banner.LayoutStyle}</p>
                   </div>
                   <div>
                     <label className="text-small font-medium text-brand-k">Text Color</label>
-                    <p className="text-body">{banner.textColour}</p>
+                    <p className="text-body">{banner.TextColour}</p>
                   </div>
                 </div>
 
-                {banner.subtitle && (
+                {banner.Subtitle && (
                   <div>
                     <label className="text-small font-medium text-brand-k">Subtitle</label>
-                    <p className="text-body">{banner.subtitle}</p>
+                    <p className="text-body">{banner.Subtitle}</p>
                   </div>
                 )}
 
-                {banner.description && (
+                {banner.Description && (
                   <div>
                     <label className="text-small font-medium text-brand-k">Description</label>
-                    <p className="text-body">{banner.description}</p>
+                    <p className="text-body">{banner.Description}</p>
                   </div>
                 )}
 
-                {banner.badgeText && (
+                {banner.BadgeText && (
                   <div>
                     <label className="text-small font-medium text-brand-k">Badge Text</label>
-                    <p className="text-body">{banner.badgeText}</p>
+                    <p className="text-body">{banner.BadgeText}</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Template-specific Information */}
-            {banner.templateType === 'giving-campaign' && (
+            {banner.TemplateType === 'giving-campaign' && (
               <div className="card">
                 <div className="card-header">
                   <h2 className="heading-5">Campaign Details</h2>
                 </div>
                 <div className="card-content space-y-4">
-                  {banner.urgencyLevel && (
+                  {banner.UrgencyLevel && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Urgency Level</label>
                       <div className="mt-1">
                         <Badge className={
-                          banner.urgencyLevel === 'critical' ? 'service-tag emergency' :
-                          banner.urgencyLevel === 'high' ? 'service-tag emergency' :
-                          banner.urgencyLevel === 'medium' ? 'service-tag limited' :
+                          banner.UrgencyLevel === 'critical' ? 'service-tag emergency' :
+                          banner.UrgencyLevel === 'high' ? 'service-tag emergency' :
+                          banner.UrgencyLevel === 'medium' ? 'service-tag limited' :
                           'service-tag open'
                         }>
-                          {banner.urgencyLevel.charAt(0).toUpperCase() + banner.urgencyLevel.slice(1)}
+                          {banner.UrgencyLevel.charAt(0).toUpperCase() + banner.UrgencyLevel.slice(1)}
                         </Badge>
                       </div>
                     </div>
                   )}
                   
-                  {banner.donationGoal && (
+                  {banner.DonationGoal && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-small font-medium text-brand-k">Target Amount</label>
-                        <p className="text-body">£{banner.donationGoal.target.toLocaleString()}</p>
+                        <p className="text-body">£{(banner.DonationGoal.Target ?? 0).toLocaleString()}</p>
                       </div>
                       <div>
                         <label className="text-small font-medium text-brand-k">Current Amount</label>
-                        <p className="text-body">£{banner.donationGoal.current.toLocaleString()}</p>
+                        <p className="text-body">£{(banner.DonationGoal.Current ?? 0).toLocaleString()}</p>
                       </div>
                     </div>
                   )}
                   
-                  {banner.campaignEndDate && (
+                  {banner.CampaignEndDate && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Campaign End Date</label>
-                      <p className="text-body">{new Date(banner.campaignEndDate).toLocaleDateString()}</p>
+                      <p className="text-body">{new Date(banner.CampaignEndDate).toLocaleDateString()}</p>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {banner.templateType === 'partnership-charter' && (
+            {banner.TemplateType === 'partnership-charter' && (
               <div className="card">
                 <div className="card-header">
                   <h2 className="heading-5">Charter Details</h2>
                 </div>
                 <div className="card-content space-y-4">
-                  {banner.charterType && (
+                  {banner.CharterType && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Charter Type</label>
-                      <p className="text-body">{banner.charterType.split('-').map(word => 
+                      <p className="text-body">{banner.CharterType.split('-').map(word => 
                         word.charAt(0).toUpperCase() + word.slice(1)
                       ).join(' ')}</p>
                     </div>
                   )}
                   
-                  {banner.signatoriesCount !== undefined && (
+                  {banner.SignatoriesCount !== undefined && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Signatories Count</label>
-                      <p className="text-body">{banner.signatoriesCount}</p>
+                      <p className="text-body">{banner.SignatoriesCount}</p>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {banner.templateType === 'resource-project' && (
+            {banner.TemplateType === 'resource-project' && (
               <div className="card">
                 <div className="card-header">
                   <h2 className="heading-5">Resource Details</h2>
                 </div>
                 <div className="card-content space-y-4">
-                  {banner.resourceType && (
+                  {banner.ResourceFile?.ResourceType && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Resource Type</label>
-                      <p className="text-body">{banner.resourceType.charAt(0).toUpperCase() + banner.resourceType.slice(1)}</p>
+                      <p className="text-body">{banner.ResourceFile.ResourceType.charAt(0).toUpperCase() + banner.ResourceFile.ResourceType.slice(1)}</p>
                     </div>
                   )}
                   
                   <div className="grid grid-cols-2 gap-4">
-                    {banner.fileSize && (
+                    {banner.ResourceFile?.FileSize && (
                       <div>
                         <label className="text-small font-medium text-brand-k">File Size</label>
-                        <p className="text-body">{banner.fileSize}</p>
+                        <p className="text-body">{banner.ResourceFile.FileSize}</p>
                       </div>
                     )}
                     
-                    {banner.fileType && (
+                    {banner.ResourceFile?.FileType && (
                       <div>
                         <label className="text-small font-medium text-brand-k">File Type</label>
-                        <p className="text-body">{banner.fileType}</p>
+                        <p className="text-body">{banner.ResourceFile.FileType}</p>
                       </div>
                     )}
                   </div>
                   
-                  {banner.downloadCount !== undefined && (
+                  {banner.ResourceFile?.DownloadCount !== undefined && (
                     <div>
                       <label className="text-small font-medium text-brand-k">Download Count</label>
-                      <p className="text-body">{banner.downloadCount.toLocaleString()}</p>
+                      <p className="text-body">{banner.ResourceFile.DownloadCount.toLocaleString()}</p>
                     </div>
                   )}
                 </div>
@@ -418,22 +368,22 @@ export default function BannerDetailPage() {
             )}
 
             {/* CTA Buttons */}
-            {banner.ctaButtons && banner.ctaButtons.length > 0 && (
+            {banner.CtaButtons && banner.CtaButtons.length > 0 && (
               <div className="card">
                 <div className="card-header">
                   <h2 className="heading-5">Call-to-Action Buttons</h2>
                 </div>
                 <div className="card-content space-y-3">
-                  {banner.ctaButtons.map((button, index) => (
+                  {banner.CtaButtons.map((button, index) => (
                     <div key={index} className="p-3 border border-brand-q rounded-md">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-small font-medium text-brand-k">{button.label}</p>
-                          <p className="text-caption text-brand-f">{button.url}</p>
+                          <p className="text-small font-medium text-brand-k">{button.Label}</p>
+                          <p className="text-caption text-brand-f">{button.Url}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge className="service-tag closed">{button.variant}</Badge>
-                          {button.external && (
+                          <Badge className="service-tag closed">{button.Variant}</Badge>
+                          {button.External && (
                             <Badge className="service-tag limited">External</Badge>
                           )}
                         </div>

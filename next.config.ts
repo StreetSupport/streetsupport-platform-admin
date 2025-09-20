@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: true, // Temporarily disabled for testing
   env: {
     AUTH0_SECRET: process.env.AUTH0_SECRET,
     AUTH0_BASE_URL: process.env.AUTH0_BASE_URL,

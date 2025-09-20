@@ -18,7 +18,6 @@ export interface ApiUser {
 export async function fetchUserByAuth0Id(auth0Id: string, token: JWT): Promise<ApiUser | null> {
   try {
     const result = await authenticatedFetch(`/api/users/auth0/${auth0Id}`, token);
-    debugger
     return result.success ? result.data : null;
   } catch (error) {
     // Gracefully handle cases where the user is not authenticated yet

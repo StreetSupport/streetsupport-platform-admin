@@ -2,126 +2,89 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { FileUpload } from '@/components/ui/FileUpload';
+import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
-import type { ICity } from '@/types';
+import type { ICity, ICTAButton } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Plus, Trash } from 'lucide-react';
+import { BannerTemplateType, UrgencyLevel, CharterType, ResourceType, IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant } from '@/types';
+import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/IResourceFile';
 
-export interface CtaButton {
-  label: string;
-  url: string;
-  variant: 'primary' | 'secondary' | 'outline';
-  external: boolean;
-}
-
-export interface BannerFormData {
-  title: string;
-  subtitle: string;
-  description: string;
-  templateType: 'giving-campaign' | 'partnership-charter' | 'resource-project';
-  layoutStyle: 'split' | 'full-width' | 'card';
-  textColour: 'white' | 'black';
-  background: {
-    type: 'solid' | 'gradient' | 'image';
-    value: string;
-    overlay: {
-      colour: string;
-      opacity: number;
-    };
-  };
-  ctaButtons: CtaButton[];
-  isActive: boolean;
-  priority: number;
-  locationSlug: string;
-  badgeText: string;
-  donationGoal: {
-    target: number;
-    current: number;
-    currency: string;
-  };
-  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
-  startDate: string;
-  endDate: string;
-  campaignEndDate: string;
-  showDates: boolean;
-  charterType: 'homeless-charter' | 'real-change' | 'alternative-giving' | 'partnership';
-  signatoriesCount: number;
-  resourceType: 'guide' | 'toolkit' | 'research' | 'training' | 'event';
-  downloadCount: number;
-  fileSize: string;
-  fileType: string;
-  lastUpdated: string;
-  partnerLogos?: File[];
-  logo?: File;
-  image?: File;
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 interface BannerEditorProps {
-  initialData?: Partial<BannerFormData>;
-  onDataChange: (data: BannerFormData) => void;
-  onSave: (data: BannerFormData) => void;
+  initialData?: Partial<IBannerFormData>;
+  onDataChange: (data: IBannerFormData) => void;
+  onSave: (data: IBannerFormData) => void;
   saving?: boolean;
   onCancel?: () => void;
 }
 
 const TEMPLATE_TYPES = [
-  { value: 'giving-campaign', label: 'Giving Campaign' },
-  { value: 'partnership-charter', label: 'Partnership Charter' },
-  { value: 'resource-project', label: 'Resource Project' }
+  { value: BannerTemplateType.GIVING_CAMPAIGN, label: 'Giving Campaign' },
+  { value: BannerTemplateType.PARTNERSHIP_CHARTER, label: 'Partnership Charter' },
+  { value: BannerTemplateType.RESOURCE_PROJECT, label: 'Resource Project' }
 ];
 
 const LAYOUT_STYLES = [
-  { value: 'split', label: 'Split Layout' },
-  { value: 'full-width', label: 'Full Width' },
-  { value: 'card', label: 'Card Layout' }
+  { value: LayoutStyle.SPLIT, label: 'Split Layout' },
+  { value: LayoutStyle.FULL_WIDTH, label: 'Full Width' },
+  { value: LayoutStyle.CARD, label: 'Card Layout' }
 ];
 
 const TEXT_COLOURS = [
-  { value: 'white', label: 'White' },
-  { value: 'black', label: 'Black' }
+  { value: TextColour.WHITE, label: 'White' },
+  { value: TextColour.BLACK, label: 'Black' }
 ];
 
 const BACKGROUND_TYPES = [
-  { value: 'solid', label: 'Solid Color' },
-  { value: 'gradient', label: 'Gradient' },
-  { value: 'image', label: 'Image' }
+  { value: BackgroundType.SOLID, label: 'Solid Color' },
+  { value: BackgroundType.GRADIENT, label: 'Gradient' },
+  { value: BackgroundType.IMAGE, label: 'Image' }
 ];
 
 const CTA_VARIANTS = [
-  { value: 'primary', label: 'Primary' },
-  { value: 'secondary', label: 'Secondary' },
-  { value: 'outline', label: 'Outline' }
+  { value: CTAVariant.PRIMARY, label: 'Primary' },
+  { value: CTAVariant.SECONDARY, label: 'Secondary' },
+  { value: CTAVariant.OUTLINE, label: 'Outline' }
 ];
 
 const URGENCY_LEVELS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'critical', label: 'Critical' }
+  { value: UrgencyLevel.LOW, label: 'Low' },
+  { value: UrgencyLevel.MEDIUM, label: 'Medium' },
+  { value: UrgencyLevel.HIGH, label: 'High' },
+  { value: UrgencyLevel.CRITICAL, label: 'Critical' }
 ];
 
 const CHARTER_TYPES = [
-  { value: 'homeless-charter', label: 'Homeless Charter' },
-  { value: 'real-change', label: 'Real Change' },
-  { value: 'alternative-giving', label: 'Alternative Giving' },
-  { value: 'partnership', label: 'Partnership' }
+  { value: CharterType.HOMELESS_CHARTER, label: 'Homeless Charter' },
+  { value: CharterType.REAL_CHANGE, label: 'Real Change' },
+  { value: CharterType.ALTERNATIVE_GIVING, label: 'Alternative Giving' },
+  { value: CharterType.PARTNERSHIP, label: 'Partnership' }
 ];
 
 const RESOURCE_TYPES = [
-  { value: 'guide', label: 'Guide' },
-  { value: 'toolkit', label: 'Toolkit' },
-  { value: 'research', label: 'Research' },
-  { value: 'training', label: 'Training' },
-  { value: 'event', label: 'Event' }
+  { value: ResourceType.GUIDE, label: 'Guide' },
+  { value: ResourceType.TOOLKIT, label: 'Toolkit' },
+  { value: ResourceType.RESEARCH, label: 'Research' },
+  { value: ResourceType.TRAINING, label: 'Training' },
+  { value: ResourceType.EVENT, label: 'Event' }
 ];
 
 
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
+  const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
 
   useEffect(() => {
     async function fetchCities() {
@@ -137,71 +100,86 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     }
     fetchCities();
   }, []);
-  const [formData, setFormData] = useState<BannerFormData>(() => {
-    const defaults: BannerFormData = {
-      title: '',
-      subtitle: '',
-      description: '',
-      templateType: 'giving-campaign',
-      layoutStyle: 'split',
-      textColour: 'white',
-      background: {
-        type: 'solid',
-        value: '#38ae8e',
-        overlay: {
-          colour: 'rgba(0,0,0,0.5)',
-          opacity: 0.5
+
+  // Store original data for cancel functionality
+  useEffect(() => {
+    if (initialData && !originalData) {
+      setOriginalData(initialData);
+    }
+  }, [initialData, originalData]);
+
+  const [formData, setFormData] = useState<IBannerFormData>(() => {
+    const defaults: IBannerFormData = {
+      Title: '',
+      Subtitle: '',
+      Description: '',
+      TemplateType: BannerTemplateType.GIVING_CAMPAIGN,
+      LayoutStyle: LayoutStyle.SPLIT,
+      TextColour: TextColour.WHITE,
+      Background: {
+        Type: BackgroundType.SOLID,
+        Value: '#38ae8e',
+        Overlay: {
+          Colour: 'rgba(0,0,0,0.5)',
+          Opacity: 0.5
         }
       },
-      ctaButtons: [
+      CtaButtons: [
         {
-          label: 'Learn More',
-          url: '/about',
-          variant: 'primary',
-          external: false
+          Label: 'Learn More',
+          Url: '/about',
+          Variant: CTAVariant.PRIMARY,
+          External: false
         }
       ],
-      isActive: true,
-      priority: 5,
-      locationSlug: '',
-      badgeText: '',
-      donationGoal: {
-        target: 10000,
-        current: 0,
-        currency: 'GBP'
+      IsActive: true,
+      Priority: 5,
+      LocationSlug: '',
+      BadgeText: '',
+      DonationGoal: {
+        Target: 10000,
+        Current: 0,
+        Currency: 'GBP'
       },
-      urgencyLevel: 'medium',
-      startDate: '',
-      endDate: '',
-      campaignEndDate: '',
-      showDates: false,
-      charterType: 'homeless-charter',
-      signatoriesCount: 0,
-      resourceType: 'guide',
-      downloadCount: 0,
-      fileSize: '',
-      fileType: '',
-      lastUpdated: new Date().toISOString(),
+      UrgencyLevel: UrgencyLevel.MEDIUM,
+      StartDate: undefined,
+      EndDate: undefined,
+      CampaignEndDate: undefined,
+      ShowDates: false,
+      CharterType: CharterType.HOMELESS_CHARTER,
+      SignatoriesCount: 0,
+      ResourceFile: {
+        FileUrl: '',
+        ResourceType: ResourceType.GUIDE,
+        DownloadCount: 0,
+        FileSize: '',
+        FileType: '',
+        LastUpdated: undefined
+      },
+      _id: '',
+      DocumentCreationDate: new Date(),
+      DocumentModifiedDate: new Date(),
+      CreatedBy: ''
     };
 
     return {
       ...defaults,
       ...initialData,
-      background: {
-        ...defaults.background,
-        ...initialData?.background,
-        overlay: {
-          ...defaults.background.overlay,
-          ...initialData?.background?.overlay,
+      Background: {
+        ...defaults.Background,
+        ...initialData?.Background,
+        Overlay: {
+          ...defaults.Background.Overlay,
+          ...initialData?.Background?.Overlay,
         },
       },
-      donationGoal: {
-        ...defaults.donationGoal,
-        ...initialData?.donationGoal,
+      DonationGoal: {
+        ...defaults.DonationGoal,
+        ...initialData?.DonationGoal,
       },
-      ctaButtons: initialData?.ctaButtons && initialData.ctaButtons.length > 0
-        ? initialData.ctaButtons
-        : defaults.ctaButtons,
+      CtaButtons: initialData?.CtaButtons && initialData.CtaButtons.length > 0
+        ? initialData.CtaButtons
+        : defaults.CtaButtons,
     };
   });
 
@@ -229,21 +207,21 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         source = nextSource;
       }
       current[keys[keys.length - 1]] = value;
-      return newData as BannerFormData;
+      return newData as IBannerFormData;
     });
   };
 
   const addCTAButton = () => {
-    if (formData.ctaButtons.length < 3) {
+    if (formData.CtaButtons.length < 3) {
       setFormData(prev => ({
         ...prev,
-        ctaButtons: [
-          ...prev.ctaButtons,
+        CtaButtons: [
+          ...prev.CtaButtons,
           {
-            label: '',
-            url: '',
-            variant: 'secondary',
-            external: false
+            Label: '',
+            Url: '',
+            Variant: CTAVariant.SECONDARY,
+            External: false
           }
         ]
       }));
@@ -251,36 +229,122 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const removeCTAButton = (index: number) => {
-    if (formData.ctaButtons.length > 1) {
+    if (formData.CtaButtons.length > 1) {
       setFormData(prev => ({
         ...prev,
-        ctaButtons: prev.ctaButtons.filter((_, i) => i !== index)
+        CtaButtons: prev.CtaButtons.filter((_, i) => i !== index)
       }));
     }
   };
 
-  const updateCTAButton = (index: number, field: keyof CtaButton, value: any) => {
+  const updateCTAButton = (index: number, field: keyof ICTAButton, value: any) => {
     setFormData(prev => ({
       ...prev,
-      ctaButtons: prev.ctaButtons.map((button, i) => 
+      CtaButtons: prev.CtaButtons.map((button, i) => 
         i === index ? { ...button, [field]: value } : button
       )
     }));
   };
 
+  // File management functions
+  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'SplitImage') => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: null
+    }));
+  };
+
+  const removePartnerLogo = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      PartnerLogos: prev.PartnerLogos?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const addPartnerLogo = (file: File) => {
+    setFormData(prev => {
+      if ((prev.PartnerLogos?.length || 0) >= 5) {
+        // Optionally, set an error message to inform the user
+        setErrors(e => ({ ...e, PartnerLogos: 'You can only upload a maximum of 5 logos.' }));
+        return prev;
+      }
+      return {
+        ...prev,
+        PartnerLogos: [...(prev.PartnerLogos || []), file]
+      };
+    });
+  };
+
+  // Cancel functionality - revert to original data
+  const handleCancel = () => {
+    if (originalData) {
+      const revertedData: IBannerFormData = {
+        _id: originalData._id || '',
+        DocumentCreationDate: originalData.DocumentCreationDate || new Date(),
+        DocumentModifiedDate: originalData.DocumentModifiedDate || new Date(),
+        CreatedBy: originalData.CreatedBy || '',
+        Title: originalData.Title || '',
+        Subtitle: originalData.Subtitle || '',
+        Description: originalData.Description || '',
+        TemplateType: originalData.TemplateType || BannerTemplateType.GIVING_CAMPAIGN,
+        LayoutStyle: originalData.LayoutStyle || LayoutStyle.SPLIT,
+        TextColour: originalData.TextColour || TextColour.WHITE,
+        Background: originalData.Background || {
+          Type: BackgroundType.SOLID,
+          Value: '#38ae8e',
+          Overlay: { Colour: 'rgba(0,0,0,0.5)', Opacity: 0.5 }
+        },
+        CtaButtons: originalData.CtaButtons || [{
+          Label: 'Learn More',
+          Url: '/about',
+          Variant: CTAVariant.PRIMARY,
+          External: false
+        }],
+        IsActive: originalData.IsActive ?? true,
+        Priority: originalData.Priority || 5,
+        LocationSlug: originalData.LocationSlug || '',
+        BadgeText: originalData.BadgeText || '',
+        DonationGoal: originalData.DonationGoal || { Target: 10000, Current: 0, Currency: 'GBP' },
+        UrgencyLevel: originalData.UrgencyLevel || UrgencyLevel.MEDIUM,
+        StartDate: originalData.StartDate instanceof Date ? originalData.StartDate : undefined,
+        EndDate: originalData.EndDate instanceof Date ? originalData.EndDate : undefined,
+        CampaignEndDate: originalData.CampaignEndDate instanceof Date ? originalData.CampaignEndDate : undefined,
+        ShowDates: originalData.ShowDates || false,
+        CharterType: originalData.CharterType || CharterType.HOMELESS_CHARTER,
+        SignatoriesCount: originalData.SignatoriesCount || 0,
+        ResourceFile: originalData.ResourceFile || {
+          FileUrl: '',
+          ResourceType: ResourceType.GUIDE,
+          DownloadCount: 0,
+          FileSize: '',
+          FileType: '',
+          LastUpdated: undefined
+        },
+        // Restore original media files
+        Logo: originalData.Logo || null,
+        BackgroundImage: originalData.BackgroundImage || null,
+        SplitImage: originalData.SplitImage || null,
+        PartnerLogos: originalData.PartnerLogos || []
+      };
+      setFormData(revertedData);
+      setErrors({});
+    }
+    onCancel?.();
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+    if (!formData.Title.trim()) {
+      newErrors.Title = 'Title is required';
     }
 
-    if (formData.ctaButtons.some(btn => !btn.label.trim() || !btn.url.trim())) {
-      newErrors.ctaButtons = 'All CTA buttons must have a label and URL';
+    if (formData.CtaButtons.some(btn => !btn.Label.trim() || !btn.Url.trim())) {
+      newErrors.CtaButtons = 'All CTA buttons must have a label and URL';
     }
 
-    if (formData.templateType === 'giving-campaign' && formData.donationGoal.target <= 0) {
-      newErrors.donationTarget = 'Donation target must be greater than 0';
+        if (formData.TemplateType === BannerTemplateType.GIVING_CAMPAIGN && formData.DonationGoal && (formData.DonationGoal.Target === undefined || formData.DonationGoal.Target <= 0)) {
+      newErrors.DonationTarget = 'Donation target must be greater than 0';
     }
 
     setErrors(newErrors);
@@ -295,34 +359,34 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const renderTemplateSpecificFields = () => {
-    switch (formData.templateType) {
-      case 'giving-campaign':
+    switch (formData.TemplateType) {
+      case BannerTemplateType.GIVING_CAMPAIGN:
         return (
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Campaign Settings</h3>
             
             <FormField label="Urgency Level">
               <Select
-                value={formData.urgencyLevel}
-                onChange={(e) => updateFormData('urgencyLevel', e.target.value)}
+                value={formData.UrgencyLevel}
+                onChange={(e) => updateFormData('UrgencyLevel', e.target.value)}
                 options={URGENCY_LEVELS}
               />
             </FormField>
             
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Target Amount (£)" error={errors.donationTarget}>
+              <FormField label="Target Amount (£)" error={errors.DonationTarget}>
                 <Input
                   type="number"
-                  value={formData.donationGoal.target}
-                  onChange={(e) => updateFormData('donationGoal.target', Number(e.target.value))}
+                  value={formData.DonationGoal?.Target}
+                  onChange={(e) => updateFormData('DonationGoal.Target', Number(e.target.value))}
                   min={1}
                 />
               </FormField>
               <FormField label="Current Amount (£)">
                 <Input
                   type="number"
-                  value={formData.donationGoal.current}
-                  onChange={(e) => updateFormData('donationGoal.current', Number(e.target.value))}
+                  value={formData.DonationGoal?.Current}
+                  onChange={(e) => updateFormData('DonationGoal.Current', Number(e.target.value))}
                   min={0}
                 />
               </FormField>
@@ -331,22 +395,22 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Campaign End Date">
               <Input
                 type="datetime-local"
-                value={formData.campaignEndDate}
-                onChange={(e) => updateFormData('campaignEndDate', e.target.value)}
+                value={formData.CampaignEndDate ? new Date(formData.CampaignEndDate as any).toISOString().slice(0, 16) : ''}
+                onChange={(e) => updateFormData('CampaignEndDate', e.target.value ? new Date(e.target.value) : undefined)}
               />
             </FormField>
           </div>
         );
 
-      case 'partnership-charter':
+      case BannerTemplateType.PARTNERSHIP_CHARTER:
         return (
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Charter Settings</h3>
             
             <FormField label="Charter Type">
               <Select
-                value={formData.charterType}
-                onChange={(e) => updateFormData('charterType', e.target.value)}
+                value={formData.CharterType}
+                onChange={(e) => updateFormData('CharterType', e.target.value)}
                 options={CHARTER_TYPES}
               />
             </FormField>
@@ -354,35 +418,118 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Signatories Count">
               <Input
                 type="number"
-                value={formData.signatoriesCount}
-                onChange={(e) => updateFormData('signatoriesCount', Number(e.target.value))}
+                value={formData.SignatoriesCount}
+                onChange={(e) => updateFormData('SignatoriesCount', Number(e.target.value))}
                 min={0}
               />
             </FormField>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Partner Logos
-              </label>
-              <FileUpload
+            <FormField label="Partner Logos" error={errors.PartnerLogos}>
+              <MediaArrayUpload
+                description="Upload logos of partner organizations (max 2MB each)"
+                value={formData.PartnerLogos}
+                onUpload={addPartnerLogo}
+                onRemove={removePartnerLogo}
                 accept="image/*"
-                multiple
-                onUpload={(files) => updateFormData('partnerLogos', files)}
-                maxSize={2 * 1024 * 1024} // 2MB
+                maxSize={2 * 1024 * 1024}
               />
-            </div>
+            </FormField>
           </div>
         );
 
-      case 'resource-project':
+      case BannerTemplateType.RESOURCE_PROJECT:
         return (
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Resource Settings</h3>
             
+            <FormField label="Resource File">
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept={RESOURCE_FILE_ACCEPT_STRING}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      // Validate file type
+                      if (!isValidResourceFileType(file.type)) {
+                        alert(`Unsupported file type: ${file.type}. Please select a valid resource file.`);
+                        e.target.value = ''; // Clear the input
+                        return;
+                      }
+                      
+                      // Validate file size
+                      if (file.size > MAX_RESOURCE_FILE_SIZE) {
+                        alert(`File too large: ${formatFileSize(file.size)}. Maximum size is ${formatFileSize(MAX_RESOURCE_FILE_SIZE)}.`);
+                        e.target.value = ''; // Clear the input
+                        return;
+                      }
+                      
+                      // Create resource file object with auto-populated metadata
+                      const resourceFileData = {
+                        FileUrl: '', // Will be set after upload
+                        ResourceType: (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
+                          ? formData.ResourceFile.ResourceType 
+                          : ResourceType.GUIDE,
+                        DownloadCount: 0, // Always start at 0 for new files
+                        FileSize: formatFileSize(file.size),
+                        FileType: getFileTypeFromMimeType(file.type),
+                        LastUpdated: new Date()
+                      };
+                      
+                      // Store the file object for upload, but also store metadata
+                      updateFormData('ResourceFile', file);
+                      
+                      // Update form data with auto-populated fields (for display purposes)
+                      setFormData(prev => ({
+                        ...prev,
+                        ResourceFile: file,
+                        // Store metadata separately for form display
+                        _resourceFileMetadata: resourceFileData
+                      }));
+                    }
+                  }}
+                  className="block w-full text-sm text-brand-k file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-a file:text-white hover:file:bg-brand-b"
+                />
+                {formData.ResourceFile && !(formData.ResourceFile instanceof File) && (
+                  <div className="flex items-center justify-between p-2 bg-brand-q rounded">
+                    <span className="text-sm text-brand-k">Current: {formData.ResourceFile.FileUrl}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateFormData('ResourceFile', null)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
+                {formData.ResourceFile instanceof File && (
+                  <div className="flex items-center justify-between p-2 bg-brand-q rounded">
+                    <span className="text-sm text-brand-k">Selected: {formData.ResourceFile.name}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateFormData('ResourceFile', null)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </FormField>
+            
             <FormField label="Resource Type">
               <Select
-                value={formData.resourceType}
-                onChange={(e) => updateFormData('resourceType', e.target.value)}
+                value={(formData.ResourceFile && !(formData.ResourceFile instanceof File)) ? formData.ResourceFile.ResourceType || '' : ''}
+                onChange={(e) => {
+                  if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
+                    updateFormData('ResourceFile', { 
+                      ...formData.ResourceFile, 
+                      ResourceType: e.target.value 
+                    });
+                  }
+                }}
                 options={RESOURCE_TYPES}
               />
             </FormField>
@@ -390,15 +537,43 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <div className="grid grid-cols-2 gap-4">
               <FormField label="File Size">
                 <Input
-                  value={formData.fileSize}
-                  onChange={(e) => updateFormData('fileSize', e.target.value)}
+                  value={
+                    formData.ResourceFile instanceof File 
+                      ? (formData as any)._resourceFileMetadata?.FileSize || formatFileSize(formData.ResourceFile.size)
+                      : (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
+                        ? formData.ResourceFile.FileSize || '' 
+                        : ''
+                  }
+                  disabled={formData.ResourceFile instanceof File}
+                  onChange={(e) => {
+                    if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
+                      updateFormData('ResourceFile', { 
+                        ...formData.ResourceFile, 
+                        FileSize: e.target.value 
+                      });
+                    }
+                  }}
                   placeholder="e.g., 2.5 MB"
                 />
               </FormField>
               <FormField label="File Type">
                 <Input
-                  value={formData.fileType}
-                  onChange={(e) => updateFormData('fileType', e.target.value)}
+                  value={
+                    formData.ResourceFile instanceof File 
+                      ? (formData as any)._resourceFileMetadata?.FileType || getFileTypeFromMimeType(formData.ResourceFile.type)
+                      : (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
+                        ? formData.ResourceFile.FileType || '' 
+                        : ''
+                  }
+                  disabled={formData.ResourceFile instanceof File}
+                  onChange={(e) => {
+                    if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
+                      updateFormData('ResourceFile', { 
+                        ...formData.ResourceFile, 
+                        FileType: e.target.value 
+                      });
+                    }
+                  }}
                   placeholder="e.g., PDF"
                 />
               </FormField>
@@ -407,9 +582,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Download Count">
               <Input
                 type="number"
-                value={formData.downloadCount}
-                onChange={(e) => updateFormData('downloadCount', Number(e.target.value))}
+                value={(formData.ResourceFile && !(formData.ResourceFile instanceof File)) ? formData.ResourceFile.DownloadCount || 0 : 0}
+                disabled={true}
                 min={0}
+                className="bg-gray-50 cursor-not-allowed"
               />
             </FormField>
           </div>
@@ -432,16 +608,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2 pt-4">Basic Information</h3>
           <FormField label="Banner Type *">
             <Select
-              value={formData.templateType}
-              onChange={(e) => updateFormData('templateType', e.target.value)}
+              value={formData.TemplateType}
+              onChange={(e) => updateFormData('TemplateType', e.target.value)}
               options={TEMPLATE_TYPES}
             />
           </FormField>
 
-          <FormField label="Title *" error={errors.title}>
+          <FormField label="Title *" error={errors.Title}>
             <Input
-              value={formData.title}
-              onChange={(e) => updateFormData('title', e.target.value)}
+              value={formData.Title}
+              onChange={(e) => updateFormData('Title', e.target.value)}
               maxLength={200}
               required
             />
@@ -449,16 +625,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           <FormField label="Subtitle">
             <Input
-              value={formData.subtitle}
-              onChange={(e) => updateFormData('subtitle', e.target.value)}
+              value={formData.Subtitle}
+              onChange={(e) => updateFormData('Subtitle', e.target.value)}
               maxLength={300}
             />
           </FormField>
           
           <FormField label="Description">
             <Textarea
-              value={formData.description}
-              onChange={(e) => updateFormData('description', e.target.value)}
+              value={formData.Description}
+              onChange={(e) => updateFormData('Description', e.target.value)}
               rows={3}
               maxLength={1000}
             />
@@ -469,23 +645,33 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Media Assets</h3>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
-            <FileUpload
-              accept="image/*"
-              onUpload={(file) => updateFormData('logo', file)}
-              maxSize={2 * 1024 * 1024} // 2MB
-            />
-          </div>
+          <MediaUpload
+            label="Logo"
+            value={formData.Logo}
+            onUpload={(file) => updateFormData('Logo', file)}
+            onRemove={() => removeFile('Logo')}
+            accept="image/*"
+            maxSize={2 * 1024 * 1024}
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Image</label>
-            <FileUpload
-              accept="image/*"
-              onUpload={(file) => updateFormData('image', file)}
-              maxSize={5 * 1024 * 1024} // 5MB
-            />
-          </div>
+          <MediaUpload
+            label="Background Image"
+            value={formData.BackgroundImage}
+            onUpload={(file) => updateFormData('BackgroundImage', file)}
+            onRemove={() => removeFile('BackgroundImage')}
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
+          />
+          
+          <MediaUpload
+            label="Split Layout Image"
+            description="Separate image displayed in split layout (not used as background)"
+            value={formData.SplitImage}
+            onUpload={(file) => updateFormData('SplitImage', file)}
+            onRemove={() => removeFile('SplitImage')}
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
+          />
         </div>
 
         {/* Styling Options */}
@@ -495,16 +681,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Layout Style">
               <Select
-                value={formData.layoutStyle}
-                onChange={(e) => updateFormData('layoutStyle', e.target.value)}
+                value={formData.LayoutStyle}
+                onChange={(e) => updateFormData('LayoutStyle', e.target.value)}
                 options={LAYOUT_STYLES}
               />
             </FormField>
             
             <FormField label="Text Color">
               <Select
-                value={formData.textColour}
-                onChange={(e) => updateFormData('textColour', e.target.value)}
+                value={formData.TextColour}
+                onChange={(e) => updateFormData('TextColour', e.target.value)}
                 options={TEXT_COLOURS}
               />
             </FormField>
@@ -517,9 +703,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <button
                   key={type.value}
                   type="button"
-                  onClick={() => updateFormData('background.type', type.value)}
+                  onClick={() => updateFormData('Background.Type', type.value)}
                   className={`btn-base btn-sm ${
-                    formData.background.type === type.value
+                    formData.Background.Type === type.value
                       ? 'btn-primary'
                       : 'btn-secondary'
                   }`}
@@ -530,22 +716,22 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </div>
           </div>
           
-          {formData.background.type === 'solid' && (
+          {formData.Background.Type === BackgroundType.SOLID && (
             <FormField label="Background Color">
               <Input
                 type="color"
-                value={formData.background.value}
-                onChange={(e) => updateFormData('background.value', e.target.value)}
+                value={formData.Background.Value}
+                onChange={(e) => updateFormData('Background.Value', e.target.value)}
                 className="h-10"
               />
             </FormField>
           )}
           
-          {formData.background.type === 'gradient' && (
+          {formData.Background.Type === BackgroundType.GRADIENT && (
             <FormField label="CSS Gradient">
               <Input
-                value={formData.background.value}
-                onChange={(e) => updateFormData('background.value', e.target.value)}
+                value={formData.Background.Value}
+                onChange={(e) => updateFormData('Background.Value', e.target.value)}
                 placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
               />
             </FormField>
@@ -553,8 +739,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           <FormField label="Badge Text">
             <Input
-              value={formData.badgeText}
-              onChange={(e) => updateFormData('badgeText', e.target.value)}
+              value={formData.BadgeText}
+              onChange={(e) => updateFormData('BadgeText', e.target.value)}
               maxLength={50}
             />
           </FormField>
@@ -564,7 +750,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <div className="flex justify-between items-center">
             <h3 className="heading-5">Call-to-Action Buttons</h3>
-            {formData.ctaButtons.length < 3 && (
+            {formData.CtaButtons.length < 3 && (
               <Button type="button" variant="outline" size="sm" onClick={addCTAButton}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add Button
@@ -572,25 +758,25 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             )}
           </div>
           
-          {errors.ctaButtons && (
-            <p className="text-small text-brand-g">{errors.ctaButtons}</p>
+          {errors.CtaButtons && (
+            <p className="text-small text-brand-g">{errors.CtaButtons}</p>
           )}
           
           <div className="space-y-3">
-            {formData.ctaButtons.map((button, index) => (
+            {formData.CtaButtons.map((button, index) => (
               <div key={index} className="card-compact border border-brand-q">
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <FormField label="Button Label">
                     <Input
-                      value={button.label}
-                      onChange={(e) => updateCTAButton(index, 'label', e.target.value)}
+                      value={button.Label}
+                      onChange={(e) => updateCTAButton(index, 'Label', e.target.value)}
                       placeholder="Learn More"
                     />
                   </FormField>
                   <FormField label="Button URL">
                     <Input
-                      value={button.url}
-                      onChange={(e) => updateCTAButton(index, 'url', e.target.value)}
+                      value={button.Url}
+                      onChange={(e) => updateCTAButton(index, 'Url', e.target.value)}
                       placeholder="/about"
                     />
                   </FormField>
@@ -598,12 +784,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <div className="flex justify-between items-center">
                   <FormField label="Button Style">
                     <Select
-                      value={button.variant}
-                      onChange={(e) => updateCTAButton(index, 'variant', (e.target as HTMLSelectElement).value as any)}
+                      value={button.Variant}
+                      onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as any)}
                       options={CTA_VARIANTS}
                     />
                   </FormField>
-                  {formData.ctaButtons.length > 1 && (
+                  {formData.CtaButtons.length > 1 && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -618,8 +804,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <div className="mt-2">
                   <Checkbox
                     label="External link (opens in new tab)"
-                    checked={button.external}
-                    onChange={(e) => updateCTAButton(index, 'external', (e.target as HTMLInputElement).checked)}
+                    checked={button.External}
+                    onChange={(e) => updateCTAButton(index, 'External', (e.target as HTMLInputElement).checked)}
                   />
                 </div>
               </div>
@@ -639,8 +825,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <select
                 id="locationSlug"
                 className="form-input"
-                value={formData.locationSlug}
-                onChange={(e) => updateFormData('locationSlug', e.target.value)}
+                value={formData.LocationSlug}
+                onChange={(e) => updateFormData('LocationSlug', e.target.value)}
               >
                 <option value="general">All Locations</option>
                 {cities.map(city => (
@@ -652,8 +838,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Priority (1-10)">
               <Input
                 type="number"
-                value={formData.priority}
-                onChange={(e) => updateFormData('priority', Number(e.target.value))}
+                value={formData.Priority}
+                onChange={(e) => updateFormData('Priority', Number(e.target.value))}
                 min={1}
                 max={10}
               />
@@ -662,31 +848,31 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           <Checkbox
             label="Active (visible to users)"
-            checked={formData.isActive}
-            onChange={(e) => updateFormData('isActive', (e.target as HTMLInputElement).checked)}
+            checked={formData.IsActive}
+            onChange={(e) => updateFormData('IsActive', (e.target as HTMLInputElement).checked)}
           />
 
           <div className="border-t border-brand-q pt-4">
             <h4 className="heading-6 pb-2">Scheduling</h4>
             <Checkbox
               label="Enable visibility date range"
-              checked={formData.showDates}
-              onChange={(e) => updateFormData('showDates', (e.target as HTMLInputElement).checked)}
+              checked={formData.ShowDates}
+              onChange={(e) => updateFormData('ShowDates', (e.target as HTMLInputElement).checked)}
             />
-            {formData.showDates && (
+            {formData.ShowDates && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <FormField label="Start Date">
                   <Input
                     type="datetime-local"
-                    value={formData.startDate}
-                    onChange={(e) => updateFormData('startDate', e.target.value)}
+                    value={formData.StartDate ? new Date(formData.StartDate as any).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => updateFormData('StartDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
                 </FormField>
                 <FormField label="End Date">
                   <Input
                     type="datetime-local"
-                    value={formData.endDate}
-                    onChange={(e) => updateFormData('endDate', e.target.value)}
+                    value={formData.EndDate ? new Date(formData.EndDate as any).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => updateFormData('EndDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
                 </FormField>
               </div>
@@ -697,7 +883,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         {/* Submit Button */}
         <div className="card-footer">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
           )}
@@ -709,3 +895,5 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     </div>
   );
 }
+export type { IBannerFormData };
+

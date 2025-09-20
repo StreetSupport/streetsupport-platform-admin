@@ -60,7 +60,7 @@ export default function Nav() {
           </div>
 
           <button
-            className="md:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-a"
+            className="lg:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-a"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
@@ -71,7 +71,7 @@ export default function Nav() {
             </div>
           </button>
 
-          <div className="hidden md:flex space-x-6 items-center justify-end flex-1">
+          <div className="hidden lg:flex space-x-6 items-center justify-end flex-1">
             <RoleBasedNav />
 
             {hasResourcesAccess && (
@@ -144,7 +144,7 @@ export default function Nav() {
             )}
           </div>
           
-          <div className="hidden md:flex items-center ml-6 md:ml-8">
+          <div className="hidden lg:flex items-center ml-6 lg:ml-8">
             {session?.user ? (
               <div className="relative">
                 <button 

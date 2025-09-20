@@ -378,7 +378,7 @@
 }
 
 .mobile-menu {
-  @apply md:hidden bg-white border-t border-brand-q;
+  @apply lg:hidden bg-white border-t border-brand-q;
 }
 
 .mobile-nav-link {
