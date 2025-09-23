@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
-import type { ICity, ICTAButton } from '@/types';
+import type { ICity, ICTAButton, IResourceFile } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Plus, Trash } from 'lucide-react';
 import { BannerTemplateType, UrgencyLevel, CharterType, ResourceType, IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant } from '@/types';
 import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/IResourceFile';
+import { errorToast } from '@/utils/toast';
 
 // Helper function to format file size
 function formatFileSize(bytes: number): string {
@@ -22,12 +23,20 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+interface IValidationError {
+  path: string;
+  message: string;
+  code: string;
+}
+
 interface BannerEditorProps {
   initialData?: Partial<IBannerFormData>;
   onDataChange: (data: IBannerFormData) => void;
   onSave: (data: IBannerFormData) => void;
   saving?: boolean;
   onCancel?: () => void;
+  errorMessage?: string | null;
+  validationErrors?: IValidationError[];
 }
 
 const TEMPLATE_TYPES = [
@@ -82,7 +91,7 @@ const RESOURCE_TYPES = [
 ];
 
 
-export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel }: BannerEditorProps) {
+export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
   const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
 
@@ -93,9 +102,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         const result = await response.json();
         if (result.success) {
           setCities(result.data);
+        } else {
+          errorToast.load('cities data');
         }
       } catch (error) {
         console.error('Failed to fetch cities:', error);
+        errorToast.load('cities data');
       }
     }
     fetchCities();
@@ -134,32 +146,36 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       ],
       IsActive: true,
       Priority: 5,
-      LocationSlug: '',
+      LocationSlug: 'general',
       BadgeText: '',
-      DonationGoal: {
-        Target: 10000,
-        Current: 0,
-        Currency: 'GBP'
+      GivingCampaign: {
+        UrgencyLevel: UrgencyLevel.MEDIUM,
+        CampaignEndDate: undefined,
+        DonationGoal: {
+          Target: 0,
+          Current: 0,
+          Currency: 'GBP'
+        }
       },
-      UrgencyLevel: UrgencyLevel.MEDIUM,
+      PartnershipCharter: {
+        CharterType: CharterType.HOMELESS_CHARTER,
+        SignatoriesCount: 0,
+        PartnerLogos: []
+      },
+      ResourceProject: {
+        ResourceFile: {
+          FileUrl: '',
+          ResourceType: ResourceType.GUIDE,
+          DownloadCount: 0,
+          LastUpdated: new Date(),
+          FileSize: '',
+          FileType: '',
+        } as IResourceFile
+      },
       StartDate: undefined,
       EndDate: undefined,
-      CampaignEndDate: undefined,
       ShowDates: false,
-      CharterType: CharterType.HOMELESS_CHARTER,
-      SignatoriesCount: 0,
-      ResourceFile: {
-        FileUrl: '',
-        ResourceType: ResourceType.GUIDE,
-        DownloadCount: 0,
-        FileSize: '',
-        FileType: '',
-        LastUpdated: undefined
-      },
       _id: '',
-      DocumentCreationDate: new Date(),
-      DocumentModifiedDate: new Date(),
-      CreatedBy: ''
     };
 
     return {
@@ -173,13 +189,23 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           ...initialData?.Background?.Overlay,
         },
       },
-      DonationGoal: {
-        ...defaults.DonationGoal,
-        ...initialData?.DonationGoal,
+      GivingCampaign: {
+        ...defaults.GivingCampaign,
+        ...initialData?.GivingCampaign,
+        DonationGoal: {
+          ...defaults.GivingCampaign?.DonationGoal,
+          ...initialData?.GivingCampaign?.DonationGoal,
+        }
       },
-      CtaButtons: initialData?.CtaButtons && initialData.CtaButtons.length > 0
-        ? initialData.CtaButtons
-        : defaults.CtaButtons,
+      PartnershipCharter: {
+        ...defaults.PartnershipCharter,
+        ...initialData?.PartnershipCharter,
+      },
+      ResourceProject: {
+        ...defaults.ResourceProject,
+        ...initialData?.ResourceProject,
+      },
+      CtaButtons: initialData?.CtaButtons ?? defaults.CtaButtons,
     };
   });
 
@@ -188,6 +214,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   useEffect(() => {
     onDataChange(formData);
   }, [formData, onDataChange]);
+
+  useEffect(() => {
+    // Clear all errors when the template type changes as they may no longer be relevant.
+    setErrors({});
+  }, [formData.TemplateType]);
 
   const updateFormData = (path: string, value: any) => {
     setFormData(prev => {
@@ -212,11 +243,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const addCTAButton = () => {
-    if (formData.CtaButtons.length < 3) {
+    const count = (formData.CtaButtons?.length ?? 0);
+    if (count < 3) {
       setFormData(prev => ({
         ...prev,
         CtaButtons: [
-          ...prev.CtaButtons,
+          ...((prev.CtaButtons ?? [])),
           {
             Label: '',
             Url: '',
@@ -229,25 +261,23 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const removeCTAButton = (index: number) => {
-    if (formData.CtaButtons.length > 1) {
-      setFormData(prev => ({
-        ...prev,
-        CtaButtons: prev.CtaButtons.filter((_, i) => i !== index)
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      CtaButtons: (prev.CtaButtons ?? []).filter((_, i) => i !== index)
+    }));
   };
 
   const updateCTAButton = (index: number, field: keyof ICTAButton, value: any) => {
     setFormData(prev => ({
       ...prev,
-      CtaButtons: prev.CtaButtons.map((button, i) => 
+      CtaButtons: (prev.CtaButtons ?? []).map((button, i) => 
         i === index ? { ...button, [field]: value } : button
       )
     }));
   };
 
   // File management functions
-  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'SplitImage') => {
+  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'SplitImage' | 'AccentGraphic') => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: null
@@ -255,22 +285,41 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const removePartnerLogo = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      PartnerLogos: prev.PartnerLogos?.filter((_, i) => i !== index) || []
-    }));
+    setFormData(prev => {
+      const newLogos = prev.PartnershipCharter?.PartnerLogos?.filter((_: any, i: number) => i !== index) || [];
+      
+      // If removing a logo brings the count below the max, clear the specific error.
+      if (newLogos.length < 5) {
+        setErrors(prevErrors => {
+          const newErrors = { ...prevErrors };
+          delete newErrors.PartnerLogos;
+          return newErrors;
+        });
+      }
+
+      return {
+        ...prev,
+        PartnershipCharter: {
+          ...prev.PartnershipCharter,
+          PartnerLogos: newLogos
+        }
+      };
+    });
   };
 
   const addPartnerLogo = (file: File) => {
     setFormData(prev => {
-      if ((prev.PartnerLogos?.length || 0) >= 5) {
+      if ((prev.PartnershipCharter?.PartnerLogos?.length || 0) >= 5) {
         // Optionally, set an error message to inform the user
         setErrors(e => ({ ...e, PartnerLogos: 'You can only upload a maximum of 5 logos.' }));
         return prev;
       }
       return {
         ...prev,
-        PartnerLogos: [...(prev.PartnerLogos || []), file]
+        PartnershipCharter: {
+          ...prev.PartnershipCharter,
+          PartnerLogos: [...(prev.PartnershipCharter?.PartnerLogos || []), file]
+        }
       };
     });
   };
@@ -280,9 +329,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     if (originalData) {
       const revertedData: IBannerFormData = {
         _id: originalData._id || '',
-        DocumentCreationDate: originalData.DocumentCreationDate || new Date(),
-        DocumentModifiedDate: originalData.DocumentModifiedDate || new Date(),
-        CreatedBy: originalData.CreatedBy || '',
         Title: originalData.Title || '',
         Subtitle: originalData.Subtitle || '',
         Description: originalData.Description || '',
@@ -302,29 +348,40 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         }],
         IsActive: originalData.IsActive ?? true,
         Priority: originalData.Priority || 5,
-        LocationSlug: originalData.LocationSlug || '',
+        LocationSlug: originalData.LocationSlug || 'general',
         BadgeText: originalData.BadgeText || '',
-        DonationGoal: originalData.DonationGoal || { Target: 10000, Current: 0, Currency: 'GBP' },
-        UrgencyLevel: originalData.UrgencyLevel || UrgencyLevel.MEDIUM,
+        GivingCampaign: {
+          UrgencyLevel: UrgencyLevel.MEDIUM,
+          CampaignEndDate: undefined,
+          DonationGoal: {
+            Target: 0,
+            Current: 0,
+            Currency: 'GBP'
+          }
+        },
+        PartnershipCharter: {
+          CharterType: CharterType.HOMELESS_CHARTER,
+          SignatoriesCount: 0,
+          PartnerLogos: []
+        },
+        ResourceProject: {
+          ResourceFile: {
+            FileUrl: '',
+            ResourceType: ResourceType.GUIDE,
+            DownloadCount: 0,
+            LastUpdated: new Date(),
+            FileSize: '',
+            FileType: '',
+          } as IResourceFile
+        },
         StartDate: originalData.StartDate instanceof Date ? originalData.StartDate : undefined,
         EndDate: originalData.EndDate instanceof Date ? originalData.EndDate : undefined,
-        CampaignEndDate: originalData.CampaignEndDate instanceof Date ? originalData.CampaignEndDate : undefined,
         ShowDates: originalData.ShowDates || false,
-        CharterType: originalData.CharterType || CharterType.HOMELESS_CHARTER,
-        SignatoriesCount: originalData.SignatoriesCount || 0,
-        ResourceFile: originalData.ResourceFile || {
-          FileUrl: '',
-          ResourceType: ResourceType.GUIDE,
-          DownloadCount: 0,
-          FileSize: '',
-          FileType: '',
-          LastUpdated: undefined
-        },
         // Restore original media files
         Logo: originalData.Logo || null,
         BackgroundImage: originalData.BackgroundImage || null,
         SplitImage: originalData.SplitImage || null,
-        PartnerLogos: originalData.PartnerLogos || []
+        AccentGraphic: originalData.AccentGraphic || undefined,
       };
       setFormData(revertedData);
       setErrors({});
@@ -339,22 +396,59 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       newErrors.Title = 'Title is required';
     }
 
-    if (formData.CtaButtons.some(btn => !btn.Label.trim() || !btn.Url.trim())) {
+    if ((formData.CtaButtons?.length ?? 0) > 0 && (formData.CtaButtons ?? []).some(btn => !btn.Label.trim() || !btn.Url.trim())) {
       newErrors.CtaButtons = 'All CTA buttons must have a label and URL';
     }
 
-        if (formData.TemplateType === BannerTemplateType.GIVING_CAMPAIGN && formData.DonationGoal && (formData.DonationGoal.Target === undefined || formData.DonationGoal.Target <= 0)) {
+    if (formData.TemplateType === BannerTemplateType.GIVING_CAMPAIGN && formData.GivingCampaign?.DonationGoal && (formData.GivingCampaign.DonationGoal.Target === undefined || formData.GivingCampaign.DonationGoal.Target <= 0)) {
       newErrors.DonationTarget = 'Donation target must be greater than 0';
+    }
+
+    // Require a resource file for Resource Project banners
+    if (formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
+      const rf: any = formData.ResourceProject?.ResourceFile;
+      const hasNewFile = rf.File instanceof File;
+      const hasExistingUrl = rf && !(rf.File instanceof File) && !!rf.FileUrl;
+      if (!hasNewFile && !hasExistingUrl) {
+        newErrors.ResourceFile = 'Resource file is required';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const cleanTemplateData = (data: IBannerFormData): IBannerFormData => {
+    const cleanedData: Partial<IBannerFormData> = { ...data };
+
+    switch (data.TemplateType) {
+      case BannerTemplateType.GIVING_CAMPAIGN:
+        delete cleanedData.PartnershipCharter;
+        delete cleanedData.ResourceProject;
+        break;
+      case BannerTemplateType.PARTNERSHIP_CHARTER:
+        delete cleanedData.GivingCampaign;
+        delete cleanedData.ResourceProject;
+        break;
+      case BannerTemplateType.RESOURCE_PROJECT:
+        delete cleanedData.GivingCampaign;
+        delete cleanedData.PartnershipCharter;
+        break;
+      default:
+        // This should never happen as TemplateType is required and validated
+        const errorMessage = `Unexpected template type: ${data.TemplateType}`;
+        errorToast.generic(errorMessage);
+        throw new Error(errorMessage);
+    }
+
+    return cleanedData as IBannerFormData;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      const cleanedData = cleanTemplateData(formData);
+      onSave(cleanedData);
     }
   };
 
@@ -367,8 +461,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             
             <FormField label="Urgency Level">
               <Select
-                value={formData.UrgencyLevel}
-                onChange={(e) => updateFormData('UrgencyLevel', e.target.value)}
+                value={formData.GivingCampaign?.UrgencyLevel}
+                onChange={(e) => updateFormData('GivingCampaign.UrgencyLevel', e.target.value)}
                 options={URGENCY_LEVELS}
               />
             </FormField>
@@ -377,16 +471,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <FormField label="Target Amount (£)" error={errors.DonationTarget}>
                 <Input
                   type="number"
-                  value={formData.DonationGoal?.Target}
-                  onChange={(e) => updateFormData('DonationGoal.Target', Number(e.target.value))}
+                  value={formData.GivingCampaign?.DonationGoal?.Target}
+                  onChange={(e) => updateFormData('GivingCampaign.DonationGoal.Target', Number(e.target.value))}
                   min={1}
                 />
               </FormField>
               <FormField label="Current Amount (£)">
                 <Input
                   type="number"
-                  value={formData.DonationGoal?.Current}
-                  onChange={(e) => updateFormData('DonationGoal.Current', Number(e.target.value))}
+                  value={formData.GivingCampaign?.DonationGoal?.Current}
+                  onChange={(e) => updateFormData('GivingCampaign.DonationGoal.Current', Number(e.target.value))}
                   min={0}
                 />
               </FormField>
@@ -395,8 +489,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Campaign End Date">
               <Input
                 type="datetime-local"
-                value={formData.CampaignEndDate ? new Date(formData.CampaignEndDate as any).toISOString().slice(0, 16) : ''}
-                onChange={(e) => updateFormData('CampaignEndDate', e.target.value ? new Date(e.target.value) : undefined)}
+                value={formData.GivingCampaign?.CampaignEndDate ? new Date(formData.GivingCampaign.CampaignEndDate as any).toISOString().slice(0, 16) : ''}
+                onChange={(e) => updateFormData('GivingCampaign.CampaignEndDate', e.target.value ? new Date(e.target.value) : undefined)}
               />
             </FormField>
           </div>
@@ -409,8 +503,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             
             <FormField label="Charter Type">
               <Select
-                value={formData.CharterType}
-                onChange={(e) => updateFormData('CharterType', e.target.value)}
+                value={formData.PartnershipCharter?.CharterType}
+                onChange={(e) => updateFormData('PartnershipCharter.CharterType', e.target.value)}
                 options={CHARTER_TYPES}
               />
             </FormField>
@@ -418,20 +512,20 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Signatories Count">
               <Input
                 type="number"
-                value={formData.SignatoriesCount}
-                onChange={(e) => updateFormData('SignatoriesCount', Number(e.target.value))}
+                value={formData.PartnershipCharter?.SignatoriesCount}
+                onChange={(e) => updateFormData('PartnershipCharter.SignatoriesCount', Number(e.target.value))}
                 min={0}
               />
             </FormField>
             
             <FormField label="Partner Logos" error={errors.PartnerLogos}>
               <MediaArrayUpload
-                description="Upload logos of partner organizations (max 2MB each)"
-                value={formData.PartnerLogos}
+                description="Upload logos of partner organizations (max 5MB each)"
+                value={formData.PartnershipCharter?.PartnerLogos}
                 onUpload={addPartnerLogo}
                 onRemove={removePartnerLogo}
                 accept="image/*"
-                maxSize={2 * 1024 * 1024}
+                maxSize={5 * 1024 * 1024}
               />
             </FormField>
           </div>
@@ -450,67 +544,60 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // Validate file type
                       if (!isValidResourceFileType(file.type)) {
-                        alert(`Unsupported file type: ${file.type}. Please select a valid resource file.`);
-                        e.target.value = ''; // Clear the input
+                        errorToast.fileType('PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WEBP, SVG, ZIP, RAR, 7Z, JSON, XML');
+                        e.target.value = '';
                         return;
                       }
-                      
-                      // Validate file size
                       if (file.size > MAX_RESOURCE_FILE_SIZE) {
-                        alert(`File too large: ${formatFileSize(file.size)}. Maximum size is ${formatFileSize(MAX_RESOURCE_FILE_SIZE)}.`);
-                        e.target.value = ''; // Clear the input
+                        errorToast.fileSize(formatFileSize(MAX_RESOURCE_FILE_SIZE));
+                        e.target.value = '';
                         return;
                       }
-                      
-                      // Create resource file object with auto-populated metadata
-                      const resourceFileData = {
-                        FileUrl: '', // Will be set after upload
-                        ResourceType: (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
-                          ? formData.ResourceFile.ResourceType 
+                      const newResourceFile: IResourceFile = {
+                        // Keep existing metadata like ResourceType, but reset others
+                        ResourceType: (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
+                          ? formData.ResourceProject.ResourceFile.ResourceType 
                           : ResourceType.GUIDE,
-                        DownloadCount: 0, // Always start at 0 for new files
+                        LastUpdated: new Date(),
                         FileSize: formatFileSize(file.size),
-                        FileType: getFileTypeFromMimeType(file.type),
-                        LastUpdated: new Date()
+                        FileType: getFileTypeFromMimeType(file.type) || 'unknown',
+                        DownloadCount: 0,
                       };
+                      // Update the state with an object that includes both the metadata and the file
+                      updateFormData('ResourceProject.ResourceFile', { ...newResourceFile, File: file });
                       
-                      // Store the file object for upload, but also store metadata
-                      updateFormData('ResourceFile', file);
-                      
-                      // Update form data with auto-populated fields (for display purposes)
-                      setFormData(prev => ({
-                        ...prev,
-                        ResourceFile: file,
-                        // Store metadata separately for form display
-                        _resourceFileMetadata: resourceFileData
-                      }));
+                      // Clear any existing ResourceFile validation error
+                      setErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.ResourceFile;
+                        return newErrors;
+                      });
                     }
                   }}
                   className="block w-full text-sm text-brand-k file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-a file:text-white hover:file:bg-brand-b"
                 />
-                {formData.ResourceFile && !(formData.ResourceFile instanceof File) && (
+                {formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File) && formData.ResourceProject.ResourceFile !== null && formData.ResourceProject.ResourceFile.FileUrl && (
                   <div className="flex items-center justify-between p-2 bg-brand-q rounded">
-                    <span className="text-sm text-brand-k">Current: {formData.ResourceFile.FileUrl}</span>
+                    <span className="text-sm text-brand-k">Current: {formData.ResourceProject?.ResourceFile?.FileUrl}</span>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => updateFormData('ResourceFile', null)}
+                      onClick={() => updateFormData('ResourceProject.ResourceFile', null)}
                     >
                       Remove
                     </Button>
                   </div>
                 )}
-                {formData.ResourceFile instanceof File && (
+                {formData.ResourceProject?.ResourceFile instanceof File && (
                   <div className="flex items-center justify-between p-2 bg-brand-q rounded">
-                    <span className="text-sm text-brand-k">Selected: {formData.ResourceFile.name}</span>
+                    <span className="text-sm text-brand-k">Selected: {(formData.ResourceProject?.ResourceFile as File)?.name}</span>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => updateFormData('ResourceFile', null)}
+                      onClick={() => updateFormData('ResourceProject.ResourceFile', null)}
                     >
                       Remove
                     </Button>
@@ -521,11 +608,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             
             <FormField label="Resource Type">
               <Select
-                value={(formData.ResourceFile && !(formData.ResourceFile instanceof File)) ? formData.ResourceFile.ResourceType || '' : ''}
+                value={(formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) ? formData.ResourceProject.ResourceFile.ResourceType || '' : ''}
                 onChange={(e) => {
-                  if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
-                    updateFormData('ResourceFile', { 
-                      ...formData.ResourceFile, 
+                  if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                    updateFormData('ResourceProject.ResourceFile', { 
+                      ...formData.ResourceProject.ResourceFile, 
                       ResourceType: e.target.value 
                     });
                   }
@@ -538,17 +625,17 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <FormField label="File Size">
                 <Input
                   value={
-                    formData.ResourceFile instanceof File 
-                      ? (formData as any)._resourceFileMetadata?.FileSize || formatFileSize(formData.ResourceFile.size)
-                      : (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
-                        ? formData.ResourceFile.FileSize || '' 
+                    formData.ResourceProject?.ResourceFile instanceof File 
+                      ? (formData as any)._resourceFileMetadata?.FileSize || formatFileSize((formData.ResourceProject.ResourceFile as File).size)
+                      : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
+                        ? formData.ResourceProject.ResourceFile.FileSize || '' 
                         : ''
                   }
-                  disabled={formData.ResourceFile instanceof File}
+                  disabled={formData.ResourceProject?.ResourceFile instanceof File}
                   onChange={(e) => {
-                    if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
-                      updateFormData('ResourceFile', { 
-                        ...formData.ResourceFile, 
+                    if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                      updateFormData('ResourceProject.ResourceFile', { 
+                        ...formData.ResourceProject.ResourceFile, 
                         FileSize: e.target.value 
                       });
                     }
@@ -559,17 +646,17 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <FormField label="File Type">
                 <Input
                   value={
-                    formData.ResourceFile instanceof File 
-                      ? (formData as any)._resourceFileMetadata?.FileType || getFileTypeFromMimeType(formData.ResourceFile.type)
-                      : (formData.ResourceFile && !(formData.ResourceFile instanceof File)) 
-                        ? formData.ResourceFile.FileType || '' 
+                    formData.ResourceProject?.ResourceFile instanceof File 
+                      ? (formData as any)._resourceFileMetadata?.FileType || getFileTypeFromMimeType((formData.ResourceProject.ResourceFile as File).type)
+                      : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
+                        ? formData.ResourceProject.ResourceFile.FileType || '' 
                         : ''
                   }
-                  disabled={formData.ResourceFile instanceof File}
+                  disabled={formData.ResourceProject?.ResourceFile instanceof File}
                   onChange={(e) => {
-                    if (formData.ResourceFile && !(formData.ResourceFile instanceof File)) {
-                      updateFormData('ResourceFile', { 
-                        ...formData.ResourceFile, 
+                    if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                      updateFormData('ResourceProject.ResourceFile', { 
+                        ...formData.ResourceProject.ResourceFile, 
                         FileType: e.target.value 
                       });
                     }
@@ -582,10 +669,26 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Download Count">
               <Input
                 type="number"
-                value={(formData.ResourceFile && !(formData.ResourceFile instanceof File)) ? formData.ResourceFile.DownloadCount || 0 : 0}
+                value={(formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) ? formData.ResourceProject.ResourceFile.DownloadCount || 0 : 0}
                 disabled={true}
                 min={0}
                 className="bg-gray-50 cursor-not-allowed"
+              />
+            </FormField>
+
+            <FormField label="Last Updated">
+              <Input
+                type="datetime-local"
+                value={(
+                  (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File) && formData.ResourceProject.ResourceFile.LastUpdated)
+                    ? new Date(formData.ResourceProject.ResourceFile.LastUpdated).toISOString().slice(0, 16)
+                    : ''
+                )}
+                onChange={(e) => {
+                  if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                    updateFormData('ResourceProject.ResourceFile.LastUpdated', e.target.value ? new Date(e.target.value) : undefined);
+                  }
+                }}
               />
             </FormField>
           </div>
@@ -618,7 +721,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <Input
               value={formData.Title}
               onChange={(e) => updateFormData('Title', e.target.value)}
-              maxLength={200}
+              maxLength={50}
               required
             />
           </FormField>
@@ -627,7 +730,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <Input
               value={formData.Subtitle}
               onChange={(e) => updateFormData('Subtitle', e.target.value)}
-              maxLength={300}
+              maxLength={50}
             />
           </FormField>
           
@@ -635,8 +738,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <Textarea
               value={formData.Description}
               onChange={(e) => updateFormData('Description', e.target.value)}
-              rows={3}
-              maxLength={1000}
+              rows={2}
+              maxLength={200}
             />
           </FormField>
         </div>
@@ -651,7 +754,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             onUpload={(file) => updateFormData('Logo', file)}
             onRemove={() => removeFile('Logo')}
             accept="image/*"
-            maxSize={2 * 1024 * 1024}
+            maxSize={5 * 1024 * 1024}
           />
           
           <MediaUpload
@@ -672,6 +775,58 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             accept="image/*"
             maxSize={5 * 1024 * 1024}
           />
+          
+          <MediaUpload
+            label="Accent Graphic"
+            description="Decorative graphic element with position and opacity controls"
+            value={formData.AccentGraphic}
+            onUpload={(file) => {
+              const newAccentGraphic = {
+                Filename: file.name,
+                Alt: file.name,
+                Size: file.size,
+                File: file, // Keep the file object for upload
+                Position: 'top-left', // Default position
+                Opacity: 0.6 // Default opacity
+              };
+              updateFormData('AccentGraphic', newAccentGraphic);
+            }}
+            onRemove={() => removeFile('AccentGraphic')}
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
+          />
+          
+          {/* Accent Graphic Controls */}
+          {formData.AccentGraphic && (
+            <div className="ml-4 p-4 bg-brand-i rounded-md space-y-4">
+              <h4 className="heading-6">Accent Graphic Settings</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Position">
+                  <Select
+                    value={(formData.AccentGraphic && !(formData.AccentGraphic instanceof File)) ? formData.AccentGraphic.Position || 'top-left' : 'top-left'}
+                    onChange={(e) => updateFormData('AccentGraphic.Position', e.target.value)}
+                    options={[
+                      { value: 'top-left', label: 'Top Left' },
+                      { value: 'top-right', label: 'Top Right' },
+                      { value: 'bottom-left', label: 'Bottom Left' },
+                      { value: 'bottom-right', label: 'Bottom Right' },
+                      { value: 'center', label: 'Center' }
+                    ]}
+                  />
+                </FormField>
+                <FormField label="Opacity">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={(formData.AccentGraphic && !(formData.AccentGraphic instanceof File)) ? formData.AccentGraphic.Opacity || 0.6 : 0.6}
+                    onChange={(e) => updateFormData('AccentGraphic.Opacity', parseFloat(e.target.value))}
+                  />
+                </FormField>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Styling Options */}
@@ -741,7 +896,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <Input
               value={formData.BadgeText}
               onChange={(e) => updateFormData('BadgeText', e.target.value)}
-              maxLength={50}
+              maxLength={25}
             />
           </FormField>
         </div>
@@ -750,7 +905,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <div className="flex justify-between items-center">
             <h3 className="heading-5">Call-to-Action Buttons</h3>
-            {formData.CtaButtons.length < 3 && (
+            {(formData.CtaButtons?.length ?? 0) < 3 && (
               <Button type="button" variant="outline" size="sm" onClick={addCTAButton}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add Button
@@ -763,7 +918,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
           
           <div className="space-y-3">
-            {formData.CtaButtons.map((button, index) => (
+            {(formData.CtaButtons ?? []).map((button, index) => (
               <div key={index} className="card-compact border border-brand-q">
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <FormField label="Button Label">
@@ -789,17 +944,15 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       options={CTA_VARIANTS}
                     />
                   </FormField>
-                  {formData.CtaButtons.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCTAButton(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeCTAButton(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                 </div>
                 <div className="mt-2">
                   <Checkbox
@@ -891,6 +1044,38 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             {saving ? 'Saving...' : 'Save Banner'}
           </Button>
         </div>
+
+        {/* Error Messages under Save Button */}
+        {(errorMessage || Object.keys(errors).length > 0 || validationErrors.length > 0) && (
+          <div className="mt-4 card card-compact border-brand-g bg-red-50">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-small font-medium text-brand-g">Error</h3>
+                {errorMessage && (
+                  <div className="mt-2 text-small text-brand-g">{errorMessage}</div>
+                )}
+                {Object.keys(errors).length > 0 && (
+                  <ul className="mt-2 text-small text-brand-g list-disc list-inside">
+                    {Object.entries(errors).map(([field, message]) => (
+                      <li key={field}>
+                        <strong>{field}:</strong> {message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {validationErrors.length > 0 && (
+                  <ul className="mt-2 text-small text-brand-g list-disc list-inside">
+                    {validationErrors.map((err, index) => (
+                      <li key={index}>
+                        <strong>{err.path}:</strong> {err.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );

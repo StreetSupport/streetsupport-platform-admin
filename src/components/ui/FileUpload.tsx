@@ -153,7 +153,7 @@ export function FileUpload({
       )}
 
       {/* Uploaded Files */}
-      {uploadedFiles.length > 0 && (
+      {/* {uploadedFiles.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Files:</h4>
           {uploadedFiles.map((file, index) => (
@@ -189,7 +189,7 @@ export function FileUpload({
             </div>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

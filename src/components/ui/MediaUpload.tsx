@@ -28,19 +28,33 @@ interface MediaArrayUploadProps {
 }
 
 // Helper function to get preview URL
-const getPreviewUrl = (item: File | IMediaAsset): string => {
+const getPreviewUrl = (item: any): string => {
   if (item instanceof File) {
     return URL.createObjectURL(item);
   }
-  return item.Url;
+  // Handle complex objects like AccentGraphic that have a nested File property
+  if (typeof item === 'object' && item !== null && item.File instanceof File) {
+    return URL.createObjectURL(item.File);
+  }
+  // Handle existing media assets that have a Url property
+  if (typeof item === 'object' && item !== null && item.Url) {
+    return item.Url;
+  }
+  return ''; // Fallback to prevent errors
 };
 
 // Helper function to get display name
-const getDisplayName = (item: File | IMediaAsset): string => {
+const getDisplayName = (item: any): string => {
   if (item instanceof File) {
     return item.name;
   }
-  return item.Filename || item.Alt || 'Uploaded file';
+  if (typeof item === 'object' && item !== null && item.File instanceof File) {
+    return item.File.name;
+  }
+  if (typeof item === 'object' && item !== null) {
+    return item.Filename || item.Alt || 'Uploaded file';
+  }
+  return 'Uploaded file';
 };
 
 // Single media upload component
@@ -104,7 +118,7 @@ export function MediaUpload({
                   {getDisplayName(value)}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {value instanceof File ? `${(value.size / 1024).toFixed(1)} KB` : 'Uploaded file'}
+                  {value instanceof File ? `${(value.size / 1024).toFixed(1)} KB` : `${((value as any).Size / 1024).toFixed(1)} KB`}
                 </p>
               </div>
               <Button
@@ -164,29 +178,42 @@ export function MediaArrayUpload({
 
       {/* Existing files */}
       {value.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
           {value.map((item, index) => (
             <div key={index} className="relative group">
-              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                <div className="aspect-square mb-2">
-                  <img 
-                    src={getPreviewUrl(item)} 
-                    alt={getDisplayName(item)}
-                    className="w-full h-full object-cover rounded"
-                  />
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    {accept.includes('image') ? (
+                      <img 
+                        src={getPreviewUrl(item)} 
+                        alt={getDisplayName(item)}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {getDisplayName(item)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {item instanceof File ? `${(item.size / 1024).toFixed(1)} KB` : `${((item as any).Size / 1024).toFixed(1)} KB`}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemove(index)}
+                    className="text-red-600 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                <p className="text-xs text-gray-600 truncate">
-                  {getDisplayName(item)}
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemove(index)}
-                  className="absolute top-1 right-1 text-red-600 hover:text-red-700 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
               </div>
             </div>
           ))}

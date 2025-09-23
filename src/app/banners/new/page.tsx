@@ -5,17 +5,33 @@ import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
+import { validateBannerForm, type BannerFormData } from '@/schemas/bannerSchema';
+import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 
 export default function NewBannerPage() {
   const router = useRouter();
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
 
   const handleSave = async (data: IBannerFormData) => {
+    const toastId = loadingToast.create('banner');
+    
     try {
       setSaving(true);
       setError(null);
+      setValidationErrors([]);
+
+      // Client-side validation using Zod
+      const validation = validateBannerForm(data);
+      if (!validation.success) {
+        setValidationErrors(validation.errors);
+        setError('Please fix the validation errors below');
+        toastUtils.dismiss(toastId);
+        errorToast.validation();
+        return;
+      }
 
       const formData = new FormData();
       
@@ -24,19 +40,65 @@ export default function NewBannerPage() {
         const typedKey = key as keyof IBannerFormData;
         const value = data[typedKey];
         
-        if (key === 'Logo' || key === 'BackgroundImage' || key === 'SplitImage' || key === 'PartnerLogos') {
-          // Handle file uploads separately
+        if (key === 'Logo' || key === 'BackgroundImage' || key === 'SplitImage') {
+          // Handle simple file uploads
           if (value instanceof File) {
             // Single new file
-            formData.append(`new_${key}`, value);
-          } else if (Array.isArray(value) && key === 'PartnerLogos') {
-            // Handle multiple files (partnerLogos) - all new in create mode
-            (value as File[]).forEach((file: File) => {
+            formData.append(`newfile_${key}`, value);
+          }
+        } else if (key === 'AccentGraphic' && value && typeof value === 'object') {
+          const accentGraphic = value as any;
+          // Handle AccentGraphic with metadata
+          if (accentGraphic.File instanceof File) {
+            // 1. AccentGraphic object with File and metadata
+            formData.append('newfile_AccentGraphic', accentGraphic.File);
+            
+            // 2. Send the complete AccentGraphic metadata (excluding the File property)
+            const accentGraphicMetadata = { ...accentGraphic };
+            delete accentGraphicMetadata.File; // Remove the File object from metadata
+            formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
+          } 
+          // else {
+          //   // Existing AccentGraphic (no new upload)
+          //   formData.append('existing_AccentGraphic', JSON.stringify(accentGraphic));
+          // }
+        } else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
+          // Handle nested PartnershipCharter with PartnerLogos
+          const partnershipCharter = value as any;
+          if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
+            partnershipCharter.PartnerLogos.forEach((file: File) => {
               if (file instanceof File) {
-                formData.append(`new_${key}`, file);
+                formData.append('newfile_PartnerLogos', file);
               }
             });
           }
+          // Add other PartnershipCharter fields as JSON
+          const partnershipCharterData = { ...partnershipCharter };
+          delete partnershipCharterData.PartnerLogos; // Remove files from JSON
+          formData.append(key, JSON.stringify(partnershipCharterData));
+        } else if (key === 'ResourceProject' && value && typeof value === 'object') {
+          // Handle nested ResourceProject with ResourceFile
+          const resourceProject = value as any;
+          if (resourceProject.ResourceFile) {
+            // Check for the nested File object, which indicates a new upload
+            if (resourceProject.ResourceFile.File instanceof File) {
+              // 1. Append the actual file for upload
+              formData.append('newfile_ResourceFile', resourceProject.ResourceFile.File);
+
+              // 2. Send the metadata as a separate JSON string
+              const resourceFileMetadata = { ...resourceProject.ResourceFile };
+              delete resourceFileMetadata.File; // Don't send the file object in the JSON
+              formData.append('newmetadata_ResourceFile', JSON.stringify(resourceFileMetadata));
+            } 
+            // else if (resourceProject.ResourceFile.Url) {
+            //   // This is an existing resource file that is not being changed
+            //   formData.append('existing_ResourceFile', JSON.stringify(resourceProject.ResourceFile));
+            // }
+          }
+          // Add other ResourceProject fields as JSON (excluding ResourceFile)
+          const resourceProjectData = { ...resourceProject };
+          delete resourceProjectData.ResourceFile;
+          formData.append(key, JSON.stringify(resourceProjectData));
         } else if (typeof value === 'object' && value !== null) {
           formData.append(key, JSON.stringify(value));
         } else if (value !== undefined) {
@@ -55,9 +117,14 @@ export default function NewBannerPage() {
       }
 
       const result = await response.json();
+      toastUtils.dismiss(toastId);
+      successToast.create('Banner');
       router.push(`/banners/${result.data._id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toastUtils.dismiss(toastId);
+      errorToast.create('banner', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -79,18 +146,6 @@ export default function NewBannerPage() {
         </div>
 
         <div className="page-container section-spacing">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 card card-compact border-brand-g bg-red-50">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-small font-medium text-brand-g">Error</h3>
-                  <div className="mt-2 text-small text-brand-g">{error}</div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Full-width Preview at Top */}
           <div className="mb-8">
             <BannerPreview data={bannerData} />
@@ -102,6 +157,8 @@ export default function NewBannerPage() {
               onDataChange={setBannerData}
               onSave={handleSave}
               saving={saving}
+              errorMessage={error}
+              validationErrors={validationErrors}
             />
           </div>
         </div>

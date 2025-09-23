@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { errorToast } from '@/utils/toast';
 
 export default function ProtectedLayout({
   children,
@@ -17,6 +18,7 @@ export default function ProtectedLayout({
     if (status === 'loading') return;
     
     if (!session) {
+      errorToast.auth();
       router.push('/api/auth/signin');
     } else {
       setIsLoading(false);

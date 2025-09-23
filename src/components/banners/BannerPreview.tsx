@@ -10,17 +10,22 @@ interface BannerPreviewProps {
 
 export function BannerPreview({ data }: BannerPreviewProps) {
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [previewImageUrls, setPreviewImageUrls] = useState<{ Logo?: string; BackgroundImage?: string; SplitImage?: string; PartnerLogos?: string[] }>({});
+  const [previewImageUrls, setPreviewImageUrls] = useState<{ Logo?: string; BackgroundImage?: string; SplitImage?: string; PartnerLogos?: string[]; AccentGraphic?: string }>({});
 
   useEffect(() => {
-    const urls: { Logo?: string; BackgroundImage?: string; SplitImage?: string; PartnerLogos?: string[] } = {};
+    const urls: { Logo?: string; BackgroundImage?: string; SplitImage?: string; PartnerLogos?: string[]; AccentGraphic?: string } = {};
 
     const processMedia = (media: any) => {
-      if (media instanceof File) {
+      if (media instanceof File) { // Handles Logo, BackgroundImage, SplitImage
         return URL.createObjectURL(media);
       }
-      if (typeof media === 'object' && media?.Url) {
-        return media.Url;
+      if (typeof media === 'object' && media !== null) {
+        if (media.File instanceof File) { // Handles the AccentGraphic object structure
+          return URL.createObjectURL(media.File);
+        }
+        if (media.Url) { // Handles existing media assets
+          return media.Url;
+        }
       }
       return null;
     };
@@ -28,6 +33,7 @@ export function BannerPreview({ data }: BannerPreviewProps) {
     urls.Logo = processMedia(data?.Logo);
     urls.BackgroundImage = processMedia(data?.BackgroundImage);
     urls.SplitImage = processMedia(data?.SplitImage);
+    urls.AccentGraphic = processMedia(data?.AccentGraphic);
 
     if (data?.PartnerLogos && Array.isArray(data.PartnerLogos)) {
       urls.PartnerLogos = data.PartnerLogos.map((logo: File | IMediaAsset) =>
@@ -38,13 +44,15 @@ export function BannerPreview({ data }: BannerPreviewProps) {
     setPreviewImageUrls(urls);
 
     return () => {
-      Object.values(urls).flat().forEach(url => {
+      // Clean up all created blob URLs
+      const allUrls = [urls.Logo, urls.BackgroundImage, urls.SplitImage, urls.AccentGraphic, ...(urls.PartnerLogos || [])];
+      allUrls.forEach(url => {
         if (typeof url === 'string' && url.startsWith('blob:')) {
           URL.revokeObjectURL(url);
         }
       });
     };
-  }, [data?.Logo, data?.BackgroundImage, data?.SplitImage, data?.PartnerLogos]);
+  }, [data?.Logo, data?.BackgroundImage, data?.SplitImage, data?.PartnerLogos, data?.AccentGraphic]);
 
   if (!data) {
     return (
@@ -96,8 +104,31 @@ export function BannerPreview({ data }: BannerPreviewProps) {
 
   const getTextColorClass = () => data.TextColour === 'white' ? 'text-white' : 'text-gray-900';
 
+  const getAccentGraphicStyle = (): React.CSSProperties => {
+    if (!previewImageUrls.AccentGraphic || !data.AccentGraphic) return {};
+
+    const positionStyles: Record<string, React.CSSProperties> = {
+      'top-left': { top: '1rem', left: '1rem' },
+      'top-right': { top: '1rem', right: '1rem' },
+      'bottom-left': { bottom: '1rem', left: '1rem' },
+      'bottom-right': { bottom: '1rem', right: '1rem' },
+      'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+    };
+
+    const position = (data.AccentGraphic && !(data.AccentGraphic instanceof File)) ? data.AccentGraphic.Position : 'top-left';
+    const opacity = (data.AccentGraphic && !(data.AccentGraphic instanceof File)) ? data.AccentGraphic.Opacity : 0.6;
+
+    return {
+      position: 'absolute',
+      opacity,
+      maxWidth: '25%',
+      maxHeight: '25%',
+      ...positionStyles[position || 'top-left'],
+    };
+  };
+
   const getUrgencyBadgeColor = () => {
-    switch (data.UrgencyLevel) {
+    switch (data.GivingCampaign?.UrgencyLevel) {
       case 'low': return 'service-tag open';
       case 'medium': return 'service-tag limited';
       case 'high': return 'service-tag emergency';
@@ -107,14 +138,14 @@ export function BannerPreview({ data }: BannerPreviewProps) {
   };
 
   const calculateProgress = () => {
-    if (!data.DonationGoal || !data.DonationGoal.Target) return 0;
-    return Math.min(Math.round((data.DonationGoal.Current / data.DonationGoal.Target) * 100), 100);
+    if (!data.GivingCampaign?.DonationGoal || !data.GivingCampaign.DonationGoal.Target) return 0;
+    return Math.min(Math.round((data.GivingCampaign.DonationGoal.Current / data.GivingCampaign.DonationGoal.Target) * 100), 100);
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: data.DonationGoal?.Currency || 'GBP'
+      currency: data.GivingCampaign?.DonationGoal?.Currency || 'GBP'
     }).format(amount);
   };
 
@@ -123,16 +154,16 @@ export function BannerPreview({ data }: BannerPreviewProps) {
       case 'partnership-charter':
         return (
           <>
-            {data.CharterType && (
+            {data.PartnershipCharter?.CharterType && (
               <div className="flex items-center gap-3 mb-4">
                 <Badge className="service-tag verified">
-                  {data.CharterType.split('-').map((w:any) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  {data.PartnershipCharter.CharterType.split('-').map((w:any) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                 </Badge>
               </div>
             )}
-            {data.SignatoriesCount > 0 && (
+            {data.PartnershipCharter?.SignatoriesCount > 0 && (
               <div className="mb-6 p-4 bg-white/10 backdrop-blur-sm rounded-lg text-center">
-                <div className="text-3xl font-bold mb-1">{data.SignatoriesCount}</div>
+                <div className="text-3xl font-bold mb-1">{data.PartnershipCharter.SignatoriesCount}</div>
                 <div className="text-sm opacity-80">Organizations Signed</div>
               </div>
             )}
@@ -141,22 +172,22 @@ export function BannerPreview({ data }: BannerPreviewProps) {
       case 'resource-project':
         return (
           <>
-            {data.ResourceFile?.ResourceType && (
+            {data.ResourceProject?.ResourceFile?.ResourceType && (
               <div className="flex items-center gap-3 mb-4">
-                <Badge className="service-tag limited">📄 {data.ResourceFile.ResourceType}</Badge>
-                {data.ResourceFile.FileType && <Badge className="service-tag closed">{data.ResourceFile.FileType.toUpperCase()}</Badge>}
+                <Badge className="service-tag limited">📄 {data.ResourceProject.ResourceFile.ResourceType}</Badge>
+                {data.ResourceProject.ResourceFile.FileType && <Badge className="service-tag closed">{data.ResourceProject.ResourceFile.FileType.toUpperCase()}</Badge>}
               </div>
             )}
             <div className="mb-6 p-4 bg-white/10 backdrop-blur-sm rounded-lg grid grid-cols-2 gap-4 text-sm">
-              {data.ResourceFile?.DownloadCount > 0 && (
+              {data.ResourceProject?.ResourceFile?.DownloadCount > 0 && (
                 <div>
-                  <div className="font-semibold">{data.ResourceFile.DownloadCount.toLocaleString()}</div>
+                  <div className="font-semibold">{data.ResourceProject.ResourceFile.DownloadCount.toLocaleString()}</div>
                   <div className="opacity-80">Downloads</div>
                 </div>
               )}
-              {data.ResourceFile?.FileSize && (
+              {data.ResourceProject?.ResourceFile?.FileSize && (
                 <div>
-                  <div className="font-semibold">{data.ResourceFile.FileSize}</div>
+                  <div className="font-semibold">{data.ResourceProject.ResourceFile.FileSize}</div>
                   <div className="opacity-80">File Size</div>
                 </div>
               )}
@@ -170,12 +201,12 @@ export function BannerPreview({ data }: BannerPreviewProps) {
   const renderGivingCampaign = () => (
     <>
       <div className="space-y-6">
-        {data.UrgencyLevel && (
+        {data.GivingCampaign?.UrgencyLevel && (
           <div className="flex items-center gap-3">
             <Badge className={getUrgencyBadgeColor()}>
-              {data.UrgencyLevel === 'critical' && '🚨 '}
-              {data.UrgencyLevel === 'high' && '⚡ '}
-              {data.UrgencyLevel.charAt(0).toUpperCase() + data.UrgencyLevel.slice(1)} Appeal
+              {data.GivingCampaign.UrgencyLevel === 'critical' && '🚨 '}
+              {data.GivingCampaign.UrgencyLevel === 'high' && '⚡ '}
+              {data.GivingCampaign.UrgencyLevel.charAt(0).toUpperCase() + data.GivingCampaign.UrgencyLevel.slice(1)} Appeal
             </Badge>
             {data.BadgeText && <Badge className="service-tag urgent">{data.BadgeText}</Badge>}
           </div>
@@ -186,11 +217,11 @@ export function BannerPreview({ data }: BannerPreviewProps) {
           {data.Subtitle && <h2 className={`${previewMode === 'mobile' ? 'text-lg' : 'text-xl'} font-semibold opacity-90`}>{data.Subtitle}</h2>}
           {data.Description && <p className={`${previewMode === 'mobile' ? 'text-base' : 'text-lg'} opacity-80 leading-relaxed max-w-2xl`}>{data.Description}</p>}
         </div>
-        {data.DonationGoal && (
+        {data.GivingCampaign?.DonationGoal && (
           <div className="p-6 bg-white/10 backdrop-blur-sm rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold text-lg">{formatCurrency(data.DonationGoal.Current)} raised</span>
-              <span className="opacity-80">of {formatCurrency(data.DonationGoal.Target)} goal</span>
+              <span className="font-semibold text-lg">{formatCurrency(data.GivingCampaign.DonationGoal.Current)} raised</span>
+              <span className="opacity-80">of {formatCurrency(data.GivingCampaign.DonationGoal.Target)} goal</span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-3 mb-2">
               <div className="bg-white h-3 rounded-full" style={{ width: `${calculateProgress()}%` }} />
@@ -198,10 +229,10 @@ export function BannerPreview({ data }: BannerPreviewProps) {
             <p className="text-sm opacity-70">{calculateProgress()}% funded</p>
           </div>
         )}
-        {data.CampaignEndDate && (
+        {data.GivingCampaign?.CampaignEndDate && (
           <div className="p-4 bg-white/10 backdrop-blur-sm rounded-lg">
             <div className="text-sm opacity-80 mb-1">Campaign ends:</div>
-            <div className="font-semibold">{new Date(data.CampaignEndDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+            <div className="font-semibold">{new Date(data.GivingCampaign.CampaignEndDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
           </div>
         )}
         {renderCtaButtons()}
@@ -272,6 +303,13 @@ export function BannerPreview({ data }: BannerPreviewProps) {
         <div className={`w-full lg:${getPreviewContainerClass()}`}>
           <div className={`relative overflow-hidden py-12 px-6 rounded-lg ${getTextColorClass()}`} style={getBackgroundStyle()}>
             {data.Background?.Overlay && <div className="absolute inset-0" style={{ backgroundColor: data.Background.Overlay.Colour, opacity: data.Background.Overlay.Opacity }} />}
+            {previewImageUrls.AccentGraphic && (
+              <img
+                src={previewImageUrls.AccentGraphic}
+                alt="Accent Graphic"
+                style={getAccentGraphicStyle()}
+              />
+            )}
             <div className={`relative z-10 ${getLayoutClass()}`}>
               {data.TemplateType === 'giving-campaign' ? renderGivingCampaign() : renderDefaultTemplate()}
             </div>

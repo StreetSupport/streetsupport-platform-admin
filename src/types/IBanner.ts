@@ -2,6 +2,23 @@ import { IMediaAsset } from './IMediaAsset';
 import { IAccentGraphic, IBannerBackground, ICTAButton, IDonationGoal } from '@/types/index';
 import { IResourceFile } from './IResourceFile';
 
+// Template-specific interfaces
+export interface IGivingCampaign {
+  UrgencyLevel?: UrgencyLevel;
+  CampaignEndDate?: Date;
+  DonationGoal?: IDonationGoal;
+}
+
+export interface IPartnershipCharter {
+  PartnerLogos?: IMediaAsset[];
+  CharterType?: CharterType;
+  SignatoriesCount?: number;
+}
+
+export interface IResourceProject {
+  ResourceFile?: IResourceFile;
+}
+
 export interface IBanner {
   // Audit fields
   _id: string;
@@ -19,59 +36,55 @@ export interface IBanner {
   Logo?: IMediaAsset;
   BackgroundImage?: IMediaAsset;
   SplitImage?: IMediaAsset; // Separate image for split layout (not background)
+  AccentGraphic?: IAccentGraphic;
   
   // Actions
-  CtaButtons: ICTAButton[];
+  CtaButtons?: ICTAButton[];
   
   // Styling
   Background: IBannerBackground;
   TextColour: TextColour;
   LayoutStyle: LayoutStyle;
-  AccentGraphic?: IAccentGraphic;
-  
+
   // Scheduling
   ShowDates?: boolean;
   StartDate?: Date;
   EndDate?: Date;
   BadgeText?: string;
   
-  // Template-specific fields
-  // Giving Campaign
-  UrgencyLevel?: UrgencyLevel;
-  CampaignEndDate?: Date;
-  DonationGoal?: IDonationGoal;
-  
-  // Partnership Charter
-  PartnerLogos?: IMediaAsset[];
-  CharterType?: CharterType;
-  SignatoriesCount?: number;
-  
-  // Resource Project
-  ResourceFile?: IResourceFile;
+  // Template-specific fields - using intersection types for better type safety
+  GivingCampaign?: IGivingCampaign;
+  PartnershipCharter?: IPartnershipCharter;
+  ResourceProject?: IResourceProject;
   
   // CMS metadata
   IsActive: boolean;
   LocationSlug?: string;
   Priority: number;
-  
-  // Analytics
-  TrackingContext?: string;
-  AnalyticsId?: string;
 }
 
 // Union type for handling both existing assets and new file uploads
 export type MediaField = IMediaAsset | File | null;
+export type AccentGraphicField = IAccentGraphic | File | null;
 export type MediaArrayField = (IMediaAsset | File)[];
 export type ResourceFileField = IResourceFile | File | null;
 
 // Form data interface that can handle both create and edit scenarios
-export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'SplitImage' | 'PartnerLogos' | 'ResourceFile'> {
+export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'SplitImage' | 'AccentGraphic' | 'GivingCampaign' | 'PartnershipCharter' | 'ResourceProject' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
   // Media fields that can be either existing assets or new files
-  PartnerLogos?: MediaArrayField;
   Logo?: MediaField;
   BackgroundImage?: MediaField;
   SplitImage?: MediaField;
-  ResourceFile?: ResourceFileField;
+  AccentGraphic?: AccentGraphicField;
+  
+  // Template-specific fields with File support
+  GivingCampaign?: IGivingCampaign;
+  PartnershipCharter?: Omit<IPartnershipCharter, 'PartnerLogos'> & {
+    PartnerLogos?: MediaArrayField;
+  };
+  ResourceProject?: Omit<IResourceProject, 'ResourceFile'> & {
+    ResourceFile?: ResourceFileField;
+  };
 }
 
 // Helper type for edit mode - when we receive data from API
