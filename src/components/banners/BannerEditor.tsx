@@ -122,9 +122,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const [formData, setFormData] = useState<IBannerFormData>(() => {
     const defaults: IBannerFormData = {
-      Title: '',
-      Subtitle: '',
-      Description: '',
+      Title: 'Title',
+      Subtitle: 'Subtitle',
+      Description: 'Description',
       TemplateType: BannerTemplateType.GIVING_CAMPAIGN,
       LayoutStyle: LayoutStyle.SPLIT,
       TextColour: TextColour.WHITE,
@@ -147,19 +147,19 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       IsActive: true,
       Priority: 5,
       LocationSlug: 'general',
-      BadgeText: '',
+      BadgeText: 'Badge text',
       GivingCampaign: {
         UrgencyLevel: UrgencyLevel.MEDIUM,
         CampaignEndDate: undefined,
         DonationGoal: {
-          Target: 0,
-          Current: 0,
+          Target: 10000,
+          Current: 5000,
           Currency: 'GBP'
         }
       },
       PartnershipCharter: {
         CharterType: CharterType.HOMELESS_CHARTER,
-        SignatoriesCount: 0,
+        SignatoriesCount: 3,
         PartnerLogos: []
       },
       ResourceProject: {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
-import { validateBannerForm, type BannerFormData } from '@/schemas/bannerSchema';
+import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 
 export default function NewBannerPage() {
@@ -57,11 +57,7 @@ export default function NewBannerPage() {
             const accentGraphicMetadata = { ...accentGraphic };
             delete accentGraphicMetadata.File; // Remove the File object from metadata
             formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
-          } 
-          // else {
-          //   // Existing AccentGraphic (no new upload)
-          //   formData.append('existing_AccentGraphic', JSON.stringify(accentGraphic));
-          // }
+          }
         } else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
           // Handle nested PartnershipCharter with PartnerLogos
           const partnershipCharter = value as any;
@@ -90,10 +86,6 @@ export default function NewBannerPage() {
               delete resourceFileMetadata.File; // Don't send the file object in the JSON
               formData.append('newmetadata_ResourceFile', JSON.stringify(resourceFileMetadata));
             } 
-            // else if (resourceProject.ResourceFile.Url) {
-            //   // This is an existing resource file that is not being changed
-            //   formData.append('existing_ResourceFile', JSON.stringify(resourceProject.ResourceFile));
-            // }
           }
           // Add other ResourceProject fields as JSON (excluding ResourceFile)
           const resourceProjectData = { ...resourceProject };
@@ -136,19 +128,19 @@ export default function NewBannerPage() {
         <div className="nav-container">
           <div className="page-container">
             <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-4">
                 <h1 className="heading-4">
                   Create New Banner
                 </h1>
               </div>
             </div>
-          </div>
         </div>
 
         <div className="page-container section-spacing">
           {/* Full-width Preview at Top */}
           <div className="mb-8">
-            <BannerPreview data={bannerData} />
+            {bannerData && (
+              <BannerPreview data={bannerData} />
+            )}
           </div>
 
           <div className="space-y-6">
@@ -157,7 +149,6 @@ export default function NewBannerPage() {
               onDataChange={setBannerData}
               onSave={handleSave}
               saving={saving}
-              errorMessage={error}
               validationErrors={validationErrors}
             />
           </div>
