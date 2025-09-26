@@ -13,9 +13,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/organisations', label: 'Organisations', page: '/organisations' },
   { href: '/advice', label: 'Advice', page: '/advice' },
-  { href: '/banners', label: 'Banners', page: '/banners' },
+  // TODO: uncomment when banners are implemented
+  // { href: '/banners', label: 'Banners', page: '/banners' },
+    // TODO: remove when banners are implemented
+  { href: '/organisations', label: 'Banners', page: '/organisations' },
   { href: '/swep-banners', label: 'SWEP', page: '/swep-banners' },
-  { href: '/cities', label: 'Cities', page: '/cities' },
+  { href: '/organisations', label: 'Cities', page: '/organisations' },
   { href: '/users', label: 'Users', page: '/users' },
 ];
 

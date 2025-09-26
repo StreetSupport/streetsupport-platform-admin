@@ -17,6 +17,7 @@
     "test:e2e:debug": "playwright test --config=./config/playwright.config.ts --debug"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.15.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
     "next": "15.3.2",
