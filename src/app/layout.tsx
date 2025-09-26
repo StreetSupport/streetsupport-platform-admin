@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import './globals.css';
 
-import Header from '@/components/partials/Header';
 import Footer from '@/components/partials/Footer';
 import NextAuthProvider from '@/components/auth/NextAuthProvider';
 import ProtectedLayout from '@/components/auth/ProtectedLayout';

@@ -175,6 +175,8 @@ export function MediaArrayUpload({
 }: MediaArrayUploadProps) {
   return (
     <div className="space-y-4">
+      {label && <h3 className="text-sm font-medium text-gray-700">{label}</h3>}
+      {description && <p className="text-sm text-gray-500 mb-4">{description}</p>}
 
       {/* Existing files */}
       {value.length > 0 && (

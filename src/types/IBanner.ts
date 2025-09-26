@@ -88,9 +88,9 @@ export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage
 }
 
 // Helper type for edit mode - when we receive data from API
-export interface IBannerEditData extends IBanner {
-  // In edit mode, we receive IMediaAsset[] from API but need to convert for form
-}
+// export interface IBannerEditData extends IBanner {
+//   // In edit mode, we receive IMediaAsset[] from API but need to convert for form
+// }
 
 // Enums for type safety
 export enum BannerTemplateType {

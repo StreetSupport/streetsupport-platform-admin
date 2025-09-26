@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import Nav from './Nav';
 
 export default function Header() {
-  const { data: session } = useSession();
+  useSession(); // Session is kept for potential auth side effects
 
   return (
     <header className="nav-container relative w-full md:fixed md:top-0">

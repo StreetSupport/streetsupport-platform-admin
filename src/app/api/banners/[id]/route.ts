@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, AuthContext, AuthenticatedApiHandler } from '@/lib/withAuth';
+import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;

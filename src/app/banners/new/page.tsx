@@ -12,7 +12,6 @@ export default function NewBannerPage() {
   const router = useRouter();
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
 
   const handleSave = async (data: IBannerFormData) => {
@@ -20,16 +19,14 @@ export default function NewBannerPage() {
     
     try {
       setSaving(true);
-      setError(null);
       setValidationErrors([]);
 
       // Client-side validation using Zod
       const validation = validateBannerForm(data);
       if (!validation.success) {
         setValidationErrors(validation.errors);
-        setError('Please fix the validation errors below');
         toastUtils.dismiss(toastId);
-        errorToast.validation();
+        errorToast.validation('Please fix the validation errors below');
         return;
       }
 
@@ -111,10 +108,9 @@ export default function NewBannerPage() {
       const result = await response.json();
       toastUtils.dismiss(toastId);
       successToast.create('Banner');
-      router.push(`/banners/${result.data._id}`);
+      router.push(`/banners/${result._id}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
       toastUtils.dismiss(toastId);
       errorToast.create('banner', errorMessage);
     } finally {

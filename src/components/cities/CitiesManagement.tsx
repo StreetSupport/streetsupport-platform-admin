@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface City {
@@ -19,13 +19,10 @@ export default function CitiesManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCities();
-  }, []);
-
-  const fetchCities = async () => {
+  const fetchCities = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/cities', {
         headers: {
           'Authorization': `Bearer ${session?.accessToken}`,
@@ -44,7 +41,11 @@ export default function CitiesManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    fetchCities();
+  }, [fetchCities]);
 
   const userAuthClaims = session?.user?.authClaims;
   const isCityAdmin = userAuthClaims?.roles.includes('CityAdmin');

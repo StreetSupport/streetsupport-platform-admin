@@ -147,7 +147,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
         />
       );
 
-    case BannerTemplateType.RESOURCE_PROJECT:
+    case BannerTemplateType.RESOURCE_PROJECT: {
       const resourceFile = data.ResourceProject?.ResourceFile;
       return (
         <ResourceProjectBanner
@@ -160,7 +160,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
           className={className}
         />
       );
-
+    }
     default:
       return (
         <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center ${className}`}>
@@ -169,7 +169,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
             <h3 className="text-lg font-medium mb-2">Unknown Template Type</h3>
-            <p className="text-sm">The selected template type "{data.TemplateType}" is not supported</p>
+            <p className="text-sm">The selected template type &quot;{data.TemplateType}&quot; is not supported</p>
           </div>
         </div>
       );

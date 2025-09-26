@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 
 interface FileUploadProps {
   accept?: string;
@@ -21,7 +21,7 @@ export function FileUpload({
   disabled = false
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  //const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +45,7 @@ export function FileUpload({
       }
     }
 
-    setUploadedFiles(prev => multiple ? [...prev, ...fileArray] : fileArray);
+    //setUploadedFiles(prev => multiple ? [...prev, ...fileArray] : fileArray);
     
     if (multiple) {
       onUpload(fileArray);
@@ -85,31 +85,31 @@ export function FileUpload({
     }
   };
 
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => {
-      const newFiles = prev.filter((_, i) => i !== index);
-      if (multiple) {
-        onUpload(newFiles);
-      } else {
-        // For single file uploads, pass null when no files remain
-        onUpload(newFiles.length > 0 ? newFiles[0] : null as any);
-      }
-      return newFiles;
-    });
+  // const removeFile = (index: number) => {
+  //   setUploadedFiles(prev => {
+  //     const newFiles = prev.filter((_, i) => i !== index);
+  //     if (multiple) {
+  //       onUpload(newFiles);
+  //     } else {
+  //       // For single file uploads, pass null when no files remain
+  //       onUpload(newFiles.length > 0 ? newFiles[0] : null as any);
+  //     }
+  //     return newFiles;
+  //   });
     
-    // Reset the input value to allow re-uploading the same file
-    if (inputRef.current) {
-      inputRef.current.value = '';
-    }
-  };
+  //   // Reset the input value to allow re-uploading the same file
+  //   if (inputRef.current) {
+  //     inputRef.current.value = '';
+  //   }
+  // };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  // const formatFileSize = (bytes: number) => {
+  //   if (bytes === 0) return '0 Bytes';
+  //   const k = 1024;
+  //   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  //   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  //   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  // };
 
   return (
     <div className={`space-y-3 ${className}`}>

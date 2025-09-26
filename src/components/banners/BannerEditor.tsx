@@ -434,11 +434,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         delete cleanedData.GivingCampaign;
         delete cleanedData.PartnershipCharter;
         break;
-      default:
+      default: {
         // This should never happen as TemplateType is required and validated
         const errorMessage = `Unexpected template type: ${data.TemplateType}`;
         errorToast.generic(errorMessage);
         throw new Error(errorMessage);
+      }
     }
 
     return cleanedData as IBannerFormData;
