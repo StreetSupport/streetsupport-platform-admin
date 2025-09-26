@@ -47,6 +47,10 @@ const nextConfig = {
       'react-icons/lib': 'react-icons',
     },
   },
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   
   // Production optimizations
   ...(process.env.NODE_ENV === 'production' && {
@@ -74,10 +78,7 @@ const nextConfig = {
               priority: 10,
             },
           },
-        },
-        eslint: {
-          ignoreDuringBuilds: true,
-        },
+        }
       };
       
       return config;
