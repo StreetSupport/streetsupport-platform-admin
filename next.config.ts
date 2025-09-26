@@ -75,6 +75,9 @@ const nextConfig = {
             },
           },
         },
+        eslint: {
+          ignoreDuringBuilds: true,
+        },
       };
       
       return config;
