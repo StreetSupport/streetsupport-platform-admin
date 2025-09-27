@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
-import type { ICity, ICTAButton, IResourceFile } from '@/types';
+import type { ICity, ICTAButton, IResourceFile, IMediaAsset } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -220,24 +220,26 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     setErrors({});
   }, [formData.TemplateType]);
 
-  const updateFormData = (path: string, value: any) => {
+  const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
       const keys = path.split('.');
-      // Start with a shallow copy of the root
-      const newData: any = Array.isArray(prev) ? [...(prev as any)] : { ...(prev as any) };
-      // Walk the path, cloning each branch as we go
-      let current: any = newData;
-      let source: any = prev as any;
+      // Start with a shallow copy of the root (object expected for IBannerFormData)
+      const newData: IBannerFormData = { ...(prev as IBannerFormData) };
+      // Walk the path, cloning each branch as we go using indexable records
+      let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
+      let source: Record<string, unknown> = prev as unknown as Record<string, unknown>;
       for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i];
-        const nextSource = source[key];
+        const nextSource = source[key] as unknown;
         // Clone arrays vs objects appropriately to maintain immutability
-        const next = Array.isArray(nextSource) ? [...nextSource] : { ...nextSource };
-        current[key] = next;
-        current = next;
-        source = nextSource;
+        const next = Array.isArray(nextSource)
+          ? [...(nextSource as unknown[])]
+          : { ...(nextSource as Record<string, unknown>) };
+        current[key] = next as unknown;
+        current = next as Record<string, unknown>;
+        source = (nextSource as Record<string, unknown>);
       }
-      current[keys[keys.length - 1]] = value;
+      current[keys[keys.length - 1]] = value as unknown;
       return newData as IBannerFormData;
     });
   };
@@ -267,7 +269,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     }));
   };
 
-  const updateCTAButton = (index: number, field: keyof ICTAButton, value: any) => {
+  const updateCTAButton = <K extends keyof ICTAButton>(index: number, field: K, value: ICTAButton[K]) => {
     setFormData(prev => ({
       ...prev,
       CtaButtons: (prev.CtaButtons ?? []).map((button, i) => 
@@ -286,7 +288,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const removePartnerLogo = (index: number) => {
     setFormData(prev => {
-      const newLogos = prev.PartnershipCharter?.PartnerLogos?.filter((_: any, i: number) => i !== index) || [];
+      const newLogos = prev.PartnershipCharter?.PartnerLogos?.filter((_: IMediaAsset | File, i: number) => i !== index) || [];
       
       // If removing a logo brings the count below the max, clear the specific error.
       if (newLogos.length < 5) {
@@ -406,9 +408,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
     // Require a resource file for Resource Project banners
     if (formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
-      const rf: any = formData.ResourceProject?.ResourceFile;
-      const hasNewFile = rf.File instanceof File;
-      const hasExistingUrl = rf && !(rf.File instanceof File) && !!rf.FileUrl;
+      const rf = formData.ResourceProject?.ResourceFile;
+      const hasNewFile = typeof rf === 'object' && rf !== null && 'File' in (rf as Record<string, unknown>) && (rf as { File?: unknown }).File instanceof File;
+      const hasExistingUrl = !!(rf && typeof rf === 'object' && !('File' in (rf as Record<string, unknown>)) && (rf as { FileUrl?: string }).FileUrl);
       if (!hasNewFile && !hasExistingUrl) {
         newErrors.ResourceFile = 'Resource file is required';
       }
@@ -490,7 +492,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Campaign End Date">
               <Input
                 type="datetime-local"
-                value={formData.GivingCampaign?.CampaignEndDate ? new Date(formData.GivingCampaign.CampaignEndDate as any).toISOString().slice(0, 16) : ''}
+                value={
+                  formData.GivingCampaign?.CampaignEndDate
+                    ? new Date(formData.GivingCampaign.CampaignEndDate).toISOString().slice(0, 16)
+                    : ''
+                }
                 onChange={(e) => updateFormData('GivingCampaign.CampaignEndDate', e.target.value ? new Date(e.target.value) : undefined)}
               />
             </FormField>
@@ -627,7 +633,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <Input
                   value={
                     formData.ResourceProject?.ResourceFile instanceof File 
-                      ? (formData as any)._resourceFileMetadata?.FileSize || formatFileSize((formData.ResourceProject.ResourceFile as File).size)
+                      ? formatFileSize((formData.ResourceProject.ResourceFile as File).size)
                       : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
                         ? formData.ResourceProject.ResourceFile.FileSize || '' 
                         : ''
@@ -648,7 +654,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <Input
                   value={
                     formData.ResourceProject?.ResourceFile instanceof File 
-                      ? (formData as any)._resourceFileMetadata?.FileType || getFileTypeFromMimeType((formData.ResourceProject.ResourceFile as File).type)
+                      ? getFileTypeFromMimeType((formData.ResourceProject.ResourceFile as File).type) || ''
                       : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
                         ? formData.ResourceProject.ResourceFile.FileType || '' 
                         : ''
@@ -941,7 +947,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   <FormField label="Button Style">
                     <Select
                       value={button.Variant}
-                      onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as any)}
+                      onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
                       options={CTA_VARIANTS}
                     />
                   </FormField>
@@ -1018,14 +1024,14 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <FormField label="Start Date">
                   <Input
                     type="datetime-local"
-                    value={formData.StartDate ? new Date(formData.StartDate as any).toISOString().slice(0, 16) : ''}
+                    value={formData.StartDate ? new Date(formData.StartDate).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updateFormData('StartDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
                 </FormField>
                 <FormField label="End Date">
                   <Input
                     type="datetime-local"
-                    value={formData.EndDate ? new Date(formData.EndDate as any).toISOString().slice(0, 16) : ''}
+                    value={formData.EndDate ? new Date(formData.EndDate).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updateFormData('EndDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
                 </FormField>

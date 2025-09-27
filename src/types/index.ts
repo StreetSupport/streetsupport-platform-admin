@@ -8,3 +8,7 @@ export * from './ICTAButton';
 export * from './IBannerBackground';
 export * from './IResourceFile';
 export * from './IBanner';
+export * from './IService';
+export * from './ICategory';
+export * from './IServiceProvider';
+export * from './IFaq';

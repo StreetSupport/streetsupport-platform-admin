@@ -7,14 +7,16 @@ export interface AuthContext {
   accessToken: string;
 }
 
-export type AuthenticatedApiHandler = (
+type RouteParams = Record<string, string | string[]>;
+
+export type AuthenticatedApiHandler<P extends RouteParams = RouteParams> = (
   req: NextRequest,
-  context: { params: any }, 
+  context: { params: P },
   auth: AuthContext
 ) => Promise<NextResponse>;
 
-export function withAuth(handler: AuthenticatedApiHandler) {
-  return async (req: NextRequest, context: { params: any }) => {
+export function withAuth<P extends RouteParams = RouteParams>(handler: AuthenticatedApiHandler<P>) {
+  return async (req: NextRequest, context: { params: P }) => {
     const session = await getServerSession(authOptions);
 
     if (!session?.accessToken) {

@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
+import type { PublicBackground, PublicCTAButton } from '@/types/PreviewTypes';
 
 // Banner utility functions adapted for admin preview (same as GivingCampaignBanner)
-function generateBackgroundClasses(background: any): string {
+function generateBackgroundClasses(background: PublicBackground): string {
   const { type } = background;
   let classes = '';
   
@@ -27,7 +28,7 @@ function generateBackgroundClasses(background: any): string {
   return classes;
 }
 
-function generateBackgroundStyles(background: any): React.CSSProperties {
+function generateBackgroundStyles(background: PublicBackground): React.CSSProperties {
   const { type, value } = background;
   const styles: React.CSSProperties = {};
   
@@ -65,7 +66,7 @@ function generateLayoutClasses(layoutStyle: string): string {
   }
 }
 
-function generateCTAClasses(button: any, textColour: string): string {
+function generateCTAClasses(button: PublicCTAButton, textColour: string): string {
   const { variant = 'primary' } = button;
   let baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
   

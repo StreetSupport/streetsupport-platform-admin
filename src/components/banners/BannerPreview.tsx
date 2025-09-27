@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { IBannerFormData, BannerTemplateType } from '@/types/IBanner';
+import type { IMediaAsset, IAccentGraphic, IResourceFile } from '@/types';
 import { GivingCampaignBanner } from './GivingCampaignBanner';
 import { PartnershipCharterBanner } from './PartnershipCharterBanner';
 import { ResourceProjectBanner } from './ResourceProjectBanner';
@@ -11,35 +12,68 @@ interface BannerPreviewProps {
   className?: string;
 }
 
+// Type guards
+const isMediaAsset = (asset: unknown): asset is IMediaAsset => {
+  return !!asset && typeof asset === 'object' && 'Url' in (asset as Record<string, unknown>);
+};
+
+type AccentGraphicFileMeta = { File: File; Alt?: string; Position?: string; Opacity?: number };
+const isAccentGraphicFileMeta = (value: unknown): value is AccentGraphicFileMeta => {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'File' in (value as Record<string, unknown>) &&
+    (value as { File?: unknown }).File instanceof File
+  );
+};
+
+const isResourceFile = (file: unknown): file is IResourceFile => {
+  // File has 'name'; our resource metadata does not
+  return !!file && typeof file === 'object' && !('name' in (file as Record<string, unknown>));
+};
+
 /**
  * Transform admin data structure (PascalCase, nested) to public website format (camelCase, flat)
  */
 function transformToPublicFormat(data: IBannerFormData) {
-  const processMediaAsset = (asset: any) => {
+  const processMediaAsset = (
+    asset: IMediaAsset | File | null | undefined
+  ): { url: string; alt: string; width?: number; height?: number } | undefined => {
     if (asset instanceof File) {
       return { url: URL.createObjectURL(asset), alt: asset.name };
     }
-    if (asset && typeof asset === 'object' && 'Url' in asset) {
+    if (isMediaAsset(asset)) {
       return { url: asset.Url || '', alt: asset.Alt || '', width: asset.Width, height: asset.Height };
     }
     return undefined;
   };
 
-  const processAccentGraphic = (graphic: any) => {
-    if (graphic && graphic.File instanceof File) {
+  const processAccentGraphic = (
+    graphic: IAccentGraphic | AccentGraphicFileMeta | File | null | undefined
+  ): { url: string; alt: string; position: string; opacity: number } | undefined => {
+    if (graphic instanceof File) {
+      return {
+        url: URL.createObjectURL(graphic),
+        alt: graphic.name,
+        position: 'top-right',
+        opacity: 0.6,
+      };
+    }
+    if (isAccentGraphicFileMeta(graphic)) {
       return {
         url: URL.createObjectURL(graphic.File),
         alt: graphic.Alt || graphic.File.name,
         position: graphic.Position?.toLowerCase() || 'top-right',
-        opacity: graphic.Opacity || 0.6,
+        opacity: graphic.Opacity ?? 0.6,
       };
     }
-    if (graphic && typeof graphic === 'object' && 'Url' in graphic) {
+    if (graphic && typeof graphic === 'object' && 'Url' in (graphic as Record<string, unknown>)) {
+      const g = graphic as IAccentGraphic;
       return {
-        url: graphic.Url || '',
-        alt: graphic.Alt || '',
-        position: graphic.Position?.toLowerCase() || 'top-right',
-        opacity: graphic.Opacity || 0.6,
+        url: g.Url || '',
+        alt: g.Alt || '',
+        position: g.Position?.toLowerCase() || 'top-right',
+        opacity: g.Opacity ?? 0.6,
       };
     }
     return undefined;
@@ -47,7 +81,6 @@ function transformToPublicFormat(data: IBannerFormData) {
 
   // Determine background image URL from BackgroundImage (File or IMediaAsset)
   const bgImage = processMediaAsset(data.BackgroundImage);
-
   const backgroundType = data.Background?.Type?.toLowerCase() || 'solid';
 
   const commonProps = {
@@ -64,7 +97,6 @@ function transformToPublicFormat(data: IBannerFormData) {
     })) || [],
     background: {
       type: backgroundType,
-      // If background type is image and BackgroundImage exists, use it for value
       value: backgroundType === 'image' ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
       backgroundImage: bgImage,
       overlay: data.Background?.Overlay ? {
@@ -84,19 +116,9 @@ function transformToPublicFormat(data: IBannerFormData) {
   return commonProps;
 }
 
-// Helper functions at module level
-const isMediaAsset = (asset: any): asset is { Url: string; Alt: string; Width?: number; Height?: number } => {
-  return asset && typeof asset === 'object' && 'Url' in asset;
-};
-
-const isResourceFile = (file: any): file is { ResourceType?: string; DownloadCount?: number; LastUpdated?: Date; FileSize?: string; FileType?: string } => {
-  return file && typeof file === 'object' && !('name' in file); // File objects have 'name' property
-};
-
 export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = '' }) => {
   const commonProps = transformToPublicFormat(data);
 
-  // If no template type is selected, show a placeholder
   if (!data.TemplateType) {
     return (
       <div className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center ${className}`}>
@@ -111,7 +133,6 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
     );
   }
 
-  // Switch between template components based on template type
   switch (data.TemplateType) {
     case BannerTemplateType.GIVING_CAMPAIGN:
       return (
@@ -134,15 +155,19 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
           {...commonProps}
           charterType={data.PartnershipCharter?.CharterType?.toLowerCase()}
           signatoriesCount={data.PartnershipCharter?.SignatoriesCount}
-          partnerLogos={data.PartnershipCharter?.PartnerLogos?.map(logo => {
-            if (logo instanceof File) {
-              return { url: URL.createObjectURL(logo), alt: logo.name };
-            }
-            if (isMediaAsset(logo)) {
-              return { url: logo.Url || '', alt: logo.Alt || '', width: logo.Width, height: logo.Height };
-            }
-            return null;
-          }).filter(Boolean) as any || []}
+          partnerLogos={
+            (data.PartnershipCharter?.PartnerLogos
+              ?.map((logo: IMediaAsset | File): { url: string; alt: string; width?: number; height?: number } | null => {
+                if (logo instanceof File) {
+                  return { url: URL.createObjectURL(logo), alt: logo.name };
+                }
+                if (isMediaAsset(logo)) {
+                  return { url: logo.Url || '', alt: logo.Alt || '', width: logo.Width, height: logo.Height };
+                }
+                return null;
+              })
+              .filter((item): item is { url: string; alt: string; width?: number; height?: number } => item !== null)) || []
+          }
           className={className}
         />
       );

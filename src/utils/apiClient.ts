@@ -1,11 +1,13 @@
 import { getSession } from 'next-auth/react';
+import { Session } from 'next-auth';
+import type { IUser, IService, ICategory, IServiceProvider, ICity, IFaq } from '@/types';
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
 
 class ApiClient {
   private async getAuthHeaders(): Promise<Record<string, string>> {
-    const session = await getSession();
-    const accessToken = (session as any)?.accessToken;
+    const session: Session | null = await getSession();
+    const accessToken = session?.accessToken;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -38,14 +40,14 @@ class ApiClient {
 
   // Users API
   users = {
-    getAll: () => this.request<any[]>('/users'),
-    getById: (id: string) => this.request<any>(`/users/${id}`),
-    getByAuth0Id: (auth0Id: string) => this.request<any>(`/users/auth0/${auth0Id}`),
-    create: (data: any) => this.request<any>('/users', {
+    getAll: () => this.request<IUser[]>('/users'),
+    getById: (id: string) => this.request<IUser>(`/users/${id}`),
+    getByAuth0Id: (auth0Id: string) => this.request<IUser>(`/users/auth0/${auth0Id}`),
+    create: (data: Partial<IUser>) => this.request<IUser>('/users', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/users/${id}`, {
+    update: (id: string, data: Partial<IUser>) => this.request<IUser>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -56,14 +58,14 @@ class ApiClient {
 
   // Services API
   services = {
-    getAll: () => this.request<any[]>('/services'),
-    getById: (id: string) => this.request<any>(`/services/${id}`),
-    getByProvider: (providerId: string) => this.request<any[]>(`/services/provider/${providerId}`),
-    create: (data: any) => this.request<any>('/services', {
+    getAll: () => this.request<IService[]>('/services'),
+    getById: (id: string) => this.request<IService>(`/services/${id}`),
+    getByProvider: (providerId: string) => this.request<IService[]>(`/services/provider/${providerId}`),
+    create: (data: Partial<IService>) => this.request<IService>('/services', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/services/${id}`, {
+    update: (id: string, data: Partial<IService>) => this.request<IService>(`/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -74,13 +76,13 @@ class ApiClient {
 
   // Categories API
   categories = {
-    getAll: () => this.request<any[]>('/categories'),
-    getById: (id: string) => this.request<any>(`/categories/${id}`),
-    create: (data: any) => this.request<any>('/categories', {
+    getAll: () => this.request<ICategory[]>('/categories'),
+    getById: (id: string) => this.request<ICategory>(`/categories/${id}`),
+    create: (data: Partial<ICategory>) => this.request<ICategory>('/categories', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/categories/${id}`, {
+    update: (id: string, data: Partial<ICategory>) => this.request<ICategory>(`/categories/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -91,14 +93,14 @@ class ApiClient {
 
   // Service Providers API
   serviceProviders = {
-    getAll: () => this.request<any[]>('/service-providers'),
-    getById: (id: string) => this.request<any>(`/service-providers/${id}`),
-    getByLocation: (locationId: string) => this.request<any[]>(`/service-providers/location/${locationId}`),
-    create: (data: any) => this.request<any>('/service-providers', {
+    getAll: () => this.request<IServiceProvider[]>('/service-providers'),
+    getById: (id: string) => this.request<IServiceProvider>(`/service-providers/${id}`),
+    getByLocation: (locationId: string) => this.request<IServiceProvider[]>(`/service-providers/location/${locationId}`),
+    create: (data: Partial<IServiceProvider>) => this.request<IServiceProvider>('/service-providers', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/service-providers/${id}`, {
+    update: (id: string, data: Partial<IServiceProvider>) => this.request<IServiceProvider>(`/service-providers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -109,19 +111,19 @@ class ApiClient {
 
   // Cities API
   cities = {
-    getAll: () => this.request<any[]>('/cities'),
-    getById: (id: string) => this.request<any>(`/cities/${id}`),
+    getAll: () => this.request<ICity[]>('/cities'),
+    getById: (id: string) => this.request<ICity>(`/cities/${id}`),
   };
 
   // FAQs API
   faqs = {
-    getAll: () => this.request<any[]>('/faqs'),
-    getById: (id: string) => this.request<any>(`/faqs/${id}`),
-    create: (data: any) => this.request<any>('/faqs', {
+    getAll: () => this.request<IFaq[]>('/faqs'),
+    getById: (id: string) => this.request<IFaq>(`/faqs/${id}`),
+    create: (data: Partial<IFaq>) => this.request<IFaq>('/faqs', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/faqs/${id}`, {
+    update: (id: string, data: Partial<IFaq>) => this.request<IFaq>(`/faqs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 
 interface AuthContextType {
-  user: any;
+  user: Session['user'] | null;
   isLoading: boolean;
   error?: Error;
 }
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isLoading = status === 'loading';
 
   return (
-    <AuthContext.Provider value={{ user: session?.user, isLoading }}>
+    <AuthContext.Provider value={{ user: session?.user ?? null, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

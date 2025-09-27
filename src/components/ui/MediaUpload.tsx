@@ -27,33 +27,34 @@ interface MediaArrayUploadProps {
   description?: string;
 }
 
+// Union type and guards for media-like values
+type MediaLike = File | IMediaAsset | { File: File } | null | undefined;
+
+const isFileWrapper = (item: unknown): item is { File: File } =>
+  !!item && typeof item === 'object' && 'File' in (item as Record<string, unknown>) && (item as { File?: unknown }).File instanceof File;
+
+const isMediaAsset = (item: unknown): item is IMediaAsset =>
+  !!item && typeof item === 'object' && 'Url' in (item as Record<string, unknown>);
+
 // Helper function to get preview URL
-const getPreviewUrl = (item: any): string => {
+const getPreviewUrl = (item: MediaLike): string => {
   if (item instanceof File) {
     return URL.createObjectURL(item);
   }
-  // Handle complex objects like AccentGraphic that have a nested File property
-  if (typeof item === 'object' && item !== null && item.File instanceof File) {
+  if (isFileWrapper(item)) {
     return URL.createObjectURL(item.File);
   }
-  // Handle existing media assets that have a Url property
-  if (typeof item === 'object' && item !== null && item.Url) {
+  if (isMediaAsset(item) && item.Url) {
     return item.Url;
   }
-  return ''; // Fallback to prevent errors
+  return '';
 };
 
 // Helper function to get display name
-const getDisplayName = (item: any): string => {
-  if (item instanceof File) {
-    return item.name;
-  }
-  if (typeof item === 'object' && item !== null && item.File instanceof File) {
-    return item.File.name;
-  }
-  if (typeof item === 'object' && item !== null) {
-    return item.Filename || item.Alt || 'Uploaded file';
-  }
+const getDisplayName = (item: MediaLike): string => {
+  if (item instanceof File) return item.name;
+  if (isFileWrapper(item)) return item.File.name;
+  if (isMediaAsset(item)) return item.Filename || item.Alt || 'Uploaded file';
   return 'Uploaded file';
 };
 
@@ -118,7 +119,12 @@ export function MediaUpload({
                   {getDisplayName(value)}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {value instanceof File ? `${(value.size / 1024).toFixed(1)} KB` : `${((value as any).Size / 1024).toFixed(1)} KB`}
+                  {(() => {
+                    if (value instanceof File) return `${(value.size / 1024).toFixed(1)} KB`;
+                    if (isFileWrapper(value)) return `${(value.File.size / 1024).toFixed(1)} KB`;
+                    if (isMediaAsset(value) && typeof value.Size === 'number') return `${(value.Size / 1024).toFixed(1)} KB`;
+                    return '';
+                  })()}
                 </p>
               </div>
               <Button
@@ -203,7 +209,12 @@ export function MediaArrayUpload({
                       {getDisplayName(item)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {item instanceof File ? `${(item.size / 1024).toFixed(1)} KB` : `${((item as any).Size / 1024).toFixed(1)} KB`}
+                      {(() => {
+                        if (item instanceof File) return `${(item.size / 1024).toFixed(1)} KB`;
+                        if (isFileWrapper(item)) return `${(item.File.size / 1024).toFixed(1)} KB`;
+                        if (isMediaAsset(item) && typeof item.Size === 'number') return `${(item.Size / 1024).toFixed(1)} KB`;
+                        return '';
+                      })()}
                     </p>
                   </div>
                   <Button

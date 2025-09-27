@@ -7,6 +7,7 @@ import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
+import type { IAccentGraphic } from '@/types';
 
 export default function NewBannerPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function NewBannerPage() {
             formData.append(`newfile_${key}`, value);
           }
         } else if (key === 'AccentGraphic' && value && typeof value === 'object') {
-          const accentGraphic = value as any;
+          const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });
           // Handle AccentGraphic with metadata
           if (accentGraphic.File instanceof File) {
             // 1. AccentGraphic object with File and metadata
@@ -57,11 +58,11 @@ export default function NewBannerPage() {
           }
         } else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
           // Handle nested PartnershipCharter with PartnerLogos
-          const partnershipCharter = value as any;
+          const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
           if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
-            partnershipCharter.PartnerLogos.forEach((file: File) => {
-              if (file instanceof File) {
-                formData.append('newfile_PartnerLogos', file);
+            partnershipCharter.PartnerLogos.forEach((item) => {
+              if (item instanceof File) {
+                formData.append('newfile_PartnerLogos', item);
               }
             });
           }
@@ -71,18 +72,21 @@ export default function NewBannerPage() {
           formData.append(key, JSON.stringify(partnershipCharterData));
         } else if (key === 'ResourceProject' && value && typeof value === 'object') {
           // Handle nested ResourceProject with ResourceFile
-          const resourceProject = value as any;
+          const resourceProject = value as NonNullable<IBannerFormData['ResourceProject']>;
           if (resourceProject.ResourceFile) {
-            // Check for the nested File object, which indicates a new upload
-            if (resourceProject.ResourceFile.File instanceof File) {
+            // Type guard to detect metadata object with embedded File
+            type ResourceFileWithUpload = { File: File } & Record<string, unknown>;
+            const rf = resourceProject.ResourceFile as unknown;
+            const hasEmbeddedFile = typeof rf === 'object' && rf !== null && 'File' in (rf as object) && (rf as ResourceFileWithUpload).File instanceof File;
+            if (hasEmbeddedFile) {
               // 1. Append the actual file for upload
-              formData.append('newfile_ResourceFile', resourceProject.ResourceFile.File);
+              formData.append('newfile_ResourceFile', (rf as ResourceFileWithUpload).File);
 
-              // 2. Send the metadata as a separate JSON string
-              const resourceFileMetadata = { ...resourceProject.ResourceFile };
-              delete resourceFileMetadata.File; // Don't send the file object in the JSON
-              formData.append('newmetadata_ResourceFile', JSON.stringify(resourceFileMetadata));
-            } 
+              // 2. Send the metadata as a separate JSON string (excluding the File)
+              const metadata = { ...(rf as object) };
+              delete (metadata as { File?: unknown }).File; // Don't send the file object in the JSON
+              formData.append('newmetadata_ResourceFile', JSON.stringify(metadata));
+            }
           }
           // Add other ResourceProject fields as JSON (excluding ResourceFile)
           const resourceProjectData = { ...resourceProject };

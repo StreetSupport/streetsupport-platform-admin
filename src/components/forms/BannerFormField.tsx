@@ -6,7 +6,7 @@ interface BannerFormFieldProps {
   name: string;
   type?: 'text' | 'textarea' | 'select' | 'number' | 'date' | 'file';
   value?: string | number;
-  onChange: (name: string, value: any) => void;
+  onChange: (name: string, value: string | number | File | null) => void;
   errors?: Array<{ path: string; message: string; code: string }>;
   required?: boolean;
   placeholder?: string;
@@ -43,7 +43,7 @@ export const BannerFormField: React.FC<BannerFormFieldProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0] ?? null;
     onChange(name, file);
   };
 
