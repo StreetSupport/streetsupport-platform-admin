@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
@@ -279,7 +279,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   // File management functions
-  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'SplitImage' | 'AccentGraphic') => {
+  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage' | 'AccentGraphic') => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: null
@@ -382,7 +382,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         // Restore original media files
         Logo: originalData.Logo || null,
         BackgroundImage: originalData.BackgroundImage || null,
-        SplitImage: originalData.SplitImage || null,
+        MainImage: originalData.MainImage || null,
         AccentGraphic: originalData.AccentGraphic || undefined,
       };
       setFormData(revertedData);
@@ -756,6 +756,32 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2">Media Assets</h3>
           
           <MediaUpload
+            label="Layout Image"
+            value={formData.MainImage}
+            onUpload={(file) => {
+              const imageUrl = URL.createObjectURL(file);
+              const img = new Image();
+              img.onload = () => {
+                const newImage = {
+                  ...formData.MainImage,
+                  Filename: file.name,
+                  Alt: file.name,
+                  Size: file.size,
+                  File: file,
+                  url: imageUrl,
+                  Width: img.naturalWidth,
+                  Height: img.naturalHeight,
+                };
+                updateFormData('MainImage', newImage);
+              };
+              img.src = imageUrl;
+            }}
+            onRemove={() => removeFile('MainImage')}
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
+          />
+          
+          <MediaUpload
             label="Logo"
             value={formData.Logo}
             onUpload={(file) => updateFormData('Logo', file)}
@@ -772,20 +798,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             accept="image/*"
             maxSize={5 * 1024 * 1024}
           />
-          
-          <MediaUpload
-            label="Split Layout Image"
-            description="Separate image displayed in split layout (not used as background)"
-            value={formData.SplitImage}
-            onUpload={(file) => updateFormData('SplitImage', file)}
-            onRemove={() => removeFile('SplitImage')}
-            accept="image/*"
-            maxSize={5 * 1024 * 1024}
-          />
+
           
           <MediaUpload
             label="Accent Graphic"
-            description="Decorative graphic element with position and opacity controls"
             value={formData.AccentGraphic}
             onUpload={(file) => {
               const newAccentGraphic = {

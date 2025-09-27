@@ -38,11 +38,22 @@ export default function NewBannerPage() {
         const typedKey = key as keyof IBannerFormData;
         const value = data[typedKey];
         
-        if (key === 'Logo' || key === 'BackgroundImage' || key === 'SplitImage') {
-          // Handle simple file uploads
+        if (key === 'Logo' || key === 'BackgroundImage' || key === 'MainImage') {
+          // Handle media uploads with optional metadata
           if (value instanceof File) {
             // Single new file
             formData.append(`newfile_${key}`, value);
+          } else if (value && typeof value === 'object' && 'File' in value) {
+            // IMediaAssetFileMeta object with File and metadata
+            const mediaAsset = value as { File: File; Width?: number; Height?: number };
+            formData.append(`newfile_${key}`, mediaAsset.File);
+            
+            // Send metadata (Width, Height) if present
+            const metadata = { ...mediaAsset };
+            delete (metadata as { File?: unknown }).File; // Remove File from metadata
+            if (Object.keys(metadata).length > 0) {
+              formData.append(`newmetadata_${key}`, JSON.stringify(metadata));
+            }
           }
         } else if (key === 'AccentGraphic' && value && typeof value === 'object') {
           const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });

@@ -35,7 +35,7 @@ export interface IBanner {
   // Media
   Logo?: IMediaAsset;
   BackgroundImage?: IMediaAsset;
-  SplitImage?: IMediaAsset; // Separate image for split layout (not background)
+  MainImage?: IMediaAsset; // Separate image for split layout (not background)
   AccentGraphic?: IAccentGraphic;
   
   // Actions
@@ -64,17 +64,23 @@ export interface IBanner {
 }
 
 // Union type for handling both existing assets and new file uploads
-export type MediaField = IMediaAsset | File | null;
+export interface IMediaAssetFileMeta {
+  File: File;
+  Width?: number;
+  Height?: number;
+}
+
+export type MediaField = IMediaAsset | File | IMediaAssetFileMeta | null;
 export type AccentGraphicField = IAccentGraphic | File | null;
 export type MediaArrayField = (IMediaAsset | File)[];
 export type ResourceFileField = IResourceFile | File | null;
 
 // Form data interface that can handle both create and edit scenarios
-export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'SplitImage' | 'AccentGraphic' | 'GivingCampaign' | 'PartnershipCharter' | 'ResourceProject' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
+export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'MainImage' | 'AccentGraphic' | 'GivingCampaign' | 'PartnershipCharter' | 'ResourceProject' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
   // Media fields that can be either existing assets or new files
   Logo?: MediaField;
   BackgroundImage?: MediaField;
-  SplitImage?: MediaField;
+  MainImage?: MediaField;
   AccentGraphic?: AccentGraphicField;
   
   // Template-specific fields with File support

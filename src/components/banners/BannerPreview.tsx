@@ -18,6 +18,15 @@ const isMediaAsset = (asset: unknown): asset is IMediaAsset => {
 };
 
 type AccentGraphicFileMeta = { File: File; Alt?: string; Position?: string; Opacity?: number };
+type MediaAssetFileMeta = { File: File; Width?: number; Height?: number };
+const isMediaAssetFileMeta = (value: unknown): value is MediaAssetFileMeta => {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'File' in (value as Record<string, unknown>) &&
+    (value as { File?: unknown }).File instanceof File
+  );
+};
 const isAccentGraphicFileMeta = (value: unknown): value is AccentGraphicFileMeta => {
   return (
     !!value &&
@@ -37,10 +46,18 @@ const isResourceFile = (file: unknown): file is IResourceFile => {
  */
 function transformToPublicFormat(data: IBannerFormData) {
   const processMediaAsset = (
-    asset: IMediaAsset | File | null | undefined
+    asset: IMediaAsset | File | MediaAssetFileMeta | null | undefined
   ): { url: string; alt: string; width?: number; height?: number } | undefined => {
     if (asset instanceof File) {
       return { url: URL.createObjectURL(asset), alt: asset.name };
+    }
+    if (isMediaAssetFileMeta(asset)) {
+      return {
+        url: URL.createObjectURL(asset.File),
+        alt: asset.File.name,
+        width: asset.Width,
+        height: asset.Height,
+      };
     }
     if (isMediaAsset(asset)) {
       return { url: asset.Url || '', alt: asset.Alt || '', width: asset.Width, height: asset.Height };
@@ -88,7 +105,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     description: data.Description || '',
     subtitle: data.Subtitle || '',
     logo: processMediaAsset(data.Logo),
-    image: processMediaAsset(data.SplitImage),
+    image: processMediaAsset(data.MainImage),
     ctaButtons: data.CtaButtons?.map(btn => ({
       label: btn.Label || '',
       url: btn.Url || '',

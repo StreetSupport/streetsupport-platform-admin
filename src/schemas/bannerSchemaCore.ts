@@ -110,7 +110,7 @@ export const BannerSchemaCore = z.object({
 
   // Media Assets
   // We initialize these media properties only after uploading to BlobStorage on the API side
-  // For new uploaded files we add prefix newfile_ (newfile_Logo, newfile_BackgroundImage, newfile_SplitImage, newfile_AccentGraphic, newfile_PartnerLogos, newfile_ResourceFile) to original property name, 
+  // For new uploaded files we add prefix newfile_ (newfile_Logo, newfile_BackgroundImage, newfile_MainImage, newfile_AccentGraphic, newfile_PartnerLogos, newfile_ResourceFile) to original property name, 
   // and prefix newmetadata_ (newmetadata_AccentGraphic, newmetadata_ResourceFile) to additional metadata. 
   // or existing media assets (not true, because for existing files we add prefix existing_ to original property name) 
   // Fields described above aren't files, they contain information about file.
@@ -118,7 +118,7 @@ export const BannerSchemaCore = z.object({
   // taken from database for existing files.
   Logo: MediaAssetSchemaCore,
   BackgroundImage: MediaAssetSchemaCore,
-  SplitImage: MediaAssetSchemaCore,
+  MainImage: MediaAssetSchemaCore,
   AccentGraphic: AccentGraphicSchemaCore,
 
   // Styling

@@ -374,49 +374,95 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
           </div>
 
           {/* Media Section */}
-          {image && layoutStyle === 'split' && (
-            <div className="order-1 md:order-2">
-              <div className="relative rounded-lg overflow-hidden shadow-2xl">
+          {layoutStyle === 'split' && image && image.url && (
+            <div className="order-1 md:order-2 h-full">
+              <div className="relative h-full flex items-center justify-center">
                 <Image
                   src={image.url}
                   alt={image.alt}
-                  width={image.width || 600}
-                  height={image.height || 400}
-                  className="w-full h-auto object-cover"
+                  width={image.width}
+                  height={image.height}
+                  className="object-contain mx-auto rounded-lg"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </div>
           )}
-
-          {/* Full-width media */}
-          {image && layoutStyle === 'full-width' && (
+          {layoutStyle === 'split' && (!image || !image.url) && (
+            <div className="order-1 md:order-2">
+              <div className="relative rounded-lg overflow-hidden h-full">
+                <div className="flex items-center justify-center w-full h-full">
+                  <Image
+                    src="/assets/img/image-placeholder.png"
+                    alt="Image placeholder"
+                    width={300}
+                    height={300}
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 300px"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          {layoutStyle === 'full-width' && image && image.url && (
             <div className="mt-8 max-w-4xl mx-auto">
-              <div className="relative rounded-lg overflow-hidden shadow-2xl">
+              <div className="relative">
                 <Image
                   src={image.url}
                   alt={image.alt}
-                  width={image.width || 400}
-                  height={image.height || 200}
-                  className="w-full h-auto object-cover"
+                  width={image.width}
+                  height={image.height}
+                  className="object-contain mx-auto rounded-lg"
                   sizes="(max-width: 1024px) 100vw, 800px"
                 />
               </div>
             </div>
           )}
+          {layoutStyle === 'full-width' && (!image || !image.url) && (
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="relative rounded-lg overflow-hidden">
+                <div className="flex items-center justify-center w-full h-full">
+                  <Image
+                    src="/assets/img/image-placeholder.png"
+                    alt="Image placeholder"
+                    width={300}
+                    height={300}
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 300px"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Card layout media */}
-          {image && layoutStyle === 'card' && (
+          {layoutStyle === 'card' && image && image.url && (
             <div className="mt-6">
-              <div className="relative rounded-lg overflow-hidden shadow-xl">
+              <div className="relative">
                 <Image
                   src={image.url}
                   alt={image.alt}
-                  width={image.width || 600}
-                  height={image.height || 300}
-                  className="w-full h-auto object-cover"
+                  width={image.width}
+                  height={image.height}
+                  className="object-contain mx-auto rounded-lg"
                   sizes="(max-width: 1024px) 100vw, 600px"
                 />
+              </div>
+            </div>
+          )}
+          {layoutStyle === 'card' && (!image || !image.url) && (
+            <div className="mt-6">
+              <div className="relative rounded-lg overflow-hidden">
+                <div className="flex items-center justify-center w-full h-full">
+                  <Image
+                    src="/assets/img/image-placeholder.png"
+                    alt="Image placeholder"
+                    width={300}
+                    height={300}
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 300px"
+                  />
+                </div>
               </div>
             </div>
           )}
