@@ -22,7 +22,7 @@ export function Button({
       case 'secondary':
         return 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500';
       case 'outline':
-        return 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500';
+        return 'bg-transparent border focus:ring-blue-500';
       case 'ghost':
         return 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500';
       default:

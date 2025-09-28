@@ -8,6 +8,7 @@ import RoleGuard from '@/components/auth/RoleGuard';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import type { IAccentGraphic } from '@/types';
+import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 
 export default function NewBannerPage() {
   const router = useRouter();
@@ -123,7 +124,8 @@ export default function NewBannerPage() {
       const result = await response.json();
       toastUtils.dismiss(toastId);
       successToast.create('Banner');
-      router.push(`/banners/${result._id}`);
+      const newId = result?.data?._id || result?._id || result?.data?.id || result?.id;
+      router.push(newId ? `/banners/${newId}` : '/banners');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       toastUtils.dismiss(toastId);
@@ -136,17 +138,9 @@ export default function NewBannerPage() {
   return (
     <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
       <div className="min-h-screen bg-brand-q">
-        <div className="nav-container">
-          <div className="page-container">
-            <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">
-                  Create New Banner
-                </h1>
-              </div>
-            </div>
-        </div>
+        <BannerPageHeader pageType="new" />
 
-        <div className="page-container section-spacing">
+        <div className="page-container section-spacing padding-top-zero">
           {/* Full-width Preview at Top */}
           <div className="mb-8">
             {bannerData && (
@@ -161,6 +155,7 @@ export default function NewBannerPage() {
               onSave={handleSave}
               saving={saving}
               validationErrors={validationErrors}
+              onCancel={() => router.push('/banners')}
             />
           </div>
         </div>

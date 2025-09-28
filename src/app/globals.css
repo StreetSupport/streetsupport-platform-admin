@@ -1,5 +1,6 @@
 
 @import "tailwindcss";
+@import "../styles/banner-cards.css";
 
 @theme {
   --color-brand-a: #38ae8e;
@@ -1561,3 +1562,6 @@ select:disabled {
   @apply py-8 lg:py-12;
 } */
 
+.padding-top-zero {
+  padding-top: 0;
+}

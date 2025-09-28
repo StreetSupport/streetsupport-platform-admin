@@ -159,7 +159,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       },
       PartnershipCharter: {
         CharterType: CharterType.HOMELESS_CHARTER,
-        SignatoriesCount: 3,
+        SignatoriesCount: 1,
         PartnerLogos: []
       },
       ResourceProject: {
@@ -566,6 +566,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                         ResourceType: (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
                           ? formData.ResourceProject.ResourceFile.ResourceType 
                           : ResourceType.GUIDE,
+                        FileName: file.name, // Auto-populate FileName
                         LastUpdated: new Date(),
                         FileSize: formatFileSize(file.size),
                         FileType: getFileTypeFromMimeType(file.type) || 'unknown',
@@ -611,6 +612,28 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   </div>
                 )}
               </div>
+            </FormField>
+
+            <FormField label="File Name">
+              <Input
+                value={
+                  formData.ResourceProject?.ResourceFile instanceof File 
+                    ? (formData.ResourceProject.ResourceFile as File).name
+                    : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
+                      ? formData.ResourceProject.ResourceFile.FileName || '' 
+                      : ''
+                }
+                disabled={formData.ResourceProject?.ResourceFile instanceof File}
+                onChange={(e) => {
+                  if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                    updateFormData('ResourceProject.ResourceFile', { 
+                      ...formData.ResourceProject.ResourceFile, 
+                      FileName: e.target.value 
+                    });
+                  }
+                }}
+                placeholder="e.g., Annual Report 2024.pdf"
+              />
             </FormField>
             
             <FormField label="Resource Type">
@@ -1000,7 +1023,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Location">
               <select
                 id="locationSlug"
-                className="form-input"
+                className="form-input border border-brand-q text-brand-k bg-white"
                 value={formData.LocationSlug}
                 onChange={(e) => updateFormData('LocationSlug', e.target.value)}
               >

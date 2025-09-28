@@ -24,6 +24,16 @@ const nextConfig = {
     // Enable modern image formats for better compression
     formats: ['image/avif', 'image/webp'],
     
+    // Allowed remote image sources (domains is deprecated)
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'streetsupportstoragestag.blob.core.windows.net',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     

@@ -72,6 +72,7 @@ export const DonationGoalSchemaCore = z.object({
 // Core Resource File Schema - shared validation rules
 export const ResourceFileSchemaCore = z.object({
   FileUrl: z.string().optional(),
+  FileName: z.string().optional(),
   ResourceType: z.nativeEnum(ResourceType).optional(),
   DownloadCount: z.number().min(0).optional().default(0),
   LastUpdated: z.date().optional().default(() => new Date()),
