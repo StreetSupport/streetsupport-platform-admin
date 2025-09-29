@@ -41,7 +41,7 @@ export function Button({
     }
   };
 
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 cursor-pointer';
   const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
 
   return (

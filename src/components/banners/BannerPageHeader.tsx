@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import BackLink from '@/components/common/BackLink';
 import { IBanner } from '@/types/IBanner';
 
 interface BannerPageHeaderProps {
@@ -29,6 +30,7 @@ export function BannerPageHeader({
     <div className="page-container border-b border-brand-q">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
         <div>
+          <BackLink href="/banners" text="Back to Banners" />
           <h1 className="heading-4">{title}</h1>
         </div>
 

@@ -100,18 +100,35 @@ function transformToPublicFormat(data: IBannerFormData) {
   const bgImage = processMediaAsset(data.BackgroundImage);
   const backgroundType = data.Background?.Type?.toLowerCase() || 'solid';
 
+  let resourceFileUrl: string | undefined;
+  if (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
+    const resourceFile = data.ResourceProject?.ResourceFile;
+    if (resourceFile instanceof File) {
+      resourceFileUrl = URL.createObjectURL(resourceFile);
+    } else if (isResourceFile(resourceFile) && resourceFile.FileUrl) {
+      resourceFileUrl = resourceFile.FileUrl;
+    }
+  }
+
+  const ctaButtons = data.CtaButtons?.map((btn, index) => {
+    const url = (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT && index === 0 && resourceFileUrl) ? resourceFileUrl : btn.Url;
+    return {
+      label: btn.Label || '',
+      url,
+      variant: btn.Variant?.toLowerCase() || 'primary',
+      external: btn.External || false
+    };
+  }) || [];
+
+
+
   const commonProps = {
     title: data.Title || '',
     description: data.Description || '',
     subtitle: data.Subtitle || '',
     logo: processMediaAsset(data.Logo),
     image: processMediaAsset(data.MainImage),
-    ctaButtons: data.CtaButtons?.map(btn => ({
-      label: btn.Label || '',
-      url: btn.Url || '',
-      variant: btn.Variant?.toLowerCase() || 'primary',
-      external: btn.External || false
-    })) || [],
+    ctaButtons: ctaButtons,
     background: {
       type: backgroundType,
       value: backgroundType === 'image' ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),

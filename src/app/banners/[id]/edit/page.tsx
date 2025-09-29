@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
+import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
 import { validateBannerForm } from '@/schemas/bannerSchema';
@@ -245,7 +246,7 @@ export default function EditBannerPage() {
           <div className="nav-container">
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">Loading Banner...</h1>
+                <h1 className="heading-4"></h1>
               </div>
             </div>
           </div>
@@ -293,23 +294,7 @@ export default function EditBannerPage() {
     <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
       <div className="min-h-screen bg-brand-q">
         {/* Header */}
-        <div className="nav-container">
-          <div className="page-container">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
-                <Link href={`/banners/${id}`}>
-                  <Button variant="outline" size="sm">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Banner
-                  </Button>
-                </Link>
-                <h1 className="heading-4">
-                  Edit Banner: {banner.Title}
-                </h1>
-              </div>
-            </div>
-          </div>
-        </div>
+        <BannerPageHeader pageType='edit' banner={banner} />
 
         <div className="page-container section-spacing">
           {/* Full-width Preview at Top */}

@@ -158,7 +158,7 @@ export default function BannerViewPage() {
           <div className="nav-container">
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">Loading Banner...</h1>
+                <h1 className="heading-4"></h1>
               </div>
             </div>
           </div>
@@ -215,6 +215,7 @@ export default function BannerViewPage() {
         />
 
         <div className="page-container section-spacing padding-top-zero">
+          
           {/* Banner Preview */}
           <div className="mb-8">
             <BannerPreview data={transformForPreview(banner)} />

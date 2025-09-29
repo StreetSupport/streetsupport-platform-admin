@@ -328,8 +328,11 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               {ctaButtons.map((button, index) => (
-                <button
+                <a
                   key={index}
+                  href={button.url || '#'}
+                  target={button.external ? '_blank' : '_self'}
+                  rel={button.external ? 'noopener noreferrer' : ''}
                   className={generateCTAClasses(button, textColour)}
                   aria-describedby={index === 0 ? 'partnership-charter-title' : undefined}
                 >
@@ -350,7 +353,7 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
                       />
                     </svg>
                   )}
-                </button>
+                </a>
               ))}
             </div>
 

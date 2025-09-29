@@ -55,7 +55,9 @@ export const CTAButtonSchemaCore = z.object({
     'URL must be a valid URL or relative path'
   ),
   Variant: z.nativeEnum(CTAVariant).default(CTAVariant.PRIMARY),
-  External: z.boolean().optional().default(false)
+  External: z.boolean().optional().default(false),
+  TrackingContext: z.string().optional(),
+  AutomaticallyPopulatedUrl: z.boolean().optional(),
 }).optional();
 
 // Core Donation Goal Schema - shared validation rules

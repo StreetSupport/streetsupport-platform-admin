@@ -1,24 +1,17 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import '@/styles/pagination.css';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { Pagination } from '@/components/ui/Pagination';
+import { Search, Plus } from 'lucide-react';
 import { ICity } from '@/types';
 import { IBanner, BannerTemplateType } from '@/types/IBanner';
 import BannerCard from '@/components/banners/BannerCard';
-import { Plus, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
-
-interface BannerListResponse {
-  banners: IBanner[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 
 export default function BannersListPage() {
   const router = useRouter();
@@ -36,7 +29,7 @@ export default function BannersListPage() {
   const [total, setTotal] = useState(0);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   
-  const limit = 20;
+  const limit = 5;
 
   useEffect(() => {
     fetchBanners();
@@ -47,7 +40,6 @@ export default function BannersListPage() {
     try {
       setLoading(true);
       setError(null);
-      
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: limit.toString(),
@@ -59,7 +51,6 @@ export default function BannersListPage() {
       if (locationFilter) params.append('locationSlug', locationFilter);
       
       const response = await fetch(`/api/banners?${params.toString()}`);
-      
       if (!response.ok) {
         throw new Error('Failed to fetch banners');
       }
@@ -109,28 +100,6 @@ export default function BannersListPage() {
     } catch (err) {
       console.error('Failed to fetch cities:', err);
     }
-  };
-
-  const getTemplateTypeLabel = (type: BannerTemplateType): string => {
-    switch (type) {
-      case BannerTemplateType.GIVING_CAMPAIGN:
-        return 'Giving Campaign';
-      case BannerTemplateType.PARTNERSHIP_CHARTER:
-        return 'Partnership Charter';
-      case BannerTemplateType.RESOURCE_PROJECT:
-        return 'Resource Project';
-      default:
-        return type;
-    }
-  };
-
-  const formatDate = (date: Date | string): string => {
-    const d = new Date(date);
-    return d.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
   };
 
   // Duplicate functionality removed
@@ -226,7 +195,7 @@ export default function BannersListPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
                   <Input
                     type="text"
-                    placeholder="Search banners by title, description..."
+                    placeholder="Search banners by title, subtitle and description."
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -234,7 +203,7 @@ export default function BannersListPage() {
                 </div>
               </div>
               
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <select
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
@@ -273,34 +242,9 @@ export default function BannersListPage() {
           {/* Results Summary */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-base text-brand-f">
-              {loading ? 'Loading...' : `${total} banner${total !== 1 ? 's' : ''} found`}
+              {loading ? '' : `${total} banner${total !== 1 ? 's' : ''} found`}
             </p>
             
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                
-                <span className="text-small text-brand-f px-3">
-                  Page {currentPage} of {totalPages}
-                </span>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
           </div>
 
           {/* Loading State */}
@@ -354,54 +298,15 @@ export default function BannersListPage() {
             </div>
           )}
           {!loading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-center mt-8 gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-              >
-                First
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                  return (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  );
-                })}
-              </div>
-              
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-              >
-                Last
-              </Button>
+            <div className="flex flex-col items-center mt-12 space-y-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+              <p className="text-sm text-brand-f mt-5">
+                Showing {(currentPage - 1) * limit + 1} - {Math.min(currentPage * limit, total)} of {total} banners
+              </p>
             </div>
           )}
         </div>

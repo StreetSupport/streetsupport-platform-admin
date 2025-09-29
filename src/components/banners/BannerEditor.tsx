@@ -138,8 +138,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       },
       CtaButtons: [
         {
-          Label: 'Learn More',
-          Url: '/about',
+          Label: 'Click',
+          Url: '/',
           Variant: CTAVariant.PRIMARY,
           External: false
         }
@@ -964,51 +964,70 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
           
           <div className="space-y-3">
-            {(formData.CtaButtons ?? []).map((button, index) => (
-              <div key={index} className="card-compact border border-brand-q">
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <FormField label="Button Label">
-                    <Input
-                      value={button.Label}
-                      onChange={(e) => updateCTAButton(index, 'Label', e.target.value)}
-                      placeholder="Learn More"
+            {(formData.CtaButtons ?? []).map((button, index) => {
+              const isShowAutomaticallyPopulatedUrl = index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT;
+
+              return (
+                <div key={index} className="card-compact border border-brand-q">
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <FormField label="Button Label">
+                      <Input
+                        value={button.Label}
+                        onChange={(e) => updateCTAButton(index, 'Label', e.target.value)}
+                        placeholder="Click"
+                      />
+                    </FormField>
+                    <FormField label="Button URL">
+                      <Input
+                        value={button.Url}
+                        onChange={(e) => updateCTAButton(index, 'Url', e.target.value)}
+                        placeholder="/url"
+                        disabled={button.AutomaticallyPopulatedUrl === true}
+                        className={button.AutomaticallyPopulatedUrl ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
+                      />
+                    </FormField>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <FormField label="Button Style">
+                      <Select
+                        value={button.Variant}
+                        onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
+                        options={CTA_VARIANTS}
+                      />
+                    </FormField>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCTAButton(index)}
+                      title='Remove button'
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    <Checkbox
+                      label="External link (opens in new tab)"
+                      checked={button.External}
+                      onChange={(e) => updateCTAButton(index, 'External', (e.target as HTMLInputElement).checked)}
                     />
-                  </FormField>
-                  <FormField label="Button URL">
-                    <Input
-                      value={button.Url}
-                      onChange={(e) => updateCTAButton(index, 'Url', e.target.value)}
-                      placeholder="/about"
-                    />
-                  </FormField>
+                    {isShowAutomaticallyPopulatedUrl && (
+                      <Checkbox
+                        label="Automatically populate Url"
+                        checked={button.AutomaticallyPopulatedUrl || false}
+                        onChange={(e) => {
+                          const checked = (e.target as HTMLInputElement).checked;
+                          updateCTAButton(index, 'AutomaticallyPopulatedUrl', checked);
+                          if (checked) {
+                            updateCTAButton(index, 'Url', '/');
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <FormField label="Button Style">
-                    <Select
-                      value={button.Variant}
-                      onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
-                      options={CTA_VARIANTS}
-                    />
-                  </FormField>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeCTAButton(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="mt-2">
-                  <Checkbox
-                    label="External link (opens in new tab)"
-                    checked={button.External}
-                    onChange={(e) => updateCTAButton(index, 'External', (e.target as HTMLInputElement).checked)}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -1127,4 +1146,3 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   );
 }
 export type { IBannerFormData };
-

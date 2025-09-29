@@ -68,7 +68,7 @@ function generateLayoutClasses(layoutStyle: string): string {
 
 function generateCTAClasses(button: PublicCTAButton, textColour: string): string {
   const { variant = 'primary' } = button;
-  let baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  let baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer';
   
   switch (variant) {
     case 'primary':
@@ -393,10 +393,14 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
                 const isDownload = button.label.toLowerCase().includes('download');
 
                 return (
-                  <button
+                  <a
                     key={index}
+                    href={button.url || '#'}
+                    target={button.external ? '_blank' : '_self'}
+                    rel={button.external ? 'noopener noreferrer' : ''}
                     className={generateCTAClasses(button, textColour)}
                     aria-describedby={index === 0 ? 'resource-project-title' : undefined}
+                    download={isDownload}
                   >
                     {isDownload && (
                       <svg 
@@ -431,7 +435,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
                         />
                       </svg>
                     )}
-                  </button>
+                  </a>
                 );
               })}
             </div>
