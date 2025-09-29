@@ -97,22 +97,23 @@ function generateCTAClasses(button: PublicCTAButton, textColour: string): string
   return baseClasses;
 }
 
-function generateAccentGraphicClasses(position?: string): string {
-  switch (position) {
-    case 'top-left':
-      return 'absolute top-4 left-4 z-10';
-    case 'top-right':
-      return 'absolute top-4 right-4 z-10';
-    case 'bottom-left':
-      return 'absolute bottom-4 left-4 z-10';
-    case 'bottom-right':
-      return 'absolute bottom-4 right-4 z-10';
-    case 'center':
-      return 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0';
-    default:
-      return 'absolute top-4 right-4 z-10';
-  }
-}
+// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+// function generateAccentGraphicClasses(position?: string): string {
+//   switch (position) {
+//     case 'top-left':
+//       return 'absolute top-4 left-4 z-10';
+//     case 'top-right':
+//       return 'absolute top-4 right-4 z-10';
+//     case 'bottom-left':
+//       return 'absolute bottom-4 left-4 z-10';
+//     case 'bottom-right':
+//       return 'absolute bottom-4 right-4 z-10';
+//     case 'center':
+//       return 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0';
+//     default:
+//       return 'absolute top-4 right-4 z-10';
+//   }
+// }
 
 function generateUrgencyClasses(urgencyLevel: string): string {
   switch (urgencyLevel) {
@@ -152,7 +153,8 @@ interface GivingCampaignBannerProps {
   background: { type: string; value: string; overlay?: { colour: string; opacity: number } };
   textColour: string;
   layoutStyle: string;
-  accentGraphic?: { url: string; alt: string; position: string; opacity: number };
+  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+  // accentGraphic?: { url: string; alt: string; position: string; opacity: number };
   showDates?: boolean;
   startDate?: Date;
   endDate?: Date;
@@ -173,7 +175,8 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
   background,
   textColour,
   layoutStyle,
-  accentGraphic,
+  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+  // accentGraphic,
   showDates,
   startDate,
   endDate,
@@ -214,8 +217,9 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
         />
       )}
 
+      {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. Don't forget about the API part. */}
       {/* Accent graphic */}
-      {accentGraphic && (
+      {/* {accentGraphic && (
         <div className={generateAccentGraphicClasses(accentGraphic.position)}>
           <Image
             src={accentGraphic.url}
@@ -226,7 +230,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
             style={{ opacity: accentGraphic.opacity || 0.6 }}
           />
         </div>
-      )}
+      )} */}
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className={layoutClasses}>

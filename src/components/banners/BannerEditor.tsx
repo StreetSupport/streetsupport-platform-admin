@@ -383,7 +383,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         Logo: originalData.Logo || null,
         BackgroundImage: originalData.BackgroundImage || null,
         MainImage: originalData.MainImage || null,
-        AccentGraphic: originalData.AccentGraphic || undefined,
+        // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+        // AccentGraphic: originalData.AccentGraphic || undefined,
       };
       setFormData(revertedData);
       setErrors({});

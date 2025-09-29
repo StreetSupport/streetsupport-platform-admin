@@ -75,7 +75,8 @@ export default function EditBannerPage() {
       Logo: banner.Logo,
       BackgroundImage: banner.BackgroundImage,
       MainImage: banner.MainImage,
-      AccentGraphic: banner.AccentGraphic,
+      // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+      // AccentGraphic: banner.AccentGraphic,
       
       // Actions
       CtaButtons: banner.CtaButtons,
