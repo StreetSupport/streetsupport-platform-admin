@@ -229,6 +229,9 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
   layoutStyle,
   // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
   // accentGraphic,
+  showDates,
+  startDate,
+  endDate,
   badgeText,
   resourceType,
   downloadCount,
@@ -467,6 +470,22 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
                     "This event brings together professionals and volunteers to share knowledge, network, and collaborate on homelessness solutions."
                   }
                 </p>
+              </div>
+            )}
+            {/* Date range */}
+            {showDates && (startDate || endDate) && (
+              <div className="mt-6 text-sm opacity-70">
+                {startDate && endDate && (
+                  <p>
+                    Available: {new Date(startDate).toLocaleDateString('en-GB')} - {new Date(endDate).toLocaleDateString('en-GB')}
+                  </p>
+                )}
+                {startDate && !endDate && (
+                  <p>Available from {new Date(startDate).toLocaleDateString('en-GB')}</p>
+                )}
+                {!startDate && endDate && (
+                  <p>Available until {new Date(endDate).toLocaleDateString('en-GB')}</p>
+                )}
               </div>
             )}
           </div>

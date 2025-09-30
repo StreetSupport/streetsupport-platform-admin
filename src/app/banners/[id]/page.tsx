@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
@@ -10,13 +9,11 @@ import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/IBanner';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
-import { usePageMetadata } from '@/contexts/PageMetadataContext';
 
 export default function BannerViewPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { setPageMetadata } = usePageMetadata();
   
   const [banner, setBanner] = useState<IBanner | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,56 +21,36 @@ export default function BannerViewPage() {
   const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchBanner = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await fetch(`/api/banners/${id}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            if (isMounted) setError('Banner not found');
-            return;
-          }
-          throw new Error('Failed to fetch banner');
+  const fetchBanner = useCallback(async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/banners/${id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Banner not found');
+          return;
         }
-
-        const data = await response.json();
-        const bannerData = data.data;
-        
-        if (isMounted) {
-          setBanner(bannerData);
-          
-          // Set metadata for breadcrumbs
-          setPageMetadata({
-            id: id,
-            type: 'banners',
-            title: bannerData.Title
-          });
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
-        if (isMounted) {
-          setError(errorMessage);
-          errorToast.generic(errorMessage);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+        throw new Error('Failed to fetch banner');
       }
-    };
 
-    if (id) {
-      fetchBanner();
+      const data = await response.json();
+      setBanner(data.data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
+      setError(errorMessage);
+      errorToast.generic(errorMessage);
+    } finally {
+      setLoading(false);
     }
+  }, [id]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [id, setPageMetadata]);
+  useEffect(() => {
+    fetchBanner();
+  }, [fetchBanner]);
 
   const handleDelete = async () => {
     if (!banner || !confirm('Are you sure you want to delete this banner? This action cannot be undone.')) {

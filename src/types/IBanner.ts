@@ -63,6 +63,7 @@ export interface IBanner {
   IsActive: boolean;
   LocationSlug?: string;
   Priority: number;
+  TrackingContext?: string;
 }
 
 // Union type for handling both existing assets and new file uploads

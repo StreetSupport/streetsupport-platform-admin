@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
-import { usePageMetadata } from "@/contexts/PageMetadataContext";
+import { useEffect, useMemo, useState } from "react";
 
 function toTitleCase(slug: string) {
   return slug
@@ -16,12 +15,12 @@ export type Crumb = { href?: string; label: string; current?: boolean };
 
 export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
   const pathname = usePathname();
-  const { metadata } = usePageMetadata();
-  
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
     [pathname]
   );
+
+  const [bannerTitle, setBannerTitle] = useState<string | null>(null);
 
   // Auto-generate default items from path
   const baseItems: Crumb[] = useMemo(() => {
@@ -38,32 +37,60 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
     return items;
   }, [segments]);
 
+  // Enrich breadcrumbs for banner routes: /banners/[id] and /banners/[id]/edit
+  useEffect(() => {
+    const isBannerRoute = segments[0] === "banners" && segments.length >= 2;
+    const id = isBannerRoute ? segments[1] : null;
+    if (!isBannerRoute || !id) {
+      setBannerTitle(null);
+      return;
+    }
+
+    let aborted = false;
+    // Fetch banner title and support both response shapes
+    (async () => {
+      try {
+        // Skip fetching when creating a new banner or when id isn't a MongoDB ObjectId
+        const isNewRoute = id === "new";
+        const looksLikeObjectId = /^[a-fA-F0-9]{24}$/.test(id);
+        if (isNewRoute || !looksLikeObjectId) {
+          return;
+        }
+        const res = await fetch(`/api/banners/${id}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const banner = json?.data ?? json; // handle {data: banner} or banner
+        const title = banner?.Title as string | undefined;
+        if (!aborted && title) setBannerTitle(title);
+      } catch {
+        // ignore failures and keep default ID-based crumb
+      }
+    })();
+
+    return () => {
+      aborted = true;
+    };
+  }, [segments]);
+
   const computedItems: Crumb[] = useMemo(() => {
     if (itemsProp && itemsProp.length > 0) return itemsProp;
 
-    // Check if we have metadata for the current route
-    const entityType = segments[0]; // e.g., 'banners', 'users', 'organisations'
-    const entityId = segments[1];
-    const isEdit = segments[2] === "edit";
-
-    // If we have metadata with a title and it matches the current route
-    if (metadata.title && metadata.id === entityId && metadata.type === entityType) {
-      const items: Crumb[] = [
-        { href: "/", label: "Home" },
-        { href: `/${entityType}`, label: toTitleCase(entityType) },
-        { 
-          href: isEdit ? `/${entityType}/${entityId}` : undefined, 
-          label: metadata.title, 
-          current: !isEdit 
-        },
-      ];
-      if (isEdit) items.push({ label: "Edit", current: true });
-      return items;
+    // If not a banner route or no fetched title, fall back to base items
+    if (!(segments[0] === "banners" && segments.length >= 2) || !bannerTitle) {
+      return baseItems;
     }
 
-    // Fall back to base items for routes without metadata or "new" routes
-    return baseItems;
-  }, [itemsProp, baseItems, metadata, segments]);
+    const id = segments[1];
+    const isEdit = segments[2] === "edit";
+
+    const items: Crumb[] = [
+      { href: "/", label: "Home" },
+      { href: "/banners", label: "Banners" },
+      { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
+    ];
+    if (isEdit) items.push({ label: "Edit", current: true });
+    return items;
+  }, [itemsProp, baseItems, bannerTitle, segments]);
 
   return (
     <div className="bg-brand-n py-4">

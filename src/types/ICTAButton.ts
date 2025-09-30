@@ -3,7 +3,6 @@ export interface ICTAButton {
   Url: string;
   Variant?: CTAVariant;
   External?: boolean;
-  TrackingContext?: string;
   AutomaticallyPopulatedUrl?: boolean;
 }
 

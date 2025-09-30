@@ -179,6 +179,9 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
   layoutStyle,
   // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
   // accentGraphic,
+  showDates,
+  startDate,
+  endDate,
   badgeText,
   charterType,
   signatoriesCount,
@@ -381,6 +384,22 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
                     "We're working in partnership to create lasting change and improve outcomes for people experiencing homelessness."
                   }
                 </p>
+              </div>
+            )}
+            {/* Date range */}
+            {showDates && (startDate || endDate) && (
+              <div className="mt-6 text-sm opacity-70">
+                {startDate && endDate && (
+                  <p>
+                    {new Date(startDate).toLocaleDateString('en-GB')} - {new Date(endDate).toLocaleDateString('en-GB')}
+                  </p>
+                )}
+                {startDate && !endDate && (
+                  <p>From {new Date(startDate).toLocaleDateString('en-GB')}</p>
+                )}
+                {!startDate && endDate && (
+                  <p>Until {new Date(endDate).toLocaleDateString('en-GB')}</p>
+                )}
               </div>
             )}
           </div>

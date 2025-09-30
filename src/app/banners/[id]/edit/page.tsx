@@ -9,7 +9,9 @@ import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { IBanner, IMediaAsset } from '@/types';
-import { usePageMetadata } from '@/contexts/PageMetadataContext';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -25,6 +27,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     CtaButtons: banner.CtaButtons || [],
     IsActive: banner.IsActive,
     Priority: banner.Priority,
+    TrackingContext: banner.TrackingContext,
     LocationSlug: banner.LocationSlug || 'general',
     BadgeText: banner.BadgeText || '',
     StartDate: banner.StartDate ? new Date(banner.StartDate) : undefined,
@@ -60,10 +63,9 @@ export default function EditBannerPage() {
   const router = useRouter();
   const params = useParams();
   const bannerId = params.id as string;
-  const { setPageMetadata } = usePageMetadata();
   
+  const [error, setError] = useState<string | null>(null);
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
-  // const [originalBanner, setOriginalBanner] = useState<IBanner | null>(null);
   const [initialFormData, setInitialFormData] = useState<IBannerFormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,11 +73,10 @@ export default function EditBannerPage() {
 
   // Fetch banner data on component mount
   useEffect(() => {
-    let isMounted = true;
-
     const fetchBanner = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await fetch(`/api/banners/${bannerId}`);
         
         if (!response.ok) {
@@ -86,202 +87,219 @@ export default function EditBannerPage() {
         if (result.success && result.data) {
           const banner = result.data as IBanner;
           
-          if (isMounted) {
-            // Transform banner data for form
-            const formData = transformBannerToFormData(banner);
-            setInitialFormData(formData);
-            setBannerData(formData);
-            
-            // Set metadata for breadcrumbs
-            setPageMetadata({
-              id: bannerId,
-              type: 'banners',
-              title: banner.Title
-            });
-          }
+          // Transform banner data for form
+          const formData = transformBannerToFormData(banner);
+          setInitialFormData(formData);
+          setBannerData(formData);
         } else {
           throw new Error(result.message || 'Banner not found');
         }
-      } catch {
-        if (isMounted) {
-          errorToast.load('banner data');
-          router.push('/banners');
-        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load banner';
+        setError(errorMessage);
+        errorToast.load(errorMessage);
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
 
     if (bannerId) {
       fetchBanner();
     }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [bannerId, router, setPageMetadata]);
+  }, [bannerId, router]);
 
   const handleSave = async (data: IBannerFormData) => {
-    const toastId = loadingToast.update('banner');
-    
-    try {
-      setSaving(true);
-      setValidationErrors([]);
+  const toastId = loadingToast.update('banner');
+  
+  try {
+    setSaving(true);
+    setValidationErrors([]);
 
-      // Client-side validation using Zod
-      const validation = validateBannerForm(data);
-      if (!validation.success) {
-        setValidationErrors(validation.errors);
-        toastUtils.dismiss(toastId);
-        errorToast.validation('Please fix the validation errors below');
-        return;
-      }
-
-      const formData = new FormData();
-      
-      // Add text fields and handle file uploads (reuse logic from new banner page)
-      Object.keys(data).forEach(key => {
-        const typedKey = key as keyof IBannerFormData;
-        const value = data[typedKey];
-        
-        if (key === 'Logo' || key === 'BackgroundImage' || key === 'MainImage') {
-          // Handle media uploads with optional metadata
-          if (value instanceof File) {
-            // Single new file
-            formData.append(`newfile_${key}`, value);
-          } else if (value && typeof value === 'object' && 'File' in value) {
-            // IMediaAssetFileMeta object with File and metadata
-            const mediaAsset = value as { File: File; Width?: number; Height?: number };
-            formData.append(`newfile_${key}`, mediaAsset.File);
-            
-            // Send metadata (Width, Height) if present
-            const metadata = { ...mediaAsset };
-            delete (metadata as { File?: unknown }).File; // Remove File from metadata
-            if (Object.keys(metadata).length > 0) {
-              formData.append(`newmetadata_${key}`, JSON.stringify(metadata));
-            }
-          } else if (value && typeof value === 'object' && 'Url' in value) {
-            // Existing IMediaAsset - send as JSON to preserve
-            formData.append(`existing_${key}`, JSON.stringify(value));
-          }
-        }
-        else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
-          // Handle nested PartnershipCharter with PartnerLogos
-          const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
-          if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
-            const existingLogos: IMediaAsset[] = [];
-            partnershipCharter.PartnerLogos.forEach((item) => {
-              if (item instanceof File) {
-                formData.append('newfile_PartnerLogos', item);
-              } else {
-                // Existing IMediaAsset
-                existingLogos.push(item as IMediaAsset);
-              }
-            });
-            
-            // Send existing logos as JSON
-            if (existingLogos.length > 0) {
-              formData.append('existing_PartnerLogos', JSON.stringify(existingLogos));
-            }
-          }
-          // Add other PartnershipCharter fields as JSON
-          const partnershipCharterData = { ...partnershipCharter };
-          delete partnershipCharterData.PartnerLogos; // Remove files from JSON
-          formData.append(key, JSON.stringify(partnershipCharterData));
-        } else if (key === 'ResourceProject' && value && typeof value === 'object') {
-          // Handle nested ResourceProject with ResourceFile
-          const resourceProject = value as NonNullable<IBannerFormData['ResourceProject']>;
-          if (resourceProject.ResourceFile) {
-            // Type guard to detect metadata object with embedded File
-            type ResourceFileWithUpload = { File: File } & Record<string, unknown>;
-            const rf = resourceProject.ResourceFile as unknown;
-            const hasEmbeddedFile = typeof rf === 'object' && rf !== null && 'File' in (rf as object) && (rf as ResourceFileWithUpload).File instanceof File;
-            if (hasEmbeddedFile) {
-              // 1. Append the actual file for upload
-              formData.append('newfile_ResourceFile', (rf as ResourceFileWithUpload).File);
-
-              // 2. Send the metadata as a separate JSON string (excluding the File)
-              const metadata = { ...(rf as object) };
-              delete (metadata as { File?: unknown }).File; // Don't send the file object in the JSON
-              formData.append('newmetadata_ResourceFile', JSON.stringify(metadata));
-            } else if (typeof rf === 'object' && rf !== null && 'FileUrl' in (rf as object)) {
-              // Existing IResourceFile - send as JSON to preserve
-              formData.append('existing_ResourceFile', JSON.stringify(rf));
-            }
-          }
-          // Add other ResourceProject fields as JSON (excluding ResourceFile)
-          const resourceProjectData = { ...resourceProject };
-          delete resourceProjectData.ResourceFile;
-          formData.append(key, JSON.stringify(resourceProjectData));
-        } else if (typeof value === 'object' && value !== null) {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== undefined) {
-          formData.append(key, String(value));
-        }
-      });
-
-      const response = await fetch(`/api/banners/${bannerId}`, {
-        method: 'PUT',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.errors) {
-          setValidationErrors(errorData.errors);
-        }
-        throw new Error(errorData.message || 'Failed to update banner');
-      }
-
-      await response.json();
+    // Client-side validation using Zod
+    const validation = validateBannerForm(data);
+    if (!validation.success) {
+      setValidationErrors(validation.errors);
       toastUtils.dismiss(toastId);
-      successToast.update('Banner');
-      router.push(`/banners/${bannerId}`);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      toastUtils.dismiss(toastId);
-      errorToast.update('banner', errorMessage);
-    } finally {
-      setSaving(false);
+      errorToast.validation('Please fix the validation errors below');
+      return;
     }
-  };
 
-  if ((!bannerData || !initialFormData) && !loading) {
-    return (
-      <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
-        <div className="min-h-screen bg-brand-q flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-brand-g">Banner not found</p>
-          </div>
-        </div>
-      </RoleGuard>
-    );
+    const formData = new FormData();
+    
+    // Add text fields and handle file uploads (reuse logic from new banner page)
+    Object.keys(data).forEach(key => {
+      const typedKey = key as keyof IBannerFormData;
+      const value = data[typedKey];
+      
+      if (key === 'Logo' || key === 'BackgroundImage' || key === 'MainImage') {
+        // Handle media uploads with optional metadata
+        if (value instanceof File) {
+          // Single new file
+          formData.append(`newfile_${key}`, value);
+        } else if (value && typeof value === 'object' && 'File' in value) {
+          // IMediaAssetFileMeta object with File and metadata
+          const mediaAsset = value as { File: File; Width?: number; Height?: number };
+          formData.append(`newfile_${key}`, mediaAsset.File);
+          
+          // Send metadata (Width, Height) if present
+          const metadata = { ...mediaAsset };
+          delete (metadata as { File?: unknown }).File; // Remove File from metadata
+          if (Object.keys(metadata).length > 0) {
+            formData.append(`newmetadata_${key}`, JSON.stringify(metadata));
+          }
+        } else if (value && typeof value === 'object' && 'Url' in value) {
+          // Existing IMediaAsset - send as JSON to preserve
+          formData.append(`existing_${key}`, JSON.stringify(value));
+        }
+      }
+      else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
+        // Handle nested PartnershipCharter with PartnerLogos
+        const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
+        if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
+          const existingLogos: IMediaAsset[] = [];
+          partnershipCharter.PartnerLogos.forEach((item) => {
+            if (item instanceof File) {
+              formData.append('newfile_PartnerLogos', item);
+            } else {
+              // Existing IMediaAsset
+              existingLogos.push(item as IMediaAsset);
+            }
+          });
+          
+          // Send existing logos as JSON
+          if (existingLogos.length > 0) {
+            formData.append('existing_PartnerLogos', JSON.stringify(existingLogos));
+          }
+        }
+        // Add other PartnershipCharter fields as JSON
+        const partnershipCharterData = { ...partnershipCharter };
+        delete partnershipCharterData.PartnerLogos; // Remove files from JSON
+        formData.append(key, JSON.stringify(partnershipCharterData));
+      } else if (key === 'ResourceProject' && value && typeof value === 'object') {
+        // Handle nested ResourceProject with ResourceFile
+        const resourceProject = value as NonNullable<IBannerFormData['ResourceProject']>;
+        if (resourceProject.ResourceFile) {
+          // Type guard to detect metadata object with embedded File
+          type ResourceFileWithUpload = { File: File } & Record<string, unknown>;
+          const rf = resourceProject.ResourceFile as unknown;
+          const hasEmbeddedFile = typeof rf === 'object' && rf !== null && 'File' in (rf as object) && (rf as ResourceFileWithUpload).File instanceof File;
+          if (hasEmbeddedFile) {
+            // 1. Append the actual file for upload
+            formData.append('newfile_ResourceFile', (rf as ResourceFileWithUpload).File);
+
+            // 2. Send the metadata as a separate JSON string (excluding the File)
+            const metadata = { ...(rf as object) };
+            delete (metadata as { File?: unknown }).File; // Don't send the file object in the JSON
+            formData.append('newmetadata_ResourceFile', JSON.stringify(metadata));
+          } else if (typeof rf === 'object' && rf !== null && 'FileUrl' in (rf as object)) {
+            // Existing IResourceFile - send as JSON to preserve
+            formData.append('existing_ResourceFile', JSON.stringify(rf));
+          }
+        }
+        // Add other ResourceProject fields as JSON (excluding ResourceFile)
+        const resourceProjectData = { ...resourceProject };
+        delete resourceProjectData.ResourceFile;
+        formData.append(key, JSON.stringify(resourceProjectData));
+      } else if (typeof value === 'object' && value !== null) {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== undefined) {
+        formData.append(key, String(value));
+      }
+    });
+
+    const response = await fetch(`/api/banners/${bannerId}`, {
+      method: 'PUT',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.errors) {
+        setValidationErrors(errorData.errors);
+      }
+      throw new Error(errorData.message || 'Failed to update banner');
+    }
+
+    await response.json();
+    toastUtils.dismiss(toastId);
+    successToast.update('Banner');
+    router.push(`/banners/${bannerId}`);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+    toastUtils.dismiss(toastId);
+    errorToast.update('banner', errorMessage);
+  } finally {
+    setSaving(false);
   }
+};
 
+if (loading) {
+  return (
+    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+      <div className="min-h-screen bg-brand-q flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-a mx-auto mb-4"></div>
+          <p className="text-brand-k">Loading banner...</p>
+        </div>
+      </div>
+    </RoleGuard>
+  );
+}
+
+if (!bannerData || !initialFormData) {
   return (
     <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
       <div className="min-h-screen bg-brand-q">
-        <BannerPageHeader pageType="edit" />
-
-        <div className="page-container section-spacing padding-top-zero">
-          {/* Full-width Preview at Top */}
-          <div className="mb-8">
-            {bannerData && (
-              <BannerPreview data={bannerData} />
-            )}
+        <div className="nav-container">
+          <div className="page-container">
+            <div className="flex items-center justify-between h-16">
+              <h1 className="heading-4">Banner Not Found</h1>
+            </div>
           </div>
-
-          <div className="space-y-6">
-            <BannerEditor
-              initialData={initialFormData ?? undefined}
-              onDataChange={setBannerData}
-              onSave={handleSave}
-              saving={saving}
-              validationErrors={validationErrors}
-            />
+        </div>
+        <div className="page-container section-spacing padding-top-zero">
+          <div className="text-center py-12">
+            <h2 className="heading-3 mb-4">Banner Not Found</h2>
+            <p className="text-base text-brand-f mb-6">
+              {error || 'The banner you are looking for does not exist or has been deleted.'}
+            </p>
+            <Link href="/banners">
+              <Button variant="primary">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Banners
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
     </RoleGuard>
+  );
+}
+
+return (
+  <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <div className="min-h-screen bg-brand-q">
+      <BannerPageHeader pageType="edit" />
+
+      <div className="page-container section-spacing padding-top-zero">
+        {/* Full-width Preview at Top */}
+        <div className="mb-8">
+          {bannerData && (
+            <BannerPreview data={bannerData} />
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <BannerEditor
+            initialData={initialFormData}
+            onDataChange={setBannerData}
+            onSave={handleSave}
+            saving={saving}
+            validationErrors={validationErrors}
+          />
+        </div>
+      </div>
+    </div>
+  </RoleGuard>
   );
 }
