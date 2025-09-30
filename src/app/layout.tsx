@@ -7,6 +7,7 @@ import ProtectedLayout from '@/components/auth/ProtectedLayout';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import Nav from '@/components/partials/Nav';
 import { Toaster } from 'react-hot-toast';
+import { PageMetadataProvider } from '@/contexts/PageMetadataContext';
 
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
@@ -43,15 +44,17 @@ export default function RootLayout({
       <body className={`h-full`}>
         <NextAuthProvider>
           <ProtectedLayout>
-            <div className="flex flex-col min-h-screen">
-              {/* <Header /> */}
-              <Nav/>
-              <Breadcrumbs />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <PageMetadataProvider>
+              <div className="flex flex-col min-h-screen">
+                {/* <Header /> */}
+                <Nav/>
+                <Breadcrumbs />
+                <main className="flex-grow">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </PageMetadataProvider>
             <Toaster
               position="top-right"
               toastOptions={{

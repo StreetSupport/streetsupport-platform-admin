@@ -7,7 +7,8 @@ import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
-import type { IAccentGraphic } from '@/types';
+// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+// import type { IAccentGraphic } from '@/types';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 
 export default function NewBannerPage() {
@@ -56,19 +57,22 @@ export default function NewBannerPage() {
               formData.append(`newmetadata_${key}`, JSON.stringify(metadata));
             }
           }
-        } else if (key === 'AccentGraphic' && value && typeof value === 'object') {
-          const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });
-          // Handle AccentGraphic with metadata
-          if (accentGraphic.File instanceof File) {
-            // 1. AccentGraphic object with File and metadata
-            formData.append('newfile_AccentGraphic', accentGraphic.File);
+        }
+        // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+        // else if (key === 'AccentGraphic' && value && typeof value === 'object') {
+        //   const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });
+        //   // Handle AccentGraphic with metadata
+        //   if (accentGraphic.File instanceof File) {
+        //     // 1. AccentGraphic object with File and metadata
+        //     formData.append('newfile_AccentGraphic', accentGraphic.File);
             
-            // 2. Send the complete AccentGraphic metadata (excluding the File property)
-            const accentGraphicMetadata = { ...accentGraphic };
-            delete accentGraphicMetadata.File; // Remove the File object from metadata
-            formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
-          }
-        } else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
+        //     // 2. Send the complete AccentGraphic metadata (excluding the File property)
+        //     const accentGraphicMetadata = { ...accentGraphic };
+        //     delete accentGraphicMetadata.File; // Remove the File object from metadata
+        //     formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
+        //   }
+        // } 
+        else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
           // Handle nested PartnershipCharter with PartnerLogos
           const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
           if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
@@ -118,6 +122,9 @@ export default function NewBannerPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (errorData.errors) {
+          setValidationErrors(errorData.errors);
+        }
         throw new Error(errorData.message || 'Failed to create banner');
       }
 
@@ -155,7 +162,6 @@ export default function NewBannerPage() {
               onSave={handleSave}
               saving={saving}
               validationErrors={validationErrors}
-              onCancel={() => router.push('/banners')}
             />
           </div>
         </div>

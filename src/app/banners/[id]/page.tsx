@@ -10,11 +10,13 @@ import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/IBanner';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
+import { usePageMetadata } from '@/contexts/PageMetadataContext';
 
 export default function BannerViewPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { setPageMetadata } = usePageMetadata();
   
   const [banner, setBanner] = useState<IBanner | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,36 +25,55 @@ export default function BannerViewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchBanner = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`/api/banners/${id}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            if (isMounted) setError('Banner not found');
+            return;
+          }
+          throw new Error('Failed to fetch banner');
+        }
+
+        const data = await response.json();
+        const bannerData = data.data;
+        
+        if (isMounted) {
+          setBanner(bannerData);
+          
+          // Set metadata for breadcrumbs
+          setPageMetadata({
+            id: id,
+            type: 'banners',
+            title: bannerData.Title
+          });
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
+        if (isMounted) {
+          setError(errorMessage);
+          errorToast.generic(errorMessage);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
     if (id) {
       fetchBanner();
     }
-  }, [id]);
 
-  const fetchBanner = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`/api/banners/${id}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('Banner not found');
-          return;
-        }
-        throw new Error('Failed to fetch banner');
-      }
-
-      const data = await response.json();
-      setBanner(data.data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
-      setError(errorMessage);
-      errorToast.generic(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [id, setPageMetadata]);
 
   const handleDelete = async () => {
     if (!banner || !confirm('Are you sure you want to delete this banner? This action cannot be undone.')) {

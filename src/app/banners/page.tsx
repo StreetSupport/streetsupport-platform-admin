@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import '@/styles/pagination.css';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
@@ -14,8 +13,6 @@ import Link from 'next/link';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 
 export default function BannersListPage() {
-  const router = useRouter();
-  
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +31,7 @@ export default function BannersListPage() {
   useEffect(() => {
     fetchBanners();
     fetchLocations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, templateFilter, statusFilter, locationFilter, limit]);
 
   const fetchBanners = async () => {

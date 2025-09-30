@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
@@ -91,8 +91,11 @@ const RESOURCE_TYPES = [
 ];
 
 
-export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
+export function BannerEditor({ initialData, onDataChange, onSave, saving = false, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const minDateTime = now.toISOString().slice(0, 16);
   const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
 
   useEffect(() => {
@@ -105,13 +108,70 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         } else {
           errorToast.load('cities data');
         }
-      } catch (error) {
-        console.error('Failed to fetch cities:', error);
+      } catch {
         errorToast.load('cities data');
       }
     }
     fetchCities();
   }, []);
+
+  // Define default form data - used for both initialization and cancel on create
+  const getDefaultFormData = (): IBannerFormData => ({
+    Title: 'Title',
+    Subtitle: 'Subtitle',
+    Description: 'Description',
+    TemplateType: BannerTemplateType.GIVING_CAMPAIGN,
+    LayoutStyle: LayoutStyle.SPLIT,
+    TextColour: TextColour.WHITE,
+    Background: {
+      Type: BackgroundType.SOLID,
+      Value: '#38ae8e',
+      Overlay: {
+        Colour: 'rgba(0,0,0,0.5)',
+        Opacity: 0.5
+      }
+    },
+    CtaButtons: [
+      {
+        Label: 'Click',
+        Url: '/',
+        Variant: CTAVariant.PRIMARY,
+        External: false
+      }
+    ],
+    IsActive: true,
+    Priority: 5,
+    LocationSlug: 'general',
+    BadgeText: 'Badge text',
+    GivingCampaign: {
+      UrgencyLevel: UrgencyLevel.MEDIUM,
+      CampaignEndDate: undefined,
+      DonationGoal: {
+        Target: 10000,
+        Current: 5000,
+        Currency: 'GBP'
+      }
+    },
+    PartnershipCharter: {
+      CharterType: CharterType.HOMELESS_CHARTER,
+      SignatoriesCount: 1,
+      PartnerLogos: []
+    },
+    ResourceProject: {
+      ResourceFile: {
+        FileUrl: '',
+        ResourceType: ResourceType.GUIDE,
+        DownloadCount: 0,
+        LastUpdated: new Date(),
+        FileSize: '',
+        FileType: '',
+      } as IResourceFile
+    },
+    StartDate: undefined,
+    EndDate: undefined,
+    ShowDates: false,
+    _id: '',
+  });
 
   // Store original data for cancel functionality
   useEffect(() => {
@@ -121,90 +181,41 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   }, [initialData, originalData]);
 
   const [formData, setFormData] = useState<IBannerFormData>(() => {
-    const defaults: IBannerFormData = {
-      Title: 'Title',
-      Subtitle: 'Subtitle',
-      Description: 'Description',
-      TemplateType: BannerTemplateType.GIVING_CAMPAIGN,
-      LayoutStyle: LayoutStyle.SPLIT,
-      TextColour: TextColour.WHITE,
-      Background: {
-        Type: BackgroundType.SOLID,
-        Value: '#38ae8e',
-        Overlay: {
-          Colour: 'rgba(0,0,0,0.5)',
-          Opacity: 0.5
-        }
-      },
-      CtaButtons: [
-        {
-          Label: 'Click',
-          Url: '/',
-          Variant: CTAVariant.PRIMARY,
-          External: false
-        }
-      ],
-      IsActive: true,
-      Priority: 5,
-      LocationSlug: 'general',
-      BadgeText: 'Badge text',
-      GivingCampaign: {
-        UrgencyLevel: UrgencyLevel.MEDIUM,
-        CampaignEndDate: undefined,
-        DonationGoal: {
-          Target: 10000,
-          Current: 5000,
-          Currency: 'GBP'
-        }
-      },
-      PartnershipCharter: {
-        CharterType: CharterType.HOMELESS_CHARTER,
-        SignatoriesCount: 1,
-        PartnerLogos: []
-      },
-      ResourceProject: {
-        ResourceFile: {
-          FileUrl: '',
-          ResourceType: ResourceType.GUIDE,
-          DownloadCount: 0,
-          LastUpdated: new Date(),
-          FileSize: '',
-          FileType: '',
-        } as IResourceFile
-      },
-      StartDate: undefined,
-      EndDate: undefined,
-      ShowDates: false,
-      _id: '',
-    };
+    const defaults = getDefaultFormData();
 
+    // If no initialData, just return defaults
+    if (!initialData || Object.keys(initialData).length === 0) {
+      return defaults;
+    }
+
+    // Safely merge initialData with defaults
     return {
       ...defaults,
       ...initialData,
-      Background: {
+      Background: initialData.Background ? {
         ...defaults.Background,
-        ...initialData?.Background,
-        Overlay: {
+        ...initialData.Background,
+        Overlay: initialData.Background.Overlay ? {
           ...defaults.Background.Overlay,
-          ...initialData?.Background?.Overlay,
-        },
-      },
-      GivingCampaign: {
+          ...initialData.Background.Overlay,
+        } : defaults.Background.Overlay,
+      } : defaults.Background,
+      GivingCampaign: initialData.GivingCampaign ? {
         ...defaults.GivingCampaign,
-        ...initialData?.GivingCampaign,
-        DonationGoal: {
+        ...initialData.GivingCampaign,
+        DonationGoal: initialData.GivingCampaign.DonationGoal ? {
           ...defaults.GivingCampaign?.DonationGoal,
-          ...initialData?.GivingCampaign?.DonationGoal,
-        }
-      },
-      PartnershipCharter: {
+          ...initialData.GivingCampaign.DonationGoal,
+        } : defaults.GivingCampaign?.DonationGoal,
+      } : defaults.GivingCampaign,
+      PartnershipCharter: initialData.PartnershipCharter ? {
         ...defaults.PartnershipCharter,
-        ...initialData?.PartnershipCharter,
-      },
-      ResourceProject: {
+        ...initialData.PartnershipCharter,
+      } : defaults.PartnershipCharter,
+      ResourceProject: initialData.ResourceProject ? {
         ...defaults.ResourceProject,
-        ...initialData?.ResourceProject,
-      },
+        ...initialData.ResourceProject,
+      } : defaults.ResourceProject,
       CtaButtons: initialData?.CtaButtons ?? defaults.CtaButtons,
     };
   });
@@ -326,70 +337,22 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     });
   };
 
-  // Cancel functionality - revert to original data
+  // Cancel functionality - revert to original data (edit) or defaults (create)
   const handleCancel = () => {
-    if (originalData) {
-      const revertedData: IBannerFormData = {
-        _id: originalData._id || '',
-        Title: originalData.Title || '',
-        Subtitle: originalData.Subtitle || '',
-        Description: originalData.Description || '',
-        TemplateType: originalData.TemplateType || BannerTemplateType.GIVING_CAMPAIGN,
-        LayoutStyle: originalData.LayoutStyle || LayoutStyle.SPLIT,
-        TextColour: originalData.TextColour || TextColour.WHITE,
-        Background: originalData.Background || {
-          Type: BackgroundType.SOLID,
-          Value: '#38ae8e',
-          Overlay: { Colour: 'rgba(0,0,0,0.5)', Opacity: 0.5 }
-        },
-        CtaButtons: originalData.CtaButtons || [{
-          Label: 'Learn More',
-          Url: '/about',
-          Variant: CTAVariant.PRIMARY,
-          External: false
-        }],
-        IsActive: originalData.IsActive ?? true,
-        Priority: originalData.Priority || 5,
-        LocationSlug: originalData.LocationSlug || 'general',
-        BadgeText: originalData.BadgeText || '',
-        GivingCampaign: {
-          UrgencyLevel: UrgencyLevel.MEDIUM,
-          CampaignEndDate: undefined,
-          DonationGoal: {
-            Target: 0,
-            Current: 0,
-            Currency: 'GBP'
-          }
-        },
-        PartnershipCharter: {
-          CharterType: CharterType.HOMELESS_CHARTER,
-          SignatoriesCount: 0,
-          PartnerLogos: []
-        },
-        ResourceProject: {
-          ResourceFile: {
-            FileUrl: '',
-            ResourceType: ResourceType.GUIDE,
-            DownloadCount: 0,
-            LastUpdated: new Date(),
-            FileSize: '',
-            FileType: '',
-          } as IResourceFile
-        },
-        StartDate: originalData.StartDate instanceof Date ? originalData.StartDate : undefined,
-        EndDate: originalData.EndDate instanceof Date ? originalData.EndDate : undefined,
-        ShowDates: originalData.ShowDates || false,
-        // Restore original media files
-        Logo: originalData.Logo || null,
-        BackgroundImage: originalData.BackgroundImage || null,
-        MainImage: originalData.MainImage || null,
-        // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-        // AccentGraphic: originalData.AccentGraphic || undefined,
-      };
-      setFormData(revertedData);
+    const confirmCancel = window.confirm(
+      'Are you sure you want to cancel? All unsaved changes will be lost.'
+    );
+    
+    if (confirmCancel) {
+      if (originalData && Object.keys(originalData).length > 0) {
+        // Edit mode: restore the original data
+        setFormData({ ...originalData } as IBannerFormData);
+      } else {
+        // Create mode: reset to defaults
+        setFormData(getDefaultFormData());
+      }
       setErrors({});
     }
-    onCancel?.();
   };
 
   const validateForm = () => {
@@ -493,6 +456,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Campaign End Date">
               <Input
                 type="datetime-local"
+                min={minDateTime}
                 value={
                   formData.GivingCampaign?.CampaignEndDate
                     ? new Date(formData.GivingCampaign.CampaignEndDate).toISOString().slice(0, 16)
@@ -823,8 +787,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             maxSize={5 * 1024 * 1024}
           />
 
-          
-          <MediaUpload
+            
+          {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. */}
+          {/* <MediaUpload
             label="Accent Graphic"
             value={formData.AccentGraphic}
             onUpload={(file) => {
@@ -841,10 +806,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             onRemove={() => removeFile('AccentGraphic')}
             accept="image/*"
             maxSize={5 * 1024 * 1024}
-          />
+          /> */}
           
           {/* Accent Graphic Controls */}
-          {formData.AccentGraphic && (
+          {/* {formData.AccentGraphic && (
             <div className="ml-4 p-4 bg-brand-i rounded-md space-y-4">
               <h4 className="heading-6">Accent Graphic Settings</h4>
               <div className="grid grid-cols-2 gap-4">
@@ -873,8 +838,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 </FormField>
               </div>
             </div>
-          )}
-        </div>
+          )} */}
+        </div> 
 
         {/* Styling Options */}
         <div className="space-y-4 border-t border-brand-q pt-6">
@@ -1083,6 +1048,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <FormField label="Start Date">
                   <Input
                     type="datetime-local"
+                    min={minDateTime}
                     value={formData.StartDate ? new Date(formData.StartDate).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updateFormData('StartDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
@@ -1090,6 +1056,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <FormField label="End Date">
                   <Input
                     type="datetime-local"
+                    min={minDateTime}
                     value={formData.EndDate ? new Date(formData.EndDate).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updateFormData('EndDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />
@@ -1101,11 +1068,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
         {/* Submit Button */}
         <div className="card-footer">
-          {onCancel && (
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-          )}
           <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : 'Save Banner'}
           </Button>

@@ -34,7 +34,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     } else {
       // Calculate start and end of visible range
       let start = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-      let end = Math.min(totalPages, start + maxVisiblePages - 1);
+      const end = Math.min(totalPages, start + maxVisiblePages - 1);
       
       // Adjust start if we're near the end
       if (end - start + 1 < maxVisiblePages) {

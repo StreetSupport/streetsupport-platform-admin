@@ -3,7 +3,8 @@ export * from './IUser';
 export * from './ICity';
 export * from './IMediaAsset';
 export * from './IDonationGoal';
-export * from './IAccentGraphic';
+// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+// export * from './IAccentGraphic';
 export * from './ICTAButton';
 export * from './IBannerBackground';
 export * from './IResourceFile';
