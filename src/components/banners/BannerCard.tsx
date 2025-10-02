@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { IBanner, BannerTemplateType } from '@/types/IBanner';
+import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
 import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
 

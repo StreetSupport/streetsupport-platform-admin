@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import BackLink from '@/components/common/BackLink';
-import { IBanner } from '@/types/IBanner';
+import { IBanner } from '@/types/banners/IBanner';
 
 interface BannerPageHeaderProps {
   pageType: 'view' | 'edit' | 'new';

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import type { PublicBackground, PublicCTAButton } from '@/types/PreviewTypes';
+import type { PublicBackground, PublicCTAButton } from '@/types/banners/PreviewTypes';
 
 // Banner utility functions adapted for admin preview (same as other components)
 function generateBackgroundClasses(background: PublicBackground): string {
@@ -446,7 +446,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
 
             {/* Resource metadata */}
             {resourceType && (
-              <div className="mt-8 p-6 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
+              <div className="mt-8 p-6 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 text-left">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -472,9 +472,10 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
                 </p>
               </div>
             )}
+            
             {/* Date range */}
             {showDates && (startDate || endDate) && (
-              <div className="mt-6 text-sm opacity-70">
+              <div className="mt-6 text-sm opacity-70 text-left">
                 {startDate && endDate && (
                   <p>
                     Available: {new Date(startDate).toLocaleDateString('en-GB')} - {new Date(endDate).toLocaleDateString('en-GB')}

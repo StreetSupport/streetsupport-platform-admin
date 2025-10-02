@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { Search, Plus } from 'lucide-react';
 import { ICity } from '@/types';
-import { IBanner, BannerTemplateType } from '@/types/IBanner';
+import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import BannerCard from '@/components/banners/BannerCard';
 import Link from 'next/link';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';

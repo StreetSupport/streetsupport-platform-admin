@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import type { PublicBackground, PublicCTAButton } from '@/types/PreviewTypes';
+import type { PublicBackground, PublicCTAButton } from '@/types/banners/PreviewTypes';
 
 // Banner utility functions adapted for admin preview
 function generateBackgroundClasses(background: PublicBackground): string {

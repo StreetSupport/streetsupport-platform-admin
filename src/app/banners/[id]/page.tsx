@@ -5,7 +5,7 @@ import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
-import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/IBanner';
+import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';

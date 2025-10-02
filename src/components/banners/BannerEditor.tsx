@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Plus, Trash } from 'lucide-react';
 import { BannerTemplateType, UrgencyLevel, CharterType, ResourceType, IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant } from '@/types';
-import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/IResourceFile';
+import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/banners/IResourceFile';
 import { errorToast } from '@/utils/toast';
 
 // Helper function to format file size
@@ -1048,7 +1048,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 <FormField label="Start Date">
                   <Input
                     type="datetime-local"
-                    min={minDateTime}
                     value={formData.StartDate ? new Date(formData.StartDate).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updateFormData('StartDate', e.target.value ? new Date(e.target.value) : undefined)}
                   />

@@ -1,5 +1,5 @@
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-import { IMediaAsset /*, IAccentGraphic*/ } from './index';
+import { IMediaAsset /*, IAccentGraphic*/ } from './IMediaAsset';
 import { IBannerBackground, ICTAButton, IDonationGoal } from '@/types/index';
 import { IResourceFile } from './IResourceFile';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { IBannerFormData, BannerTemplateType } from '@/types/IBanner';
+import { IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
 import type { IMediaAsset /*, IAccentGraphic*/, IResourceFile } from '@/types';
 import { GivingCampaignBanner } from './GivingCampaignBanner';
