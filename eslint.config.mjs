@@ -65,6 +65,13 @@ const config = [
     }
   },
   {
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      "@typescript-eslint/no-empty-interface": "off",
+      "@typescript-eslint/no-empty-object-type": "off"
+    }
+  },
+  {
     ignores: ["**/node_modules/**", "**/.next/**", "**/out/**", "**/public/**", "**/coverage/**"]
   }
 ];
