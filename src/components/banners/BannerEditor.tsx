@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IResourceFile, IMediaAsset } from '@/types';
@@ -91,7 +92,7 @@ const RESOURCE_TYPES = [
 ];
 
 
-export function BannerEditor({ initialData, onDataChange, onSave, saving = false, errorMessage, validationErrors = [] }: BannerEditorProps) {
+export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -221,6 +222,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     onDataChange(formData);
@@ -339,19 +341,23 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   // Cancel functionality - revert to original data (edit) or defaults (create)
   const handleCancel = () => {
-    const confirmCancel = window.confirm(
-      'Are you sure you want to cancel? All unsaved changes will be lost.'
-    );
+    setShowConfirmModal(true);
+  };
+
+  const confirmCancel = () => {
+    setShowConfirmModal(false);
+    if (originalData && Object.keys(originalData).length > 0) {
+      // Edit mode: restore the original data
+      setFormData({ ...originalData } as IBannerFormData);
+    } else {
+      // Create mode: reset to defaults
+      setFormData(getDefaultFormData());
+    }
+    setErrors({});
     
-    if (confirmCancel) {
-      if (originalData && Object.keys(originalData).length > 0) {
-        // Edit mode: restore the original data
-        setFormData({ ...originalData } as IBannerFormData);
-      } else {
-        // Create mode: reset to defaults
-        setFormData(getDefaultFormData());
-      }
-      setErrors({});
+    // Call parent onCancel if provided
+    if (onCancel) {
+      onCancel();
     }
   };
 
@@ -1107,6 +1113,18 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
         )}
       </form>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={confirmCancel}
+        title="Cancel Changes"
+        message="Are you sure you want to cancel? All unsaved changes will be lost."
+        variant="warning"
+        confirmLabel="Yes, Cancel"
+        cancelLabel="No, Keep Editing"
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
 import { ArrowLeft } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function BannerViewPage() {
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const fetchBanner = useCallback(async () => {
     if (!id) return;
@@ -53,10 +55,12 @@ export default function BannerViewPage() {
   }, [fetchBanner]);
 
   const handleDelete = async () => {
-    if (!banner || !confirm('Are you sure you want to delete this banner? This action cannot be undone.')) {
-      return;
-    }
+    if (!banner) return;
+    setShowConfirmModal(true);
+  };
 
+  const confirmDelete = async () => {
+    setShowConfirmModal(false);
     const toastId = loadingToast.delete('banner');
     
     try {
@@ -451,6 +455,18 @@ export default function BannerViewPage() {
               </div>
             )}
           </div>
+
+          {/* Confirmation Modal */}
+          <ConfirmModal
+            isOpen={showConfirmModal}
+            onClose={() => setShowConfirmModal(false)}
+            onConfirm={confirmDelete}
+            title="Delete Banner"
+            message="Are you sure you want to delete this banner? This action cannot be undone."
+            variant="danger"
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+          />
         </div>
       </div>
     </RoleGuard>

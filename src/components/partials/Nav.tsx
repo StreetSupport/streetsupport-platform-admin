@@ -44,7 +44,7 @@ export default function Nav() {
   }
 
   return (
-    <nav className="nav-container">
+    <nav className="nav-container fixed top-0 w-full z-50 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center w-full">
           <div className="flex items-center">

@@ -2,7 +2,7 @@ import RoleGuard from '@/components/auth/RoleGuard';
 
 export default function ResourcesPage() {
   return (
-    <RoleGuard allowedRoles={['CityAdmin', 'SuperAdmin']} requiredPage="/resources">
+    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin', 'VolunteerAdmin']} requiredPage="/resources">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Resources</h1>

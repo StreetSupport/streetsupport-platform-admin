@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
 
 interface BannerCardProps {
@@ -21,6 +22,11 @@ const BannerCard = React.memo(function BannerCard({
   onToggleActive,
   isToggling = false
 }: BannerCardProps) {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const getTemplateTypeLabel = (type: BannerTemplateType): string => {
     switch (type) {
@@ -80,9 +86,14 @@ const BannerCard = React.memo(function BannerCard({
     }
 
     if (alertMessage) {
-      if (window.confirm(alertMessage)) {
-        onToggleActive?.(banner);
-      }
+      setConfirmConfig({
+        message: alertMessage,
+        onConfirm: () => {
+          setShowConfirmModal(false);
+          onToggleActive?.(banner);
+        }
+      });
+      setShowConfirmModal(true);
     } else {
       onToggleActive?.(banner);
     }
@@ -204,68 +215,8 @@ const BannerCard = React.memo(function BannerCard({
 
       {/* Banner Info */}
       <div className="p-4">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="heading-5 line-clamp-2">{banner.Title}</h3>
-          </div>
-        </div>
-
-        {/* Template Type */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="service-tag template-type">
-            {getTemplateTypeLabel(banner.TemplateType)}
-          </span>
-          
-          {banner.LocationSlug && (
-            <span className="service-tag location">
-              {banner.LocationSlug}
-            </span>
-          )}
-        </div>
-
-        {/* Description */}
-        {banner.Description && (
-          <p className="text-small text-brand-l mb-3 line-clamp-2">
-            {banner.Description}
-          </p>
-        )}
-
-        {/* Template-specific Stats */}
-        {renderTemplateStats() && (
-          <div className="mb-4 p-3 bg-brand-q rounded-lg">
-            {renderTemplateStats()}
-          </div>
-        )}
-
-        {/* Dates */}
-        {(banner.StartDate || banner.EndDate) && (
-          <div className="text-xs text-brand-f mb-4 space-y-1">
-            {banner.StartDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-brand-b" />
-                <span>Starts: {formatDate(banner.StartDate)}</span>
-              </div>
-            )}
-            {banner.EndDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-brand-g" />
-                <span>Ends: {formatDate(banner.EndDate)}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="text-xs text-brand-f mb-4">
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            <span>Modified: {formatDate(banner.DocumentModifiedDate)}</span>
-          </div>
-        </div>
-
-
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-4">
           <Link href={`/banners/${banner._id}`} className="flex-1">
             <Button variant="primary" size="sm" className="w-full">
               <Eye className="w-4 h-4 mr-2" />
@@ -306,7 +257,80 @@ const BannerCard = React.memo(function BannerCard({
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
+
+        {/* Header */}
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="heading-5 line-clamp-1">{banner.Title}</h3>
+          </div>
+        </div>
+
+        {/* Template Type */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="service-tag template-type">
+            {getTemplateTypeLabel(banner.TemplateType)}
+          </span>
+          
+          {banner.LocationSlug && (
+            <span className="service-tag location">
+              {banner.LocationSlug}
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        {banner.Description && (
+          <p className="text-small text-brand-l mb-3 line-clamp-1" title={banner.Description}>
+            {banner.Description}
+          </p>
+        )}
+
+        {/* Template-specific Stats */}
+        {renderTemplateStats() && (
+          <div className="mb-4 p-3 bg-brand-q rounded-lg">
+            {renderTemplateStats()}
+          </div>
+        )}
+
+        {/* Dates */}
+        {(banner.StartDate || banner.EndDate) && (
+          <div className="text-xs text-brand-f mb-4 space-y-1">
+            {banner.StartDate && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-brand-b" />
+                <span>Starts: {formatDate(banner.StartDate)}</span>
+              </div>
+            )}
+            {banner.EndDate && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-brand-g" />
+                <span>Ends: {formatDate(banner.EndDate)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="text-xs text-brand-f">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            <span>Modified: {formatDate(banner.DocumentModifiedDate)}</span>
+          </div>
+        </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && confirmConfig && (
+        <ConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={confirmConfig.onConfirm}
+          title="Confirm Action"
+          message={confirmConfig.message}
+          variant="warning"
+          confirmLabel="Confirm"
+          cancelLabel="Cancel"
+        />
+      )}
     </div>
   );
 });

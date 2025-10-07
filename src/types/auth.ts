@@ -28,7 +28,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     apiEndpoints: [{ path: '*', methods: ['*'] }]
   },
   CityAdmin: {
-    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/resources'],
+    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
     apiEndpoints: [
       { path: '/api/cities', methods: ['*'] },
       { path: '/api/service-providers', methods: ['*'] },
@@ -41,16 +41,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     ]
   },
   VolunteerAdmin: {
-    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/resources'],
+    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
     apiEndpoints: [
-      { path: '/api/cities', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/service-providers', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/services', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/faqs', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/banners', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/swep-banners', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/resources', methods: ['GET', 'POST', 'PUT'] },
-      { path: '/api/users', methods: ['POST'] }
+      { path: '/api/cities', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/service-providers', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/services', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/faqs', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/banners', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/swep-banners', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/resources', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
+      { path: '/api/users', methods: ['GET', 'POST', 'PUT', 'PATCH'] }
     ]
   },
   OrgAdmin: {
@@ -58,7 +58,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     apiEndpoints: [
       { path: '/api/service-providers', methods: ['*'] },
       { path: '/api/services', methods: ['*'] },
-      { path: '/api/users', methods: ['POST'] }
+      { path: '/api/users', methods: ['POST'] },
     ]
   },
   SwepAdmin: {
@@ -69,7 +69,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 
 export interface UserAuthClaims {
   roles: UserRole[];
-  specificClaims: string[]; // e.g., "CityAdminFor:birmingham", "AdminFor:org-slug"
+  specificClaims: string[]; // e.g., "CityAdminFor:birmingham", "AdminFor:org-slug", "SwepAdminFor:birmingham"
 }
 
 export interface ExtendedUser {

@@ -1,0 +1,345 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { X, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
+import { errorToast } from '@/utils/toast';
+import { UserAuthClaims } from '@/types/auth';
+
+interface UserRole {
+  id: string;
+  type: 'SuperAdmin' | 'CityAdminFor' | 'VolunteerAdmin' | 'SwepAdminFor';
+  label: string;
+  claim: string;
+  locationIds?: string[];
+}
+
+interface Location {
+  _id: string;
+  Key: string;
+  Name: string;
+}
+
+interface AddRoleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (role: UserRole) => void;
+  existingRoles: UserRole[];
+}
+
+type RoleType = 'super-admin' | 'location-admin' | 'org-admin' | 'volunteer-admin' | 'swep-admin' | '';
+
+export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }: AddRoleModalProps) {
+  const { data: session } = useSession();
+  const [selectedRole, setSelectedRole] = useState<RoleType>('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  
+  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
+  const isSuperAdmin = userAuthClaims.roles.includes('SuperAdmin') || userAuthClaims.specificClaims.includes('SuperAdmin');
+  const isVolunteerAdmin = userAuthClaims.roles.includes('VolunteerAdmin') || userAuthClaims.specificClaims.includes('VolunteerAdmin');
+  const isCityAdmin = userAuthClaims.roles.includes('CityAdmin') || userAuthClaims.specificClaims.includes('CityAdmin');
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchLocations();
+    }
+  }, [isOpen]);
+
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const response = await fetch('/api/cities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+      }
+      const data = await response.json();
+      setLocations(data.data || []);
+    } catch (err) {
+      errorToast.generic('Failed to load locations');
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const handleLocationToggle = (locationKey: string) => {
+    setSelectedLocations(prev =>
+      prev.includes(locationKey)
+        ? prev.filter(k => k !== locationKey)
+        : [...prev, locationKey]
+    );
+  };
+
+  const handleSave = () => {
+    if (!selectedRole) {
+      errorToast.generic('Please select a role');
+      return;
+    }
+
+    if ((selectedRole === 'location-admin' || selectedRole === 'swep-admin') && selectedLocations.length === 0) {
+      errorToast.generic('Please select at least one location');
+      return;
+    }
+
+    let newRole: UserRole;
+
+    switch (selectedRole) {
+      case 'super-admin':
+        newRole = {
+          id: `super-admin-${Date.now()}`,
+          type: 'SuperAdmin',
+          label: 'Super Administrator',
+          claim: 'SuperAdmin'
+        };
+        break;
+      
+      case 'location-admin':
+        const locationLabels = selectedLocations
+          .map(key => locations.find(loc => loc.Key === key)?.Name || key)
+          .join(', ');
+        newRole = {
+          id: `location-admin-${Date.now()}`,
+          type: 'CityAdminFor',
+          label: `Location Administrator: ${locationLabels}`,
+          claim: `CityAdminFor:${selectedLocations.join(',')}`,
+          locationIds: selectedLocations
+        };
+        break;
+      
+      case 'volunteer-admin':
+        newRole = {
+          id: `volunteer-admin-${Date.now()}`,
+          type: 'VolunteerAdmin',
+          label: 'Volunteer Administrator',
+          claim: 'VolunteerAdmin'
+        };
+        break;
+      
+      case 'swep-admin':
+        const swepLocationLabels = selectedLocations
+          .map(key => locations.find(loc => loc.Key === key)?.Name || key)
+          .join(', ');
+        newRole = {
+          id: `swep-admin-${Date.now()}`,
+          type: 'SwepAdminFor',
+          label: `SWEP Administrator: ${swepLocationLabels}`,
+          claim: `SwepAdminFor:${selectedLocations.join(',')}`,
+          locationIds: selectedLocations
+        };
+        break;
+      
+      default:
+        return;
+    }
+
+    onSave(newRole);
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setSelectedRole('');
+    setSelectedLocations([]);
+    onClose();
+  };
+
+  // Filter locations based on current user's permissions
+  const getAvailableLocations = () => {
+    if (isSuperAdmin || isVolunteerAdmin) {
+      return locations;
+    }
+
+    if (isCityAdmin) {
+      const userCities = userAuthClaims.specificClaims
+        .filter((claim: string) => claim.startsWith('CityAdminFor:'))
+        .map((claim: string) => claim.replace('CityAdminFor:', ''));
+      return locations.filter(loc => userCities.includes(loc.Key));
+    }
+    
+    return [];
+  };
+
+  const availableLocations = getAvailableLocations();
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-50"
+        onClick={handleClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-brand-q px-6 py-4 flex items-center justify-between">
+            <h3 className="heading-5">Add Role / Select Role</h3>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-brand-q rounded-full transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-brand-k" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            <div className="space-y-3">
+              <label className="field-label">Role (select)</label>
+              
+              {/* Super Administrator */}
+              {isSuperAdmin && (
+                <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    className="radio-field"
+                    name="role"
+                    value="super-admin"
+                    checked={selectedRole === 'super-admin'}
+                    onChange={(e) => {
+                      setSelectedRole(e.target.value as RoleType);
+                      setSelectedLocations([]);
+                    }}
+                  />
+                  <span className="text-base text-brand-k ml-2">Super Administrator</span>
+                </label>
+              )}
+
+              {/* Location Administrator */}
+              {(isSuperAdmin || isVolunteerAdmin || isCityAdmin) && (
+                <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    className="radio-field"
+                    name="role"
+                    value="location-admin"
+                    checked={selectedRole === 'location-admin'}
+                    onChange={(e) => {
+                      setSelectedRole(e.target.value as RoleType);
+                      setSelectedLocations([]);
+                    }}
+                  />
+                  <span className="text-base text-brand-k ml-2">Location Administrator</span>
+                </label>
+              )}
+
+              {/* Organisation Administrator */}
+              <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
+                <input
+                  type="radio"
+                  className="radio-field"
+                  name="role"
+                  value="org-admin"
+                  checked={selectedRole === 'org-admin'}
+                  onChange={(e) => {
+                    setSelectedRole(e.target.value as RoleType);
+                    setSelectedLocations([]);
+                  }}
+                />
+                <span className="text-base text-brand-k ml-2">Organisation Administrator</span>
+              </label>
+
+              {/* Volunteer Administrator */}
+              {(isSuperAdmin || isVolunteerAdmin) && (
+                <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    className="radio-field"
+                    name="role"
+                    value="volunteer-admin"
+                    checked={selectedRole === 'volunteer-admin'}
+                    onChange={(e) => {
+                      setSelectedRole(e.target.value as RoleType);
+                      setSelectedLocations([]);
+                    }}
+                  />
+                  <span className="text-base text-brand-k ml-2">Volunteer Administrator</span>
+                </label>
+              )}
+
+              {/* SWEP Administrator */}
+              {(isSuperAdmin || isVolunteerAdmin || isCityAdmin) && (
+                <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    className="radio-field"
+                    name="role"
+                    value="swep-admin"
+                    checked={selectedRole === 'swep-admin'}
+                    onChange={(e) => {
+                      setSelectedRole(e.target.value as RoleType);
+                      setSelectedLocations([]);
+                    }}
+                  />
+                  <span className="text-base text-brand-k ml-2">SWEP Administrator</span>
+                </label>
+              )}
+            </div>
+
+            {/* Location Selection for Location Admin and SWEP Admin */}
+            {(selectedRole === 'location-admin' || selectedRole === 'swep-admin') && (
+              <div className="space-y-3">
+                <label className="field-label">
+                  Select Location{availableLocations.length > 1 ? 's' : ''}
+                </label>
+                
+                {loadingLocations ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-a"></div>
+                  </div>
+                ) : availableLocations.length > 0 ? (
+                  <div className="border border-brand-q rounded-lg max-h-64 overflow-y-auto">
+                    {availableLocations.map((location) => (
+                      <label
+                        key={location.Key}
+                        className="flex items-center p-3 hover:bg-brand-i cursor-pointer border-b border-brand-q last:border-b-0"
+                      >
+                        <input
+                          type="checkbox"
+                          className="checkbox-field"
+                          checked={selectedLocations.includes(location.Key)}
+                          onChange={() => handleLocationToggle(location.Key)}
+                        />
+                        <span className="text-base text-brand-k ml-2">{location.Name}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-small text-brand-f">No locations available</p>
+                )}
+              </div>
+            )}
+
+            {/* Organisation Administrator Message */}
+            {selectedRole === 'org-admin' && (
+              <div className="bg-brand-j bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-brand-j flex-shrink-0 mt-0.5" />
+                <p className="text-small text-brand-k">
+                  Organisation Administrator can be created only from Organisation page.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4 flex items-center justify-end gap-4">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleSave}
+              disabled={!selectedRole || selectedRole === 'org-admin'}
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

@@ -49,8 +49,8 @@ export function parseAuthClaims(authClaims: string[]): UserAuthClaims {
       roles.push('OrgAdmin');
     } else if (claim === 'SwepAdmin') {
       roles.push('SwepAdmin');
-    } else if (claim.includes('AdminFor:') || claim.includes('CityAdminFor:')) {
-      // Specific claims like "CityAdminFor:birmingham" or "AdminFor:org-slug"
+    } else if (claim.includes('AdminFor:') || claim.includes('CityAdminFor:')|| claim.includes('SwepAdminFor:')) {
+      // Specific claims like "CityAdminFor:birmingham" or "AdminFor:org-slug" or "SwepAdminFor:birmingham"
       specificClaims.push(claim);
     }
   }

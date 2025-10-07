@@ -343,19 +343,15 @@
 .card-grid.cols-3 {
   @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
 }
-
 .card-grid.cols-4 {
   @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
 }
 
 /* Navigation System */
 .nav-container {
-  @apply bg-brand-q relative;
+  @apply bg-brand-q;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 3px -1px rgba(0, 0, 0, 0.08);
   z-index: 50;
-  /* @apply bg-brand-q border-b border-brand-f shadow-md relative;
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 3px -1px rgba(0, 0, 0, 0.08);
-  z-index: 50; */
 }
 
 .nav-links {

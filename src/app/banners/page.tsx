@@ -5,6 +5,7 @@ import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Search, Plus } from 'lucide-react';
 import { ICity } from '@/types';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
@@ -25,6 +26,8 @@ export default function BannersListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bannerToDelete, setBannerToDelete] = useState<IBanner | null>(null);
   
   const limit = 5;
 
@@ -103,14 +106,18 @@ export default function BannersListPage() {
   // Duplicate functionality removed
 
   const handleDelete = async (banner: IBanner) => {
-    if (!confirm(`Are you sure you want to delete "${banner.Title}"? This action cannot be undone.`)) {
-      return;
-    }
+    setBannerToDelete(banner);
+    setShowConfirmModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!bannerToDelete) return;
+
+    setShowConfirmModal(false);
     const toastId = loadingToast.delete('banner');
     
     try {
-      const response = await fetch(`/api/banners/${banner._id}`, {
+      const response = await fetch(`/api/banners/${bannerToDelete._id}`, {
         method: 'DELETE'
       });
 
@@ -128,6 +135,8 @@ export default function BannersListPage() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete banner';
       toastUtils.dismiss(toastId);
       errorToast.delete('banner', errorMessage);
+    } finally {
+      setBannerToDelete(null);
     }
   };
 
@@ -308,6 +317,21 @@ export default function BannersListPage() {
             </div>
           )}
         </div>
+
+        {/* Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => {
+            setShowConfirmModal(false);
+            setBannerToDelete(null);
+          }}
+          onConfirm={confirmDelete}
+          title="Delete Banner"
+          message={`Are you sure you want to delete "${bannerToDelete?.Title}"? This action cannot be undone.`}
+          variant="danger"
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+        />
       </div>
     </RoleGuard>
   );

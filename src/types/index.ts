@@ -2,7 +2,6 @@
 export * from './IUser';
 export * from './ICity';
 export * from './IService';
-export * from './ICategory';
 export * from './IServiceProvider';
 export * from './IFaq';
 
