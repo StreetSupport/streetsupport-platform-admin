@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'GET')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - insufficient permissions' },
-        { status: 403 }
-      );
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', HTTP_METHODS.GET)) {
+      return sendForbidden();
     }
 
     const { id } = await context.params;
@@ -27,29 +26,23 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
-    console.error('Error fetching banner:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch banner' },
-      { status: 500 }
-    );
+
+    return sendInternalError(`Failed to fetch banner: ${error}`);
   }
 };
 
 const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'PUT')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - insufficient permissions' },
-        { status: 403 }
-      );
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', HTTP_METHODS.PUT)) {
+      return sendForbidden();
     }
 
     const formData = await req.formData();
     const { id } = await context.params;
     const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
-      method: 'PUT',
+      method: HTTP_METHODS.PUT,
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
       },
@@ -62,28 +55,21 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
-    console.error('Error updating banner:', error);
-    return NextResponse.json(
-      { error: 'Failed to update banner' },
-      { status: 500 }
-    );
+    return sendInternalError(`Failed to update banner: ${error}`);
   }
 };
 
 const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', 'DELETE')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - insufficient permissions' },
-        { status: 403 }
-      );
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', HTTP_METHODS.DELETE)) {
+      return sendForbidden();
     }
 
     const { id } = await context.params;
     const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
-      method: 'DELETE',
+      method: HTTP_METHODS.DELETE,
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
@@ -96,13 +82,10 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error deleting banner:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete banner' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to delete banner');
   }
 };
 

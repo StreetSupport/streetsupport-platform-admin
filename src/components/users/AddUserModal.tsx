@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { validateCreateUser } from '@/schemas/userSchema';
+import { HTTP_METHODS } from '@/constants/httpMethods';
 
 interface UserRole {
   id: string;
@@ -106,7 +107,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       }
 
       const response = await fetch('/api/users', {
-        method: 'POST',
+        method: HTTP_METHODS.POST,
         headers: {
           'Content-Type': 'application/json',
         },

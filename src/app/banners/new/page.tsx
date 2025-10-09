@@ -10,6 +10,8 @@ import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toas
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
 // import type { IAccentGraphic } from '@/types';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
+import { ROLES } from '@/constants/roles';
+import { HTTP_METHODS } from '@/constants/httpMethods';
 
 export default function NewBannerPage() {
   const router = useRouter();
@@ -116,7 +118,7 @@ export default function NewBannerPage() {
       });
 
       const response = await fetch('/api/banners', {
-        method: 'POST',
+        method: HTTP_METHODS.POST,
         body: formData
       });
 
@@ -143,7 +145,7 @@ export default function NewBannerPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
       <div className="min-h-screen bg-brand-q">
         <BannerPageHeader pageType="new" />
 

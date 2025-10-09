@@ -10,6 +10,8 @@ import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IB
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
+import { ROLES } from '@/constants/roles';
+import { HTTP_METHODS } from '@/constants/httpMethods';
 
 export default function BannerViewPage() {
   const router = useRouter();
@@ -67,7 +69,7 @@ export default function BannerViewPage() {
       setDeleting(true);
       
       const response = await fetch(`/api/banners/${id}`, {
-        method: 'DELETE'
+        method: HTTP_METHODS.DELETE
       });
 
       if (!response.ok) {
@@ -96,7 +98,7 @@ export default function BannerViewPage() {
     try {
       const response = await fetch(`/api/banners/${id}/toggle`,
         {
-          method: 'PATCH',
+          method: HTTP_METHODS.PATCH,
           headers: {
             'Content-Type': 'application/json',
           },
@@ -155,7 +157,7 @@ export default function BannerViewPage() {
 
   if (loading) {
     return (
-      <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+      <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
         <div className="min-h-screen bg-brand-q">
           <div className="nav-container">
             <div className="page-container">
@@ -176,7 +178,7 @@ export default function BannerViewPage() {
 
   if (error || !banner) {
     return (
-      <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+      <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
         <div className="min-h-screen bg-brand-q">
           <div className="nav-container">
             <div className="page-container">
@@ -205,7 +207,7 @@ export default function BannerViewPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
       <div className="min-h-screen bg-brand-q">
         <BannerPageHeader 
           pageType='view'

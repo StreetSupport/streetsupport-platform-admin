@@ -11,8 +11,14 @@ import { IUser } from '@/types/IUser';
 import UserCard from '@/components/users/UserCard';
 import AddUserModal from '@/components/users/AddUserModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { ROLES, getRoleOptions } from '@/constants/roles';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useSession } from 'next-auth/react';
+import { UserAuthClaims } from '@/types/auth';
+import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function UsersPage() {
+  const { data: session } = useSession();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +35,14 @@ export default function UsersPage() {
   
   const limit = 9;
 
+  // Get user auth claims
+  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
+  
   // Available roles for filtering
-  const availableRoles = [
-    { value: 'SuperAdmin', label: 'Super Admin' },
-    { value: 'CityAdmin', label: 'City Admin' },
-    { value: 'VolunteerAdmin', label: 'Volunteer Admin' },
-    { value: 'OrgAdmin', label: 'Organisation Admin' },
-    { value: 'SwepAdmin', label: 'SWEP Admin' }
-  ];
+  const availableRoles = getRoleOptions();
+  
+  // Filter locations based on user permissions
+  const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
   useEffect(() => {
     fetchLocations();
@@ -124,7 +130,7 @@ export default function UsersPage() {
     
     try {
       const response = await fetch(`/api/users/${userToDelete._id}`, {
-        method: 'DELETE'
+        method: HTTP_METHODS.DELETE
       });
 
       if (!response.ok) {
@@ -147,7 +153,7 @@ export default function UsersPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin', 'VolunteerAdmin']} requiredPage="/users">
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]} requiredPage="/users">
       <div className="min-h-screen bg-brand-q">
         {/* Header */}
         <div className="nav-container">
@@ -199,7 +205,7 @@ export default function UsersPage() {
                   className="form-input border border-brand-q text-brand-k bg-white min-w-48"
                 >
                   <option value="" className="text-brand-k">All Locations</option>
-                  {locations.map(city => (
+                  {availableLocations.map(city => (
                     <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
                   ))}
                 </select>

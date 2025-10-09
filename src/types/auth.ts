@@ -1,12 +1,10 @@
-// Role definitions for RBAC system
-export type UserRole = 
-  | 'SuperAdmin'
-  | 'CityAdmin' 
-  | 'VolunteerAdmin'
-  | 'OrgAdmin'
-  | 'SwepAdmin';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { ROLES, BaseRole } from '@/constants/roles';
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | '*';
+// Re-export for backward compatibility
+export type UserRole = BaseRole;
+
+export type HttpMethod = keyof typeof HTTP_METHODS | '*';
 
 export interface ApiEndpointPermission {
   path: string;
@@ -23,11 +21,11 @@ export interface RolePermissions {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
-  SuperAdmin: {
+  [ROLES.SUPER_ADMIN]: {
     pages: ['*'],
     apiEndpoints: [{ path: '*', methods: ['*'] }]
   },
-  CityAdmin: {
+  [ROLES.CITY_ADMIN]: {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
     apiEndpoints: [
       { path: '/api/cities', methods: ['*'] },
@@ -40,28 +38,28 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/users', methods: ['*'] }
     ]
   },
-  VolunteerAdmin: {
+  [ROLES.VOLUNTEER_ADMIN]: {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
     apiEndpoints: [
-      { path: '/api/cities', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/service-providers', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/services', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/faqs', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/banners', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/swep-banners', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/resources', methods: ['GET', 'POST', 'PUT', 'PATCH'] },
-      { path: '/api/users', methods: ['GET', 'POST', 'PUT', 'PATCH'] }
+      { path: '/api/cities', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/service-providers', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/services', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/faqs', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/users', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] }
     ]
   },
-  OrgAdmin: {
+  [ROLES.ORG_ADMIN]: {
     pages: ['/organisations'],
     apiEndpoints: [
       { path: '/api/service-providers', methods: ['*'] },
       { path: '/api/services', methods: ['*'] },
-      { path: '/api/users', methods: ['POST'] },
+      { path: '/api/users', methods: [HTTP_METHODS.POST] },
     ]
   },
-  SwepAdmin: {
+  [ROLES.SWEP_ADMIN]: {
     pages: ['/swep-banners'],
     apiEndpoints: [{ path: '/api/swep-banners', methods: ['*'] }]
   }

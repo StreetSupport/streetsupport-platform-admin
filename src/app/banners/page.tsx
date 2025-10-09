@@ -12,8 +12,14 @@ import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import BannerCard from '@/components/banners/BannerCard';
 import Link from 'next/link';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { ROLES } from '@/constants/roles';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useSession } from 'next-auth/react';
+import { UserAuthClaims } from '@/types/auth';
+import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function BannersListPage() {
+  const { data: session } = useSession();
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +36,19 @@ export default function BannersListPage() {
   const [bannerToDelete, setBannerToDelete] = useState<IBanner | null>(null);
   
   const limit = 5;
+  
+  // Get user auth claims
+  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
+  
+  // Filter locations based on user permissions
+  const availableLocations = getAvailableLocations(userAuthClaims, locations);
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
 
   useEffect(() => {
     fetchBanners();
-    fetchLocations();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, templateFilter, statusFilter, locationFilter, limit]);
 
@@ -49,7 +64,7 @@ export default function BannersListPage() {
       if (searchTerm) params.append('search', searchTerm);
       if (templateFilter) params.append('templateType', templateFilter);
       if (statusFilter) params.append('isActive', statusFilter);
-      if (locationFilter) params.append('locationSlug', locationFilter);
+      if (locationFilter) params.append('location', locationFilter);
       
       const response = await fetch(`/api/banners?${params.toString()}`);
       if (!response.ok) {
@@ -118,7 +133,7 @@ export default function BannersListPage() {
     
     try {
       const response = await fetch(`/api/banners/${bannerToDelete._id}`, {
-        method: 'DELETE'
+        method: HTTP_METHODS.DELETE
       });
 
       if (!response.ok) {
@@ -146,7 +161,7 @@ export default function BannersListPage() {
     
     try {
       const response = await fetch(`/api/banners/${banner._id}/toggle`, {
-        method: 'PATCH',
+        method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -176,7 +191,7 @@ export default function BannersListPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
       <div className="min-h-screen bg-brand-q">
         {/* Header */}
         <div className="nav-container">
@@ -216,8 +231,8 @@ export default function BannersListPage() {
                   onChange={(e) => handleLocationFilter(e.target.value)}
                   className="form-input border border-brand-q text-brand-k bg-white min-w-48"
                 >
-                  <option value="general" className="text-brand-k">All Locations</option>
-                  {locations.map(city => (
+                  <option value="" className="text-brand-k">All Locations</option>
+                  {availableLocations.map(city => (
                     <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
                   ))}
                 </select>

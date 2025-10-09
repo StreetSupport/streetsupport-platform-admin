@@ -1,6 +1,12 @@
 import { UserAuthClaims, UserRole, HttpMethod, ApiEndpointPermission } from '@/types/auth';
 import { authenticatedFetch } from './api';
 import { JWT } from 'next-auth/jwt';
+import { 
+  ROLES, 
+  isBaseRole, 
+  isLocationSpecificRole, 
+  isOrgSpecificRole 
+} from '@/constants/roles';
 
 export interface ApiUser {
   _id: string;
@@ -38,18 +44,10 @@ export function parseAuthClaims(authClaims: string[]): UserAuthClaims {
   const specificClaims: string[] = [];
 
   for (const claim of authClaims) {
-    // Check for general role claims
-    if (claim === 'SuperAdmin') {
-      roles.push('SuperAdmin');
-    } else if (claim === 'CityAdmin') {
-      roles.push('CityAdmin');
-    } else if (claim === 'VolunteerAdmin') {
-      roles.push('VolunteerAdmin');
-    } else if (claim === 'OrgAdmin') {
-      roles.push('OrgAdmin');
-    } else if (claim === 'SwepAdmin') {
-      roles.push('SwepAdmin');
-    } else if (claim.includes('AdminFor:') || claim.includes('CityAdminFor:')|| claim.includes('SwepAdminFor:')) {
+    // Check for base role claims
+    if (isBaseRole(claim)) {
+      roles.push(claim);
+    } else if (isLocationSpecificRole(claim) || isOrgSpecificRole(claim)) {
       // Specific claims like "CityAdminFor:birmingham" or "AdminFor:org-slug" or "SwepAdminFor:birmingham"
       specificClaims.push(claim);
     }
@@ -63,7 +61,7 @@ export function parseAuthClaims(authClaims: string[]): UserAuthClaims {
  */
 export function hasPageAccess(userAuthClaims: UserAuthClaims, page: string): boolean {
   // SuperAdmin has access to everything
-  if (userAuthClaims.roles.includes('SuperAdmin')) {
+  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
     return true;
   }
 
@@ -87,7 +85,7 @@ export function hasApiAccess(
   method: HttpMethod
 ): boolean {
   // SuperAdmin has access to everything if configured with a wildcard
-  if (userAuthClaims.roles.includes('SuperAdmin')) {
+  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
     return true;
   }
 

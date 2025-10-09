@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { sendUnauthorized, sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 import { hasApiAccess } from '@/lib/userService';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { UserAuthClaims } from '@/types/auth';
+import { getUserLocationSlugs } from '@/utils/locationUtils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
@@ -11,28 +15,34 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return sendUnauthorized();
+    }
+
+    // Optional RBAC check (mirrors other routes)
+    const canAccess = hasApiAccess(session.user.authClaims, '/api/users', HTTP_METHODS.GET);
+    if (!canAccess) {
+      return sendForbidden();
     }
 
     // Forward query parameters
     const searchParams = req.nextUrl.searchParams;
-    const queryString = searchParams.toString();
-    // Optional RBAC check (mirrors other routes)
-    const canAccess = hasApiAccess(session.user.authClaims, '/api/users', 'GET');
-    if (!canAccess) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - insufficient permissions' },
-        { status: 403 }
-      );
+    
+    // Add location filtering for CityAdmin users when dropdown is empty (showing all their locations)
+    const userAuthClaims = session.user.authClaims as UserAuthClaims;
+    const locationSlugs = getUserLocationSlugs(userAuthClaims);
+    const selectedLocation = searchParams.get('location');
+    
+    // If CityAdmin with specific locations AND no location selected in dropdown
+    // Pass all their locations to show all users they have access to
+    if (locationSlugs && locationSlugs.length > 0 && !selectedLocation) {
+      searchParams.set('locations', locationSlugs.join(','));
     }
-
+    
+    const queryString = searchParams.toString();
     const url = `${API_BASE_URL}/api/users${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(url, {
-      method: 'GET',
+      method: HTTP_METHODS.GET,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -48,13 +58,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 }
 
@@ -64,25 +71,19 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return sendUnauthorized();
     }
 
     const body = await req.json();
     
     // Optional RBAC check
-    const canCreate = hasApiAccess(session.user.authClaims, '/api/users', 'POST');
+    const canCreate = hasApiAccess(session.user.authClaims, '/api/users', HTTP_METHODS.POST);
     if (!canCreate) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - insufficient permissions' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const response = await fetch(`${API_BASE_URL}/api/users`, {
-      method: 'POST',
+      method: HTTP_METHODS.POST,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -99,12 +100,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return proxyResponse(data, 201);
   } catch (error) {
     console.error('Error creating user:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 }

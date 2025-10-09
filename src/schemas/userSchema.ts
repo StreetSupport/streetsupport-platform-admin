@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ROLE_VALIDATION_PATTERN } from '@/constants/roles';
 
 // User creation schema for admin frontend
 export const CreateUserSchema = z.object({
@@ -14,8 +15,7 @@ export const CreateUserSchema = z.object({
     .refine(
       (claims) => {
         // Ensure AuthClaims contains valid role formats
-        const validFormats = /^(SuperAdmin|CityAdmin|CityAdminFor:.+|VolunteerAdmin|SwepAdmin|SwepAdminFor:.+|OrgAdmin|AdminFor:.+)$/;
-        return claims.every(claim => validFormats.test(claim));
+        return claims.every(claim => ROLE_VALIDATION_PATTERN.test(claim));
       },
       { message: 'Invalid role format in AuthClaims' }
     ),

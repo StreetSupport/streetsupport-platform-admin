@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { HTTP_METHODS } from '@/constants/httpMethods';
+import { sendUnauthorized, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -13,14 +15,11 @@ export async function GET(
     const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return sendUnauthorized();
     }
 
     const response = await fetch(`${API_URL}/api/users/${params.id}`, {
-      method: 'GET',
+      method: HTTP_METHODS.GET,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -36,13 +35,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching user:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 }
 
@@ -55,16 +51,13 @@ export async function PUT(
     const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return sendUnauthorized();
     }
 
     const body = await req.json();
     
     const response = await fetch(`${API_URL}/api/users/${params.id}`, {
-      method: 'PUT',
+      method: HTTP_METHODS.PUT,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -81,13 +74,10 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error updating user:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 }
 
@@ -100,14 +90,11 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return sendUnauthorized();
     }
 
     const response = await fetch(`${API_URL}/api/users/${params.id}`, {
-      method: 'DELETE',
+      method: HTTP_METHODS.DELETE,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
@@ -123,12 +110,9 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error deleting user:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 }

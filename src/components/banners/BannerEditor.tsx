@@ -142,7 +142,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     ],
     IsActive: true,
     Priority: 5,
-    LocationSlug: 'general',
+    LocationSlug: '',
     BadgeText: 'Badge text',
     GivingCampaign: {
       UrgencyLevel: UrgencyLevel.MEDIUM,
@@ -1017,8 +1017,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 className="form-input border border-brand-q text-brand-k bg-white"
                 value={formData.LocationSlug}
                 onChange={(e) => updateFormData('LocationSlug', e.target.value)}
+                required
               >
-                <option value="general">All Locations</option>
+                <option value="">Select a location...</option>
                 {cities.map(city => (
                   <option key={city.Key} value={city.Key}>{city.Name}</option>
                 ))}

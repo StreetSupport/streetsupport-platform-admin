@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import RoleGuard from '@/components/auth/RoleGuard';
+import { ROLES } from '@/constants/roles';
 
 export const metadata: Metadata = {
   title: 'Organisations | Street Support Admin',
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function OrganisationsPage() {
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'OrgAdmin', 'CityAdmin', 'VolunteerAdmin']} requiredPage="/organisations">
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.ORG_ADMIN]} requiredPage="/organisations">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Organisations</h1>

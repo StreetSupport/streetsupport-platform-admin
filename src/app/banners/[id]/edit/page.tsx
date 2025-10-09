@@ -12,6 +12,8 @@ import { IBanner, IMediaAsset } from '@/types';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { ROLES } from '@/constants/roles';
+import { HTTP_METHODS } from '@/constants/httpMethods';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -28,7 +30,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     IsActive: banner.IsActive,
     Priority: banner.Priority,
     TrackingContext: banner.TrackingContext,
-    LocationSlug: banner.LocationSlug || 'general',
+    LocationSlug: banner.LocationSlug || '',
     BadgeText: banner.BadgeText || '',
     StartDate: banner.StartDate ? new Date(banner.StartDate) : undefined,
     EndDate: banner.EndDate ? new Date(banner.EndDate) : undefined,
@@ -208,7 +210,7 @@ export default function EditBannerPage() {
     });
 
     const response = await fetch(`/api/banners/${bannerId}`, {
-      method: 'PUT',
+      method: HTTP_METHODS.PUT,
       body: formData
     });
 
@@ -235,7 +237,7 @@ export default function EditBannerPage() {
 
 if (loading) {
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
       <div className="min-h-screen bg-brand-q flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-a mx-auto mb-4"></div>
@@ -248,7 +250,7 @@ if (loading) {
 
 if (!bannerData || !initialFormData) {
   return (
-    <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
       <div className="min-h-screen bg-brand-q">
         <div className="nav-container">
           <div className="page-container">
@@ -277,7 +279,7 @@ if (!bannerData || !initialFormData) {
 }
 
 return (
-  <RoleGuard allowedRoles={['SuperAdmin', 'CityAdmin']}>
+  <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
     <div className="min-h-screen bg-brand-q">
       <BannerPageHeader pageType="edit" />
 

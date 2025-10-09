@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { errorToast } from '@/utils/toast';
 import { UserAuthClaims } from '@/types/auth';
+import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
+import { getAvailableLocations } from '@/utils/locationUtils';
 
 interface UserRole {
   id: string;
@@ -37,9 +39,9 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
   const [loadingLocations, setLoadingLocations] = useState(false);
   
   const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
-  const isSuperAdmin = userAuthClaims.roles.includes('SuperAdmin') || userAuthClaims.specificClaims.includes('SuperAdmin');
-  const isVolunteerAdmin = userAuthClaims.roles.includes('VolunteerAdmin') || userAuthClaims.specificClaims.includes('VolunteerAdmin');
-  const isCityAdmin = userAuthClaims.roles.includes('CityAdmin') || userAuthClaims.specificClaims.includes('CityAdmin');
+  const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN);
+  const isVolunteerAdmin = userAuthClaims.roles.includes(ROLES.VOLUNTEER_ADMIN);
+  const isCityAdmin = userAuthClaims.roles.includes(ROLES.CITY_ADMIN) || userAuthClaims.specificClaims.includes(ROLE_PREFIXES.CITY_ADMIN_FOR);
 
   useEffect(() => {
     if (isOpen) {
@@ -145,23 +147,8 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
     onClose();
   };
 
-  // Filter locations based on current user's permissions
-  const getAvailableLocations = () => {
-    if (isSuperAdmin || isVolunteerAdmin) {
-      return locations;
-    }
-
-    if (isCityAdmin) {
-      const userCities = userAuthClaims.specificClaims
-        .filter((claim: string) => claim.startsWith('CityAdminFor:'))
-        .map((claim: string) => claim.replace('CityAdminFor:', ''));
-      return locations.filter(loc => userCities.includes(loc.Key));
-    }
-    
-    return [];
-  };
-
-  const availableLocations = getAvailableLocations();
+  // Filter locations based on current user's permissions using shared utility
+  const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
   return (
     <>
