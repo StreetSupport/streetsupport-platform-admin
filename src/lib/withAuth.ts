@@ -16,13 +16,15 @@ export type AuthenticatedApiHandler<P extends RouteParams = RouteParams> = (
 ) => Promise<NextResponse>;
 
 export function withAuth<P extends RouteParams = RouteParams>(handler: AuthenticatedApiHandler<P>) {
-  return async (req: NextRequest, context: { params: P }) => {
+  return async (req: NextRequest, context: { params: Promise<P> }) => {
     const session = await getServerSession(authOptions);
 
     if (!session?.accessToken) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    return handler(req, context, { session, accessToken: session.accessToken });
+    // Await the params Promise and pass the resolved value to our handler
+    const resolvedParams = await context.params;
+    return handler(req, { params: resolvedParams }, { session, accessToken: session.accessToken });
   };
 }

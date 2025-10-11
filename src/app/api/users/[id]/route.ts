@@ -1,121 +1,107 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
+import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { sendUnauthorized, sendInternalError, proxyResponse } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// GET /api/users/:id - Get single user
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.accessToken) {
-      return sendUnauthorized();
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/users', HTTP_METHODS.GET)) {
+      return sendForbidden();
     }
 
-    const { id } = await params;
+    const { id } = context.params;
     const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.GET,
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
         { success: false, error: data.error || 'Failed to fetch user' },
         { status: response.status }
       );
     }
 
+    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching user:', error);
     return sendInternalError();
   }
-}
+};
 
-// PUT /api/users/:id - Update user
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.accessToken) {
-      return sendUnauthorized();
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/users', HTTP_METHODS.PUT)) {
+      return sendForbidden();
     }
 
     const body = await req.json();
-    const { id } = await params;
+    const { id } = context.params;
     
     const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.PUT,
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
         { success: false, error: data.error || 'Failed to update user' },
         { status: response.status }
       );
     }
 
+    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error updating user:', error);
     return sendInternalError();
   }
-}
+};
 
-// DELETE /api/users/:id - Delete user
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.accessToken) {
-      return sendUnauthorized();
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/users', HTTP_METHODS.DELETE)) {
+      return sendForbidden();
     }
 
-    const { id } = await params;
+    const { id } = context.params;
     const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.DELETE,
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${auth.accessToken}`,
         'Content-Type': 'application/json',
       },
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
         { success: false, error: data.error || 'Failed to delete user' },
         { status: response.status }
       );
     }
 
+    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error deleting user:', error);
     return sendInternalError();
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const PUT = withAuth(putHandler);
+export const DELETE = withAuth(deleteHandler);
