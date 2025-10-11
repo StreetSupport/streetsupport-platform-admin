@@ -4,7 +4,7 @@ import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
 
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
@@ -13,7 +13,7 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     const { id } = context.params;
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
       method: HTTP_METHODS.GET,
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
@@ -46,7 +46,7 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     const body = await req.json();
     const { id } = context.params;
     
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
       method: HTTP_METHODS.PUT,
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
@@ -78,7 +78,7 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
     }
 
     const { id } = context.params;
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
       method: HTTP_METHODS.DELETE,
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
