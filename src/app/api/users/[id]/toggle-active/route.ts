@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 // PATCH /api/users/:id/toggle-active - Toggle user active status
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,8 @@ export async function PATCH(
       return sendUnauthorized();
     }
 
-    const response = await fetch(`${API_URL}/api/users/${params.id}/toggle-active`, {
+    const { id } = await params;
+    const response = await fetch(`${API_URL}/api/users/${id}/toggle-active`, {
       method: HTTP_METHODS.PATCH,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,

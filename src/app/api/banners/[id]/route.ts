@@ -12,7 +12,8 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       return sendForbidden();
     }
 
-    const { id } = await context.params;
+    const params = await context.params;
+    const { id } = params;
     const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       headers: {
         'Authorization': `Bearer ${auth.accessToken}`,
@@ -40,7 +41,8 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     const formData = await req.formData();
-    const { id } = await context.params;
+    const params = await context.params;
+    const { id } = params;
     const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       method: HTTP_METHODS.PUT,
       headers: {
@@ -67,7 +69,8 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
       return sendForbidden();
     }
 
-    const { id } = await context.params;
+    const params = await context.params;
+    const { id } = params;
     const response = await fetch(`${API_BASE_URL}/api/banners/${id}`, {
       method: HTTP_METHODS.DELETE,
       headers: {

@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 // GET /api/users/:id - Get single user
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,8 @@ export async function GET(
       return sendUnauthorized();
     }
 
-    const response = await fetch(`${API_URL}/api/users/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.GET,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
@@ -45,7 +46,7 @@ export async function GET(
 // PUT /api/users/:id - Update user
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -55,8 +56,9 @@ export async function PUT(
     }
 
     const body = await req.json();
+    const { id } = await params;
     
-    const response = await fetch(`${API_URL}/api/users/${params.id}`, {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.PUT,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
@@ -84,7 +86,7 @@ export async function PUT(
 // DELETE /api/users/:id - Delete user
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -93,7 +95,8 @@ export async function DELETE(
       return sendUnauthorized();
     }
 
-    const response = await fetch(`${API_URL}/api/users/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: HTTP_METHODS.DELETE,
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
