@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   const { id } = await context.params; // Next.js dynamic API params must be awaited
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_BASE_URL = process.env.API_BASE_URL;
   if (!API_BASE_URL) {
     return sendInternalError('API base URL is not configured');
   }

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import '@/styles/pagination.css';
-import RoleGuard from '@/components/auth/RoleGuard';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
@@ -10,6 +10,8 @@ import { Search, Plus } from 'lucide-react';
 import { IUser } from '@/types/IUser';
 import UserCard from '@/components/users/UserCard';
 import AddUserModal from '@/components/users/AddUserModal';
+import ViewUserModal from '@/components/users/ViewUserModal';
+import EditUserModal from '@/components/users/EditUserModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { ROLES, getRoleOptions } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
@@ -18,20 +20,34 @@ import { UserAuthClaims } from '@/types/auth';
 import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function UsersPage() {
+  // Check authorization FIRST before any other logic
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/users',
+    autoRedirect: true
+  });
+
   const { data: session } = useSession();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [emailInput, setEmailInput] = useState(''); // Email input field value
+  const [searchEmail, setSearchEmail] = useState(''); // Actual search term sent to API
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showDeactivateConfirmModal, setShowDeactivateConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<IUser | null>(null);
+  const [userToDeactivate, setUserToDeactivate] = useState<IUser | null>(null);
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
   
   const limit = 9;
 
@@ -44,14 +60,19 @@ export default function UsersPage() {
   // Filter locations based on user permissions
   const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
+  // Only run effects if authorized
   useEffect(() => {
-    fetchLocations();
-  }, []);
+    if (isAuthorized) {
+      fetchLocations();
+    }
+  }, [isAuthorized]);
 
   useEffect(() => {
-    fetchUsers();
+    if (isAuthorized) {
+      fetchUsers();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchTerm, roleFilter, locationFilter, limit]);
+  }, [isAuthorized, currentPage, searchEmail, roleFilter, locationFilter, limit]);
 
   const fetchLocations = async () => {
     try {
@@ -74,7 +95,7 @@ export default function UsersPage() {
         limit: limit.toString(),
       });
       
-      if (searchTerm) params.append('search', searchTerm);
+      if (searchEmail) params.append('search', searchEmail);
       if (roleFilter) params.append('role', roleFilter);
       if (locationFilter) params.append('location', locationFilter);
       
@@ -96,9 +117,15 @@ export default function UsersPage() {
     }
   };
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
+  const handleSearchClick = () => {
+    setSearchEmail(emailInput.trim());
     setCurrentPage(1);
+  };
+  
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchClick();
+    }
   };
 
   const handleRoleFilter = (value: string) => {
@@ -111,21 +138,71 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
 
+  const handleView = (user: IUser) => {
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
   const handleEdit = (user: IUser) => {
-    // TODO: Implement edit functionality
-    console.log('Edit user:', user);
-    // Navigate to edit modal or page
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (user: IUser) => {
     setUserToDelete(user);
-    setShowConfirmModal(true);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleDeactivateClick = (user: IUser) => {
+    setUserToDeactivate(user);
+    setShowDeactivateConfirmModal(true);
+  };
+
+  const handleToggleActive = async (user: IUser) => {
+    setTogglingUserId(user._id);
+    const isCurrentlyActive = user.IsActive ?? true;
+    const action = isCurrentlyActive ? 'deactivate' : 'activate';
+    const toastId = loadingToast.process(action === 'activate' ? 'Activating user' : 'Deactivating user');
+    
+    try {
+      const response = await fetch(`/api/users/${user._id}/toggle-active`, {
+        method: HTTP_METHODS.PATCH
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} user`);
+      }
+
+      toastUtils.dismiss(toastId);
+      if (action === 'activate') {
+        successToast.activate('User');
+      } else {
+        successToast.deactivate('User');
+      }
+      
+      // Refresh the list
+      fetchUsers();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : `Failed to ${action} user`;
+      toastUtils.dismiss(toastId);
+      errorToast.generic(errorMessage);
+    } finally {
+      setTogglingUserId(null);
+    }
+  };
+
+  const confirmDeactivate = () => {
+    if (!userToDeactivate) return;
+    setShowDeactivateConfirmModal(false);
+    handleToggleActive(userToDeactivate);
+    setUserToDeactivate(null);
   };
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
 
-    setShowConfirmModal(false);
+    setShowDeleteConfirmModal(false);
     const toastId = loadingToast.delete('user');
     
     try {
@@ -135,7 +212,7 @@ export default function UsersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete user');
+        throw new Error(errorData.error || 'Failed to delete user');
       }
 
       toastUtils.dismiss(toastId);
@@ -152,9 +229,22 @@ export default function UsersPage() {
     }
   };
 
+  // Show loading while checking authorization
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized (redirect handled by hook)
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]} requiredPage="/users">
-      <div className="min-h-screen bg-brand-q">
+    <div className="min-h-screen bg-brand-q">
         {/* Header */}
         <div className="nav-container">
           <div className="page-container">
@@ -173,15 +263,25 @@ export default function UsersPage() {
           <div className="bg-white rounded-lg border border-brand-q p-6 mb-6 mt-[5px]">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search by email or username..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10"
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
+                    <Input
+                      type="email"
+                      placeholder="Search by email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      onKeyPress={handleSearchKeyPress}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Button
+                    variant="primary"
+                    onClick={handleSearchClick}
+                    className="whitespace-nowrap"
+                  >
+                    Search
+                  </Button>
                 </div>
               </div>
               
@@ -189,7 +289,7 @@ export default function UsersPage() {
                 <select
                   value={roleFilter}
                   onChange={(e) => handleRoleFilter(e.target.value)}
-                  className="form-input border border-brand-q text-brand-k bg-white min-w-48"
+                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="">All Roles</option>
                   {availableRoles.map(role => (
@@ -202,7 +302,7 @@ export default function UsersPage() {
                 <select
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
-                  className="form-input border border-brand-q text-brand-k bg-white min-w-48"
+                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="" className="text-brand-k">All Locations</option>
                   {availableLocations.map(city => (
@@ -242,11 +342,18 @@ export default function UsersPage() {
           {!loading && !error && users.length === 0 && (
             <div className="text-center py-12">
               <h2 className="heading-5 mb-4">No Users Found</h2>
-              <p className="text-base text-brand-f mb-6">
-                {searchTerm || roleFilter || locationFilter
-                  ? 'No users match your current filters. Try adjusting your search criteria.'
-                  : 'Get started by adding your first user.'}
-              </p>
+              <div className="text-base text-brand-f mb-6 space-y-2">
+                {searchEmail ? (
+                  <>
+                    <p>No users match your current search.</p>
+                    <p className="text-sm">Search requires a complete email address (e.g., name@example.com).</p>
+                  </>
+                ) : roleFilter || locationFilter ? (
+                  <p>No users match your current filters. Try adjusting your search criteria.</p>
+                ) : (
+                  <p>Get started by adding your first user.</p>
+                )}
+              </div>
               <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add User
@@ -261,8 +368,12 @@ export default function UsersPage() {
                 <UserCard
                   key={user._id}
                   user={user}
+                  onView={handleView}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onToggleActive={handleToggleActive}
+                  onDeactivateClick={handleDeactivateClick}
+                  isToggling={togglingUserId === user._id}
                 />
               ))}
             </div>
@@ -292,11 +403,34 @@ export default function UsersPage() {
           }}
         />
 
-        {/* Confirmation Modal */}
-        <ConfirmModal
-          isOpen={showConfirmModal}
+        {/* View User Modal */}
+        <ViewUserModal
+          isOpen={isViewModalOpen}
           onClose={() => {
-            setShowConfirmModal(false);
+            setIsViewModalOpen(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+        />
+
+        {/* Edit User Modal */}
+        <EditUserModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={() => {
+            fetchUsers();
+          }}
+          user={selectedUser}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeleteConfirmModal}
+          onClose={() => {
+            setShowDeleteConfirmModal(false);
             setUserToDelete(null);
           }}
           onConfirm={confirmDelete}
@@ -306,7 +440,21 @@ export default function UsersPage() {
           confirmLabel="Delete"
           cancelLabel="Cancel"
         />
-      </div>
-    </RoleGuard>
+
+        {/* Deactivate Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeactivateConfirmModal}
+          onClose={() => {
+            setShowDeactivateConfirmModal(false);
+            setUserToDeactivate(null);
+          }}
+          onConfirm={confirmDeactivate}
+          title="Deactivate User"
+          message={`Are you sure you want to deactivate user "${typeof userToDeactivate?.Email === 'string' ? userToDeactivate.Email : ''}"? The user will not be able to access the system until reactivated.`}
+          variant="warning"
+          confirmLabel="Deactivate"
+          cancelLabel="Cancel"
+        />
+    </div>
   );
 }

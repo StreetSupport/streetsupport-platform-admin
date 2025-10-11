@@ -6,7 +6,7 @@ import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResp
 import { UserAuthClaims } from '@/types/auth';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
 
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
@@ -72,7 +72,7 @@ const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, a
     const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Error creating banner:', error);
+    console.error('Error creating banner:', error);  
     return sendInternalError('Failed to create banner');
   }
 };

@@ -7,14 +7,9 @@ import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { validateCreateUser } from '@/schemas/userSchema';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-
-interface UserRole {
-  id: string;
-  type: 'SuperAdmin' | 'CityAdminFor' | 'VolunteerAdmin' | 'SwepAdminFor';
-  label: string;
-  claim: string;
-  locationIds?: string[];
-}
+import { parseAuthClaimsForDisplay, RoleDisplay } from '@/lib/userService';
+import { ROLES } from '@/constants/roles';
+import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -24,75 +19,100 @@ interface AddUserModalProps {
 
 export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) {
   const [email, setEmail] = useState('');
-  const [roles, setRoles] = useState<UserRole[]>([]);
+  const [authClaims, setAuthClaims] = useState<string[]>([]);
+  const [roleDisplays, setRoleDisplays] = useState<RoleDisplay[]>([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [emailError, setEmailError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [generalError, setGeneralError] = useState<string>('');
 
   if (!isOpen) return null;
 
-  const validateEmail = (email: string): boolean => {
+  const validateForm = (): boolean => {
+    const errors: ValidationError[] = [];
+    
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
-      setEmailError('Email is required');
-      return false;
+      errors.push({ Path: 'Email', Message: 'Email is required' });
+    } else if (!emailRegex.test(email)) {
+      errors.push({ Path: 'Email', Message: 'Please enter a valid email address' });
     }
-    if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address');
-      return false;
+    
+    // Roles validation
+    if (authClaims.length === 0) {
+      errors.push({ Path: 'Roles', Message: 'Please add at least one role' });
     }
-    setEmailError('');
-    return true;
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
-  const handleAddRole = (role: UserRole) => {
-    // Check if role already exists
-    const isDuplicate = roles.some(r => r.claim === role.claim);
-    if (isDuplicate) {
-      errorToast.generic('This role has already been added');
-      return;
-    }
-    setRoles([...roles, role]);
+  const handleAddRole = (newClaims: string[]) => {
+    // Merge new claims with existing, avoiding duplicates
+    const mergedClaims = [...new Set([...authClaims, ...newClaims])];
+    setAuthClaims(mergedClaims);
+    
+    // Update role displays
+    const displays = parseAuthClaimsForDisplay(mergedClaims);
+    // Filter out base roles (CityAdmin, SwepAdmin, OrgAdmin) - only show specific location/org roles
+    const filteredDisplays = displays.filter(role => 
+      role.type !== 'base' || 
+      (role.id !== ROLES.CITY_ADMIN && role.id !== ROLES.SWEP_ADMIN && role.id !== ROLES.ORG_ADMIN)
+    );
+    setRoleDisplays(filteredDisplays);
+    
     setIsRoleModalOpen(false);
   };
 
   const handleRemoveRole = (roleId: string) => {
-    setRoles(roles.filter(r => r.id !== roleId));
+    const roleToRemove = roleDisplays.find(r => r.id === roleId);
+    if (!roleToRemove) return;
+
+    let updatedClaims = authClaims.filter(c => c !== roleId);
+
+    // Auto-remove parent base roles when last specific role is removed
+    if (roleToRemove.type === 'location') {
+      const remainingLocationRoles = updatedClaims.filter(
+        c => c.startsWith(`${roleToRemove.baseRole === ROLES.CITY_ADMIN ? 'CityAdminFor:' : 'SwepAdminFor:'}`)
+      );
+      
+      if (remainingLocationRoles.length === 0 && roleToRemove.baseRole) {
+        updatedClaims = updatedClaims.filter(c => c !== roleToRemove.baseRole);
+      }
+    }
+
+    if (roleToRemove.type === 'org') {
+      const remainingOrgRoles = updatedClaims.filter(c => c.startsWith('AdminFor:'));
+      
+      if (remainingOrgRoles.length === 0) {
+        updatedClaims = updatedClaims.filter(c => c !== ROLES.ORG_ADMIN);
+      }
+    }
+
+    setAuthClaims(updatedClaims);
+    const displays = parseAuthClaimsForDisplay(updatedClaims);
+    // Filter out base roles (CityAdmin, SwepAdmin, OrgAdmin) - only show specific location/org roles
+    const filteredDisplays = displays.filter(role => 
+      role.type !== 'base' || 
+      (role.id !== ROLES.CITY_ADMIN && role.id !== ROLES.SWEP_ADMIN && role.id !== ROLES.ORG_ADMIN)
+    );
+    setRoleDisplays(filteredDisplays);
   };
 
   const handleCreate = async () => {
-    if (!validateEmail(email)) {
-      return;
-    }
-
-    if (roles.length === 0) {
-      errorToast.generic('Please add at least one role');
+    // Clear previous errors
+    setValidationErrors([]);
+    setGeneralError('');
+    
+    // Validate form
+    if (!validateForm()) {
+      errorToast.validation();
       return;
     }
 
     const toastId = loadingToast.create('user');
 
     try {
-      // Build AuthClaims array from roles
-      const authClaims: string[] = [];
-      
-      roles.forEach(role => {
-        if (role.type === 'SuperAdmin') {
-          authClaims.push('SuperAdmin');
-        } else if (role.type === 'VolunteerAdmin') {
-          authClaims.push('VolunteerAdmin');
-        } else if (role.type === 'CityAdminFor' && role.locationIds) {
-          authClaims.push('CityAdmin');
-          role.locationIds.forEach(locId => {
-            authClaims.push(`CityAdminFor:${locId}`);
-          });
-        } else if (role.type === 'SwepAdminFor' && role.locationIds) {
-          authClaims.push('SwepAdmin');
-          role.locationIds.forEach(locId => {
-            authClaims.push(`SwepAdminFor:${locId}`);
-          });
-        }
-      });
-
       const userData = {
         Email: email,
         UserName: email.split('@')[0], // Use email prefix as username
@@ -102,8 +122,14 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       // Validate user data before sending
       const validation = validateCreateUser(userData);
       if (!validation.success) {
-        const firstError = validation.errors?.issues[0];
-        throw new Error(firstError?.message || 'Validation failed');
+        const errors = validation.errors.map(err => ({
+          Path: err.path || 'Unknown',
+          Message: err.message
+        }));
+        setValidationErrors(errors);
+        toastUtils.dismiss(toastId);
+        errorToast.validation();
+        return;
       }
 
       const response = await fetch('/api/users', {
@@ -124,22 +150,27 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
 
       // Reset form
       setEmail('');
-      setRoles([]);
-      setEmailError('');
+      setAuthClaims([]);
+      setRoleDisplays([]);
+      setValidationErrors([]);
+      setGeneralError('');
       
       onSuccess();
       onClose();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user';
       toastUtils.dismiss(toastId);
+      setGeneralError(errorMessage);
       errorToast.create('user', errorMessage);
     }
   };
 
   const handleClose = () => {
     setEmail('');
-    setRoles([]);
-    setEmailError('');
+    setAuthClaims([]);
+    setRoleDisplays([]);
+    setValidationErrors([]);
+    setGeneralError('');
     onClose();
   };
 
@@ -179,20 +210,10 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setEmailError('');
+                  setValidationErrors([]);
                 }}
-                onBlur={() => validateEmail(email)}
                 placeholder="user@example.com"
-                className={emailError ? 'border-brand-g' : ''}
               />
-              {emailError && (
-                <div className="field-error text-brand-g text-sm mt-2 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {emailError}
-                </div>
-              )}
             </div>
 
             {/* Roles Section */}
@@ -210,9 +231,9 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               </div>
 
               {/* Display Added Roles */}
-              {roles.length > 0 ? (
+              {roleDisplays.length > 0 ? (
                 <div className="border border-brand-q rounded-lg p-4 space-y-3">
-                  {roles.map((role) => (
+                  {roleDisplays.map((role) => (
                     <div
                       key={role.id}
                       className="flex items-center justify-between p-3 bg-brand-q rounded-md"
@@ -233,7 +254,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               ) : (
                 <div className="border border-dashed border-brand-f rounded-lg p-8 text-center">
                   <p className="text-base text-brand-f">
-                    No roles added yet. Click "Add Role" to get started.
+                    No roles added yet. Click &quot;Add Role&quot; to get started.
                   </p>
                 </div>
               )}
@@ -241,13 +262,22 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
           </div>
 
           {/* Footer */}
-          <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4 flex items-center justify-end gap-4">
-            <Button variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleCreate}>
-              Create
-            </Button>
+          <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4">
+            <div className="flex items-center justify-end gap-4">
+              <Button variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleCreate}>
+                Create
+              </Button>
+            </div>
+            
+            {/* Error Display */}
+            <ErrorDisplay
+              ErrorMessage={generalError || undefined}
+              ValidationErrors={validationErrors}
+              ClassName="mt-4"
+            />
           </div>
         </div>
       </div>
@@ -256,8 +286,8 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       <AddRoleModal
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
-        onSave={handleAddRole}
-        existingRoles={roles}
+        onAdd={handleAddRole}
+        currentRoles={authClaims}
       />
     </>
   );

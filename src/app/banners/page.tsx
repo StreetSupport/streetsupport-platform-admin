@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import '@/styles/pagination.css';
-import RoleGuard from '@/components/auth/RoleGuard';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
@@ -19,6 +19,13 @@ import { UserAuthClaims } from '@/types/auth';
 import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function BannersListPage() {
+  // Check authorization FIRST
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/banners',
+    autoRedirect: true
+  });
+
   const { data: session } = useSession();
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,14 +50,19 @@ export default function BannersListPage() {
   // Filter locations based on user permissions
   const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
+  // Only run effects if authorized
   useEffect(() => {
-    fetchLocations();
-  }, []);
+    if (isAuthorized) {
+      fetchLocations();
+    }
+  }, [isAuthorized]);
 
   useEffect(() => {
-    fetchBanners();
+    if (isAuthorized) {
+      fetchBanners();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchTerm, templateFilter, statusFilter, locationFilter, limit]);
+  }, [isAuthorized, currentPage, searchTerm, templateFilter, statusFilter, locationFilter, limit]);
 
   const fetchBanners = async () => {
     try {
@@ -138,7 +150,7 @@ export default function BannersListPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete banner');
+        throw new Error(errorData.error || 'Failed to delete banner');
       }
 
       toastUtils.dismiss(toastId);
@@ -169,7 +181,7 @@ export default function BannersListPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update banner status');
+        throw new Error(errorData.error || 'Failed to update banner status');
       }
 
       const result = await response.json();
@@ -190,9 +202,22 @@ export default function BannersListPage() {
     }
   };
 
+  // Show loading while checking authorization
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-      <div className="min-h-screen bg-brand-q">
+    <div className="min-h-screen bg-brand-q">
         {/* Header */}
         <div className="nav-container">
           <div className="page-container">
@@ -217,7 +242,7 @@ export default function BannersListPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
                   <Input
                     type="text"
-                    placeholder="Search banners by title, subtitle and description."
+                    placeholder="Search"
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -229,7 +254,7 @@ export default function BannersListPage() {
                 <select
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
-                  className="form-input border border-brand-q text-brand-k bg-white min-w-48"
+                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="" className="text-brand-k">All Locations</option>
                   {availableLocations.map(city => (
@@ -240,7 +265,7 @@ export default function BannersListPage() {
                 <select
                   value={templateFilter}
                   onChange={(e) => handleTemplateFilter(e.target.value)}
-                  className="form-input border border-brand-q text-brand-k bg-white min-w-48"
+                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="">All Templates</option>
                   <option value={BannerTemplateType.GIVING_CAMPAIGN}>Giving Campaign</option>
@@ -251,7 +276,7 @@ export default function BannersListPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => handleStatusFilter(e.target.value)}
-                  className="form-input border border-brand-q text-brand-k bg-white min-w-32"
+                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-32"
                 >
                   <option value="">All Status</option>
                   <option value="true">Active</option>
@@ -347,7 +372,6 @@ export default function BannersListPage() {
           confirmLabel="Delete"
           cancelLabel="Cancel"
         />
-      </div>
-    </RoleGuard>
+    </div>
   );
 }

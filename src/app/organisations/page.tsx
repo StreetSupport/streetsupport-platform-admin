@@ -1,16 +1,32 @@
-import { Metadata } from 'next';
-import RoleGuard from '@/components/auth/RoleGuard';
+'use client';
+
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 
-export const metadata: Metadata = {
-  title: 'Organisations | Street Support Admin',
-  description: 'Manage service providers and organisations in the Street Support platform',
-};
-
 export default function OrganisationsPage() {
+  // Check authorization FIRST
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.ORG_ADMIN],
+    requiredPage: '/organisations',
+    autoRedirect: true
+  });
+
+  // Show loading while checking authorization
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.ORG_ADMIN]} requiredPage="/organisations">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Organisations</h1>
         <p className="mt-2 text-gray-600">Manage service providers and organisations</p>
@@ -38,6 +54,5 @@ export default function OrganisationsPage() {
         </div>
       </div>
     </div>
-    </RoleGuard>
   );
 }

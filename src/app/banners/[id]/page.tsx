@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
-import RoleGuard from '@/components/auth/RoleGuard';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
@@ -14,6 +14,13 @@ import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 
 export default function BannerViewPage() {
+  // Check authorization FIRST
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/banners',
+    autoRedirect: true
+  });
+
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -26,7 +33,7 @@ export default function BannerViewPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const fetchBanner = useCallback(async () => {
-    if (!id) return;
+    if (!id || !isAuthorized) return;
     try {
       setLoading(true);
       setError(null);
@@ -50,11 +57,13 @@ export default function BannerViewPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, isAuthorized]);
 
   useEffect(() => {
-    fetchBanner();
-  }, [fetchBanner]);
+    if (isAuthorized) {
+      fetchBanner();
+    }
+  }, [isAuthorized, fetchBanner]);
 
   const handleDelete = async () => {
     if (!banner) return;
@@ -74,7 +83,7 @@ export default function BannerViewPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete banner');
+        throw new Error(errorData.error || 'Failed to delete banner');
       }
 
       toastUtils.dismiss(toastId);
@@ -106,7 +115,7 @@ export default function BannerViewPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update banner status');
+        throw new Error(errorData.error || 'Failed to update banner status');
       }
 
       const result = await response.json();
@@ -155,10 +164,23 @@ export default function BannerViewPage() {
     });
   };
 
+  // Show loading while checking authorization
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized
+  if (!isAuthorized) {
+    return null;
+  }
+
   if (loading) {
     return (
-      <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-        <div className="min-h-screen bg-brand-q">
+      <div className="min-h-screen bg-brand-q">
           <div className="nav-container">
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
@@ -171,15 +193,13 @@ export default function BannerViewPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
             </div>
           </div>
-        </div>
-      </RoleGuard>
+      </div>
     );
   }
 
   if (error || !banner) {
     return (
-      <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-        <div className="min-h-screen bg-brand-q">
+      <div className="min-h-screen bg-brand-q">
           <div className="nav-container">
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
@@ -201,14 +221,12 @@ export default function BannerViewPage() {
               </Link>
             </div>
           </div>
-        </div>
-      </RoleGuard>
+      </div>
     );
   }
 
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-      <div className="min-h-screen bg-brand-q">
+    <div className="min-h-screen bg-brand-q">
         <BannerPageHeader 
           pageType='view'
           banner={banner}
@@ -469,8 +487,7 @@ export default function BannerViewPage() {
             confirmLabel="Delete"
             cancelLabel="Cancel"
           />
-        </div>
       </div>
-    </RoleGuard>
+    </div>
   );
 }

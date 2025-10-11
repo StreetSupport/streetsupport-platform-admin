@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ROLE_VALIDATION_PATTERN } from '@/constants/roles';
+import { ValidationResult, createValidationResult } from './validationHelpers';
 
 // User creation schema for admin frontend
 export const CreateUserSchema = z.object({
@@ -19,17 +20,53 @@ export const CreateUserSchema = z.object({
       },
       { message: 'Invalid role format in AuthClaims' }
     ),
+  AssociatedProviderLocationIds: z
+    .array(z.string())
+    .optional(),
+  IsActive: z
+    .boolean()
+    .optional(),
+});
+
+// User update schema (all fields optional)
+export const UpdateUserSchema = z.object({
+  Email: z
+    .string()
+    .email('Please enter a valid email address')
+    .optional(),
+  UserName: z
+    .string()
+    .optional(),
+  AuthClaims: z
+    .array(z.string())
+    .min(1, 'At least one role is required')
+    .refine(
+      (claims) => {
+        return claims.every(claim => ROLE_VALIDATION_PATTERN.test(claim));
+      },
+      { message: 'Invalid role format in AuthClaims' }
+    )
+    .optional(),
+  AssociatedProviderLocationIds: z
+    .array(z.string())
+    .optional(),
+  IsActive: z
+    .boolean()
+    .optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'At least one field must be provided for update',
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
 
-// Validation function
-export function validateCreateUser(data: unknown): { success: boolean; data?: CreateUserInput; errors?: z.ZodError } {
+// Validation functions
+export function validateCreateUser(data: unknown): ValidationResult<CreateUserInput> {
   const result = CreateUserSchema.safeParse(data);
-  
-  if (result.success) {
-    return { success: true, data: result.data };
-  }
-  
-  return { success: false, errors: result.error };
+  return createValidationResult(result);
+}
+
+export function validateUpdateUser(data: unknown): ValidationResult<UpdateUserInput> {
+  const result = UpdateUserSchema.safeParse(data);
+  return createValidationResult(result);
 }

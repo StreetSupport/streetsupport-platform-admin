@@ -7,13 +7,12 @@ import { HTTP_METHODS } from '@/constants/httpMethods';
 import { UserAuthClaims } from '@/types/auth';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
 
 // GET /api/users - Get all users with filtering
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.accessToken) {
       return sendUnauthorized();
     }

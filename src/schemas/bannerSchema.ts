@@ -4,6 +4,7 @@ import {
   createValidationResult,
   type ValidationResult
 } from './bannerSchemaCore';
+import { getFieldErrors } from './validationHelpers';
 
 // Type exports
 export type BannerFormData = z.infer<typeof BannerSchemaCore>;
@@ -14,12 +15,5 @@ export function validateBannerForm(data: unknown): ValidationResult<BannerFormDa
   return createValidationResult(result);
 }
 
-// Helper function to get field-specific errors (moved from bannerSchemaCore)
-export function getFieldErrors(
-  errors: Array<{ path: string; message: string; code: string }>,
-  fieldPath: string
-) {
-  return errors
-    .filter(error => error.path === fieldPath || error.path.startsWith(`${fieldPath}.`))
-    .map(error => error.message);
-}
+// Re-export getFieldErrors for convenience
+export { getFieldErrors };

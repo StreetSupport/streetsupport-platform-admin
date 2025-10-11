@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { getHomePageForUser } from "@/lib/roleHomePages";
 
 function toTitleCase(slug: string) {
   return slug
@@ -15,6 +17,8 @@ export type Crumb = { href?: string; label: string; current?: boolean };
 
 export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
     [pathname]
@@ -22,9 +26,23 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
 
   const [bannerTitle, setBannerTitle] = useState<string | null>(null);
 
+  // Determine home page URL based on user roles
+  const homePageUrl = useMemo(() => {
+    if (!session?.user?.authClaims) {
+      return '/organisations'; // Default fallback
+    }
+    
+    const allAuthClaims = [
+      ...session.user.authClaims.roles,
+      ...session.user.authClaims.specificClaims
+    ];
+    
+    return getHomePageForUser(allAuthClaims);
+  }, [session]);
+
   // Auto-generate default items from path
   const baseItems: Crumb[] = useMemo(() => {
-    const items: Crumb[] = [{ href: "/", label: "Home", current: segments.length === 0 }];
+    const items: Crumb[] = [{ href: homePageUrl, label: "Home", current: segments.length === 0 }];
     let acc = "";
     segments.forEach((seg, idx) => {
       acc += `/${seg}`;
@@ -35,7 +53,7 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
       });
     });
     return items;
-  }, [segments]);
+  }, [segments, homePageUrl]);
 
   // Enrich breadcrumbs for banner routes: /banners/[id] and /banners/[id]/edit
   useEffect(() => {
@@ -46,6 +64,7 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
       return;
     }
 
+    // TODO: update this logic to avoid this request
     let aborted = false;
     // Fetch banner title and support both response shapes
     (async () => {
@@ -84,13 +103,13 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
     const isEdit = segments[2] === "edit";
 
     const items: Crumb[] = [
-      { href: "/", label: "Home" },
+      { href: homePageUrl, label: "Home" },
       { href: "/banners", label: "Banners" },
       { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
     ];
     if (isEdit) items.push({ label: "Edit", current: true });
     return items;
-  }, [itemsProp, baseItems, bannerTitle, segments]);
+  }, [itemsProp, baseItems, bannerTitle, segments, homePageUrl]);
 
   return (
     <div className="bg-brand-n py-4">

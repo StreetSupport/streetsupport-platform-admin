@@ -9,8 +9,7 @@ export interface IUser {
     type: string;
     data: Buffer;
   } | string; // Allow string for backward compatibility
-  // We don't use this property
-  AssociatedAreaId: string;
   Auth0Id: string;
   AssociatedProviderLocationIds: string[];
+  IsActive: boolean;
 }

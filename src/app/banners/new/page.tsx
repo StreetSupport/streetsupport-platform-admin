@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
-import RoleGuard from '@/components/auth/RoleGuard';
+import { withAuthorization } from '@/components/auth/withAuthorization';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
@@ -13,7 +13,7 @@ import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 
-export default function NewBannerPage() {
+function NewBannerPage() {
   const router = useRouter();
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
@@ -126,8 +126,8 @@ export default function NewBannerPage() {
         const errorData = await response.json();
         if (errorData.errors) {
           setValidationErrors(errorData.errors);
-        }
-        throw new Error(errorData.message || 'Failed to create banner');
+        }      
+        throw new Error(errorData.error || 'Failed to create banner');
       }
 
       const result = await response.json();
@@ -145,8 +145,7 @@ export default function NewBannerPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-      <div className="min-h-screen bg-brand-q">
+    <div className="min-h-screen bg-brand-q">
         <BannerPageHeader pageType="new" />
 
         <div className="page-container section-spacing padding-top-zero">
@@ -167,7 +166,11 @@ export default function NewBannerPage() {
             />
           </div>
         </div>
-      </div>
-    </RoleGuard>
+    </div>
   );
 }
+
+export default withAuthorization(NewBannerPage, {
+  allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+  requiredPage: '/banners'
+});

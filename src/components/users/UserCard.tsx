@@ -3,21 +3,29 @@
 import React from 'react';
 import { IUser } from '@/types/IUser';
 import { Button } from '@/components/ui/Button';
-import { Edit, Trash2, Calendar, MapPin, Shield } from 'lucide-react';
+import { Edit, Trash2, Calendar, MapPin, Shield, Eye, EyeOff } from 'lucide-react';
 import { parseAuthClaims } from '@/lib/userService';
 
 interface UserCardProps {
   user: IUser;
   isLoading?: boolean;
+  onView?: (user: IUser) => void;
   onEdit?: (user: IUser) => void;
   onDelete?: (user: IUser) => void;
+  onToggleActive?: (user: IUser) => void;
+  onDeactivateClick?: (user: IUser) => void;
+  isToggling?: boolean;
 }
 
 const UserCard = React.memo(function UserCard({ 
   user, 
   isLoading = false,
+  onView,
   onEdit,
-  onDelete
+  onDelete,
+  onToggleActive,
+  onDeactivateClick,
+  isToggling = false
 }: UserCardProps) {
 
   const formatDate = (date: Date | string): string => {
@@ -27,6 +35,14 @@ const UserCard = React.memo(function UserCard({
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const handleView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onView) {
+      onView(user);
+    }
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -42,6 +58,21 @@ const UserCard = React.memo(function UserCard({
     e.stopPropagation();
     if (onDelete) {
       onDelete(user);
+    }
+  };
+
+  const handleToggleActive = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isCurrentlyActive = user.IsActive ?? true;
+    
+    // Show confirmation modal for deactivation only
+    if (isCurrentlyActive) {
+      onDeactivateClick?.(user);
+    } else {
+      // Activate without confirmation
+      onToggleActive?.(user);
     }
   };
 
@@ -64,12 +95,39 @@ const UserCard = React.memo(function UserCard({
           <Button
             variant="primary"
             size="sm"
-            onClick={handleEdit}
+            onClick={handleView}
             className="flex-1"
             disabled={isLoading}
           >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
+            <Eye className="w-4 h-4 mr-2" />
+            View
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleToggleActive}
+            disabled={isToggling}
+            title={(user.IsActive ?? true) ? 'Deactivate user' : 'Activate user'}
+            className={(user.IsActive ?? true) ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}
+          >
+            {isToggling ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+            ) : (user.IsActive ?? true) ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </Button>
+          
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleEdit}
+            title="Edit user"
+            disabled={isLoading}
+          >
+            <Edit className="w-4 h-4" />
           </Button>
           
           <Button
@@ -85,9 +143,13 @@ const UserCard = React.memo(function UserCard({
         </div>
 
         {/* Header */}
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h3 className="heading-5 mb-1">{email}</h3>
+        <div className="mb-3">
+          <h3 className="heading-5 mb-2 break-words">{email}</h3>
+          {/* Status Badge on separate line */}
+          <div>
+            <span className={`service-tag ${(user.IsActive ?? true) ? 'verified' : 'inactive'}`}>
+              {(user.IsActive ?? true) ? 'Active' : 'Inactive'}
+            </span>
           </div>
         </div>
 

@@ -14,6 +14,7 @@ import { Plus, Trash } from 'lucide-react';
 import { BannerTemplateType, UrgencyLevel, CharterType, ResourceType, IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant } from '@/types';
 import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/banners/IResourceFile';
 import { errorToast } from '@/utils/toast';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 // Helper function to format file size
 function formatFileSize(bytes: number): string {
@@ -422,6 +423,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     if (validateForm()) {
       const cleanedData = cleanTemplateData(formData);
       onSave(cleanedData);
+    } else {
+      errorToast.validation();
     }
   };
 
@@ -1014,7 +1017,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Location">
               <select
                 id="locationSlug"
-                className="form-input border border-brand-q text-brand-k bg-white"
+                className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
                 value={formData.LocationSlug}
                 onChange={(e) => updateFormData('LocationSlug', e.target.value)}
                 required
@@ -1083,36 +1086,15 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* Error Messages under Save Button */}
-        {(errorMessage || Object.keys(errors).length > 0 || validationErrors.length > 0) && (
-          <div className="mt-4 card card-compact border-brand-g bg-red-50">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-small font-medium text-brand-g">Error</h3>
-                {errorMessage && (
-                  <div className="mt-2 text-small text-brand-g">{errorMessage}</div>
-                )}
-                {Object.keys(errors).length > 0 && (
-                  <ul className="mt-2 text-small text-brand-g list-disc list-inside">
-                    {Object.entries(errors).map(([field, message]) => (
-                      <li key={field}>
-                        <strong>{field}:</strong> {message}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {validationErrors.length > 0 && (
-                  <ul className="mt-2 text-small text-brand-g list-disc list-inside">
-                    {validationErrors.map((err, index) => (
-                      <li key={index}>
-                        <strong>{err.path}:</strong> {err.message}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <ErrorDisplay
+          ErrorMessage={errorMessage || undefined}
+          FieldErrors={errors}
+          ValidationErrors={validationErrors?.map(err => ({
+            Path: err.path,
+            Message: err.message
+          }))}
+          ClassName="mt-4"
+        />
       </form>
 
       {/* Confirmation Modal */}

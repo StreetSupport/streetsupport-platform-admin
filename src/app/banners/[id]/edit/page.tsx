@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
-import RoleGuard from '@/components/auth/RoleGuard';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
@@ -62,6 +62,13 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
 }
 
 export default function EditBannerPage() {
+  // Check authorization FIRST
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/banners',
+    autoRedirect: true
+  });
+
   const router = useRouter();
   const params = useParams();
   const bannerId = params.id as string;
@@ -73,8 +80,10 @@ export default function EditBannerPage() {
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
 
-  // Fetch banner data on component mount
+  // Fetch banner data only if authorized
   useEffect(() => {
+    if (!isAuthorized) return;
+
     const fetchBanner = async () => {
       try {
         setLoading(true);
@@ -108,7 +117,7 @@ export default function EditBannerPage() {
     if (bannerId) {
       fetchBanner();
     }
-  }, [bannerId, router]);
+  }, [isAuthorized, bannerId, router]);
 
   const handleSave = async (data: IBannerFormData) => {
   const toastId = loadingToast.update('banner');
@@ -219,7 +228,7 @@ export default function EditBannerPage() {
       if (errorData.errors) {
         setValidationErrors(errorData.errors);
       }
-      throw new Error(errorData.message || 'Failed to update banner');
+      throw new Error(errorData.error || 'Failed to update banner');
     }
 
     await response.json();
@@ -235,23 +244,34 @@ export default function EditBannerPage() {
   }
 };
 
+// Show loading while checking authorization
+if (isChecking) {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+    </div>
+  );
+}
+
+// Don't render anything if not authorized
+if (!isAuthorized) {
+  return null;
+}
+
 if (loading) {
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-      <div className="min-h-screen bg-brand-q flex items-center justify-center">
+    <div className="min-h-screen bg-brand-q flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-a mx-auto mb-4"></div>
           <p className="text-brand-k">Loading banner...</p>
         </div>
-      </div>
-    </RoleGuard>
+    </div>
   );
 }
 
 if (!bannerData || !initialFormData) {
   return (
-    <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-      <div className="min-h-screen bg-brand-q">
+    <div className="min-h-screen bg-brand-q">
         <div className="nav-container">
           <div className="page-container">
             <div className="flex items-center justify-between h-16">
@@ -273,14 +293,12 @@ if (!bannerData || !initialFormData) {
             </Link>
           </div>
         </div>
-      </div>
-    </RoleGuard>
+    </div>
   );
 }
 
 return (
-  <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN]}>
-    <div className="min-h-screen bg-brand-q">
+  <div className="min-h-screen bg-brand-q">
       <BannerPageHeader pageType="edit" />
 
       <div className="page-container section-spacing padding-top-zero">
@@ -301,7 +319,6 @@ return (
           />
         </div>
       </div>
-    </div>
-  </RoleGuard>
-  );
+  </div>
+);
 }

@@ -4,7 +4,7 @@ import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.API_BASE_URL;
 
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {

@@ -8,14 +8,6 @@ import { UserAuthClaims } from '@/types/auth';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
 import { getAvailableLocations } from '@/utils/locationUtils';
 
-interface UserRole {
-  id: string;
-  type: 'SuperAdmin' | 'CityAdminFor' | 'VolunteerAdmin' | 'SwepAdminFor';
-  label: string;
-  claim: string;
-  locationIds?: string[];
-}
-
 interface Location {
   _id: string;
   Key: string;
@@ -25,13 +17,13 @@ interface Location {
 interface AddRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (role: UserRole) => void;
-  existingRoles: UserRole[];
+  onAdd: (authClaims: string[]) => void;
+  currentRoles: string[]; // Array of existing authClaim strings
 }
 
 type RoleType = 'super-admin' | 'location-admin' | 'org-admin' | 'volunteer-admin' | 'swep-admin' | '';
 
-export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }: AddRoleModalProps) {
+export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: AddRoleModalProps) {
   const { data: session } = useSession();
   const [selectedRole, setSelectedRole] = useState<RoleType>('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -58,7 +50,7 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
       }
       const data = await response.json();
       setLocations(data.data || []);
-    } catch (err) {
+    } catch {
       errorToast.generic('Failed to load locations');
     } finally {
       setLoadingLocations(false);
@@ -86,58 +78,61 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
       return;
     }
 
-    let newRole: UserRole;
+    const newAuthClaims: string[] = [];
 
     switch (selectedRole) {
       case 'super-admin':
-        newRole = {
-          id: `super-admin-${Date.now()}`,
-          type: 'SuperAdmin',
-          label: 'Super Administrator',
-          claim: 'SuperAdmin'
-        };
+        if (!currentRoles.includes(ROLES.SUPER_ADMIN)) {
+          newAuthClaims.push(ROLES.SUPER_ADMIN);
+        }
         break;
       
       case 'location-admin':
-        const locationLabels = selectedLocations
-          .map(key => locations.find(loc => loc.Key === key)?.Name || key)
-          .join(', ');
-        newRole = {
-          id: `location-admin-${Date.now()}`,
-          type: 'CityAdminFor',
-          label: `Location Administrator: ${locationLabels}`,
-          claim: `CityAdminFor:${selectedLocations.join(',')}`,
-          locationIds: selectedLocations
-        };
+        // Add CityAdmin base role if not present
+        if (!currentRoles.includes(ROLES.CITY_ADMIN)) {
+          newAuthClaims.push(ROLES.CITY_ADMIN);
+        }
+        // Add each location as separate claim
+        selectedLocations.forEach(locationKey => {
+          const claim = `CityAdminFor:${locationKey}`;
+          if (!currentRoles.includes(claim)) {
+            newAuthClaims.push(claim);
+          }
+        });
         break;
       
       case 'volunteer-admin':
-        newRole = {
-          id: `volunteer-admin-${Date.now()}`,
-          type: 'VolunteerAdmin',
-          label: 'Volunteer Administrator',
-          claim: 'VolunteerAdmin'
-        };
+        if (!currentRoles.includes(ROLES.VOLUNTEER_ADMIN)) {
+          newAuthClaims.push(ROLES.VOLUNTEER_ADMIN);
+        }
         break;
       
       case 'swep-admin':
-        const swepLocationLabels = selectedLocations
-          .map(key => locations.find(loc => loc.Key === key)?.Name || key)
-          .join(', ');
-        newRole = {
-          id: `swep-admin-${Date.now()}`,
-          type: 'SwepAdminFor',
-          label: `SWEP Administrator: ${swepLocationLabels}`,
-          claim: `SwepAdminFor:${selectedLocations.join(',')}`,
-          locationIds: selectedLocations
-        };
+        // Add SwepAdmin base role if not present
+        if (!currentRoles.includes(ROLES.SWEP_ADMIN)) {
+          newAuthClaims.push(ROLES.SWEP_ADMIN);
+        }
+        // Add each location as separate claim
+        selectedLocations.forEach(locationKey => {
+          const claim = `SwepAdminFor:${locationKey}`;
+          if (!currentRoles.includes(claim)) {
+            newAuthClaims.push(claim);
+          }
+        });
+        break;
+      
+      case 'org-admin':
+        // This case should never be reached since button is disabled for org-admin
+        // But included for completeness
         break;
       
       default:
         return;
     }
 
-    onSave(newRole);
+    if (newAuthClaims.length > 0) {
+      onAdd(newAuthClaims);
+    }
     handleClose();
   };
 
@@ -214,7 +209,7 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
                 </label>
               )}
 
-              {/* Organisation Administrator */}
+              {/* Organisation Administrator - Always show */}
               <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                 <input
                   type="radio"
@@ -301,16 +296,19 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
               </div>
             )}
 
-            {/* Organisation Administrator Message */}
-            {selectedRole === 'org-admin' && (
+          </div>
+
+          {/* Organisation Administrator Warning - Always show when selected */}
+          {selectedRole === 'org-admin' && (
+            <div className="px-6 pb-4">
               <div className="bg-brand-j bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-brand-j flex-shrink-0 mt-0.5" />
                 <p className="text-small text-brand-k">
                   Organisation Administrator can be created only from Organisation page.
                 </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4 flex items-center justify-end gap-4">
@@ -322,7 +320,7 @@ export default function AddRoleModal({ isOpen, onClose, onSave, existingRoles }:
               onClick={handleSave}
               disabled={!selectedRole || selectedRole === 'org-admin'}
             >
-              Save
+              Add
             </Button>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { Session } from 'next-auth';
 import type { IUser, IService, IServiceProvider, ICity, IFaq } from '@/types';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
+const API_BASE_URL = `${process.env.API_BASE_URL}/api`;
 
 class ApiClient {
   private async getAuthHeaders(): Promise<Record<string, string>> {

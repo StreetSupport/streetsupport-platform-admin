@@ -21,7 +21,7 @@ export default function AccessDeniedPage() {
           please contact an administrator to request access.
         </p>
         <div className="flex items-center justify-center gap-3">
-          <Link href="/" className="btn-base btn-primary">Go to Dashboard</Link>
+          <Link href="/" className="btn-base btn-primary">Go to Home</Link>
         </div>
       </div>
     </div>
