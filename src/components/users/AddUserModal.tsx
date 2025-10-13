@@ -8,7 +8,7 @@ import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toas
 import { validateCreateUser } from '@/schemas/userSchema';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { parseAuthClaimsForDisplay, RoleDisplay } from '@/lib/userService';
-import { ROLES } from '@/constants/roles';
+import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddUserModalProps {
@@ -61,6 +61,9 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
     );
     setRoleDisplays(filteredDisplays);
     
+    // Clear validation errors since roles have been added
+    setValidationErrors([]);
+    
     setIsRoleModalOpen(false);
   };
 
@@ -73,7 +76,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
     // Auto-remove parent base roles when last specific role is removed
     if (roleToRemove.type === 'location') {
       const remainingLocationRoles = updatedClaims.filter(
-        c => c.startsWith(`${roleToRemove.baseRole === ROLES.CITY_ADMIN ? 'CityAdminFor:' : 'SwepAdminFor:'}`)
+        c => c.startsWith(`${roleToRemove.baseRole === ROLES.CITY_ADMIN ? ROLE_PREFIXES.CITY_ADMIN_FOR : ROLE_PREFIXES.SWEP_ADMIN_FOR}`)
       );
       
       if (remainingLocationRoles.length === 0 && roleToRemove.baseRole) {
@@ -82,7 +85,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
     }
 
     if (roleToRemove.type === 'org') {
-      const remainingOrgRoles = updatedClaims.filter(c => c.startsWith('AdminFor:'));
+      const remainingOrgRoles = updatedClaims.filter(c => c.startsWith(ROLE_PREFIXES.ADMIN_FOR));
       
       if (remainingOrgRoles.length === 0) {
         updatedClaims = updatedClaims.filter(c => c !== ROLES.ORG_ADMIN);

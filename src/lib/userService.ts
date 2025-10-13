@@ -3,6 +3,7 @@ import { authenticatedFetch } from './api';
 import { JWT } from 'next-auth/jwt';
 import { 
   ROLES, 
+  ROLE_PREFIXES, 
   isBaseRole, 
   isLocationSpecificRole, 
   isOrgSpecificRole 
@@ -96,11 +97,11 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
       hasOrgAdmin = true;
     } else if (claim === ROLES.VOLUNTEER_ADMIN) {
       hasVolunteerAdmin = true;
-    } else if (claim.startsWith('CityAdminFor:')) {
+    } else if (claim.startsWith(ROLE_PREFIXES.CITY_ADMIN_FOR)) {
       cityAdminClaims.push(claim);
-    } else if (claim.startsWith('SwepAdminFor:')) {
+    } else if (claim.startsWith(ROLE_PREFIXES.SWEP_ADMIN_FOR)) {
       swepAdminClaims.push(claim);
-    } else if (claim.startsWith('AdminFor:')) {
+    } else if (claim.startsWith(ROLE_PREFIXES.ADMIN_FOR)) {
       orgAdminClaims.push(claim);
     }
   }
@@ -138,7 +139,7 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
 
   // Add individual CityAdminFor claims
   cityAdminClaims.forEach(claim => {
-    const location = claim.replace('CityAdminFor:', '');
+    const location = claim.replace(ROLE_PREFIXES.CITY_ADMIN_FOR, '');
     roleDisplays.push({
       id: claim,
       label: `Location Administrator: ${location}`,
@@ -162,7 +163,7 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
 
   // Add individual SwepAdminFor claims
   swepAdminClaims.forEach(claim => {
-    const location = claim.replace('SwepAdminFor:', '');
+    const location = claim.replace(ROLE_PREFIXES.SWEP_ADMIN_FOR, '');
     roleDisplays.push({
       id: claim,
       label: `SWEP Administrator: ${location}`,
@@ -186,7 +187,7 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
 
   // Add individual AdminFor claims
   orgAdminClaims.forEach(claim => {
-    const org = claim.replace('AdminFor:', '');
+    const org = claim.replace(ROLE_PREFIXES.ADMIN_FOR, '');
     roleDisplays.push({
       id: claim,
       label: `Organisation Administrator: ${org}`,
@@ -198,6 +199,18 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
   });
 
   return roleDisplays;
+}
+
+/**
+ * Check if user has generic SwepAdmin role without specific location
+ * These are legacy records that need to be updated
+ * @param authClaims - User's auth claims array
+ * @returns true if user has generic SwepAdmin without SwepAdminFor: claims
+ */
+export function hasGenericSwepAdmin(authClaims: string[]): boolean {
+  const hasSwepAdmin = authClaims.includes(ROLES.SWEP_ADMIN);
+  const hasSpecificSwepAdmin = authClaims.some(claim => claim.startsWith(ROLE_PREFIXES.SWEP_ADMIN_FOR));
+  return hasSwepAdmin && !hasSpecificSwepAdmin;
 }
 
 /**
@@ -227,8 +240,8 @@ export function canRemoveRole(roleId: string, allRoles: RoleDisplay[]): boolean 
 
   const totalGroups = roleGroups.length;
 
-  // CityAdmin and SwepAdmin base roles can't be manually removed (they're auto-managed)
-  if (roleId === ROLES.CITY_ADMIN || roleId === ROLES.SWEP_ADMIN) {
+  // CityAdmin and SwepAdmin and OrgAdmin base roles can't be manually removed (they're auto-managed)
+  if (roleId === ROLES.CITY_ADMIN || roleId === ROLES.SWEP_ADMIN || roleId === ROLES.ORG_ADMIN) {
     return false;
   }
 

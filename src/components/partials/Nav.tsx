@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import RoleBasedNav from '@/components/navigation/RoleBasedNav';
 import { hasPageAccess } from '@/lib/userService';
+import UserProfileModal from '@/components/users/UserProfileModal';
 
 export default function Nav() {
   const { data: session } = useSession();
@@ -13,12 +14,29 @@ export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const resourcesCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if user has access to resources
   const hasResourcesAccess = session?.user?.authClaims 
     ? hasPageAccess(session.user.authClaims, '/resources')
     : false;
+
+  // Get user info
+  const userEmail = session?.user?.email || '';
+  const userAuthClaims = session?.user?.authClaims || { roles: [], specificClaims: [] };
+  
+  // Get user initials from email
+  const getUserInitials = (email: string): string => {
+    if (!email) return 'U';
+    const parts = email.split('@')[0].split('.');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
+  };
+  
+  const userInitials = getUserInitials(userEmail);
 
   function handleResourcesMouseEnter() {
     if (resourcesCloseTimeoutRef.current) {
@@ -144,16 +162,24 @@ export default function Nav() {
             )}
           </div>
           
-          <div className="hidden lg:flex items-center ml-6 lg:ml-8">
+          <div className="hidden lg:flex items-center ml-6 lg:ml-8 gap-4">
             {session?.user ? (
-              <div className="relative">
+              <>
+                <button
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-brand-a text-white font-semibold text-sm hover:bg-brand-b transition-colors focus:outline-none focus:ring-2 focus:ring-brand-a focus:ring-offset-2 cursor-pointer"
+                  aria-label="View profile"
+                  title={userEmail}
+                >
+                  {userInitials}
+                </button>
                 <button 
                   onClick={() => signOut({ callbackUrl: '/' })} 
                   className="btn-base btn-secondary btn-sm"
                 >
                   Sign Out
                 </button>
-              </div>
+              </>
             ) : (
               <Link href="/api/auth/signin" className="btn-base btn-primary btn-sm">Sign In</Link>
             )}
@@ -224,10 +250,31 @@ export default function Nav() {
           )}
 
           <div className="border-t border-brand-q mt-2 pt-2 ml-0 !ml-0">
+            {session?.user && (
+              <button
+                onClick={() => {
+                  setIsProfileModalOpen(true);
+                  setMenuOpen(false);
+                }}
+                className="mobile-nav-link block w-full text-left mb-2 cursor-pointer"
+              >
+                {userEmail}
+              </button>
+            )}
             <Link href="/" className="mobile-nav-link block" onClick={() => signOut({ callbackUrl: '/' })}>Sign Out</Link>
           </div>
         </div>
       </div>
+      
+      {/* User Profile Modal */}
+      {session?.user && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          email={userEmail}
+          authClaims={userAuthClaims}
+        />
+      )}
     </nav>
   );
 }

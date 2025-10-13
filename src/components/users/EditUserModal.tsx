@@ -3,13 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import AddRoleModal from './AddRoleModal';
 import { IUser } from '@/types/IUser';
-import { parseAuthClaimsForDisplay, canRemoveRole, RoleDisplay } from '@/lib/userService';
+import { parseAuthClaimsForDisplay, canRemoveRole, RoleDisplay, hasGenericSwepAdmin } from '@/lib/userService';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ROLES } from '@/constants/roles';
 import { validateUpdateUser } from '@/schemas/userSchema';
+import { useSession } from 'next-auth/react';
+import { getUserLocationSlugs } from '@/utils/locationUtils';
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -24,9 +27,17 @@ export default function EditUserModal({
   onSuccess,
   user
 }: EditUserModalProps) {
+  const { data: session } = useSession();
   const [roleDisplays, setRoleDisplays] = useState<RoleDisplay[]>([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  // Get current user's accessible locations
+  const userAuthClaims = session?.user?.authClaims;
+  const currentUserLocations = userAuthClaims ? getUserLocationSlugs(userAuthClaims) : null;
+  const isSuperAdmin = userAuthClaims?.roles.includes(ROLES.SUPER_ADMIN) || false;
+  const isVolunteerAdmin = userAuthClaims?.roles.includes(ROLES.VOLUNTEER_ADMIN) || false;
 
   useEffect(() => {
     if (user && isOpen) {
@@ -37,6 +48,14 @@ export default function EditUserModal({
         (role.id !== ROLES.CITY_ADMIN && role.id !== ROLES.SWEP_ADMIN && role.id !== ROLES.ORG_ADMIN)
       );
       setRoleDisplays(filteredDisplays);
+      
+      // Check for generic SwepAdmin when modal opens
+      if (hasGenericSwepAdmin(user.AuthClaims)) {
+        setShowWarningModal(true);
+      }
+    } else if (!isOpen) {
+      // Reset warning modal state when edit modal closes
+      setShowWarningModal(false);
     }
   }, [user, isOpen]);
 
@@ -59,6 +78,44 @@ export default function EditUserModal({
     const uniqueNewDisplays = filteredNewDisplays.filter(r => !existingIds.has(r.id));
     
     setRoleDisplays([...roleDisplays, ...uniqueNewDisplays]);
+  };
+
+  /**
+   * Check if current user can manage this role (for location/org specific roles)
+   * CityAdmin can only manage roles from their own locations
+   */
+  const canManageRole = (role: RoleDisplay): { canManage: boolean; reason?: string } => {
+    // SuperAdmin and VolunteerAdmin can manage all roles
+    if (isSuperAdmin || isVolunteerAdmin) {
+      return { canManage: true };
+    }
+
+    // For location-specific roles (CityAdmin and SwepAdmin)
+    if (role.type === 'location' && role.specificValue) {
+      // If current user has no specific locations (shouldn't happen for CityAdmin), deny
+      if (!currentUserLocations || currentUserLocations.length === 0) {
+        return { canManage: false, reason: 'No location permissions' };
+      }
+
+      // Check if the role's location is in the current user's locations
+      if (!currentUserLocations.includes(role.specificValue)) {
+        return { 
+          canManage: false, 
+          reason: 'User doesn\'t have permission to manage this location' 
+        };
+      }
+    }
+
+    // For org-specific roles, would need org validation (future enhancement)
+    // For now, allow if user is CityAdmin
+    if (role.type === 'org') {
+      // This would require checking if the org belongs to CityAdmin's location
+      // For now, assuming CityAdmin can manage orgs in their locations
+      // It's too complicated to get organisation on each permisison. API validation is enough
+      return { canManage: true };
+    }
+
+    return { canManage: true };
   };
 
   const handleRemoveRole = (roleId: string) => {
@@ -222,6 +279,13 @@ export default function EditUserModal({
                     <div className="border border-brand-q rounded-lg p-4 space-y-3">
                       {roleDisplays.map((role) => {
                         const isRemovable = canRemoveRole(role.id, roleDisplays);
+                        const managementCheck = canManageRole(role);
+                        const canActuallyRemove = isRemovable && managementCheck.canManage;
+                        const tooltipText = !managementCheck.canManage 
+                          ? managementCheck.reason 
+                          : !isRemovable 
+                          ? 'Cannot remove the last role'
+                          : '';
 
                         return (
                           <div
@@ -231,29 +295,42 @@ export default function EditUserModal({
                             <span className="text-base text-brand-k font-medium">
                               {role.label}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => isRemovable && handleRemoveRole(role.id)}
-                              disabled={!isRemovable}
-                              className={`p-2 rounded-full transition-colors ${
-                                isRemovable 
-                                  ? 'hover:bg-brand-g hover:bg-opacity-10 cursor-pointer' 
-                                  : 'opacity-40 cursor-not-allowed'
-                              }`}
-                              aria-label={`Remove ${role.label}`}
-                            >
-                              <Trash2 className="w-4 h-4 text-brand-g" />
-                            </button>
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (canActuallyRemove) {
+                                    handleRemoveRole(role.id);
+                                  } else if (tooltipText) {
+                                    // Show toast notification when clicking disabled button
+                                    errorToast.generic(tooltipText);
+                                  }
+                                }}
+                                disabled={!canActuallyRemove}
+                                className={`p-2 rounded-full transition-colors ${
+                                  canActuallyRemove
+                                    ? 'hover:bg-brand-g hover:bg-opacity-10 cursor-pointer' 
+                                    : 'opacity-40 cursor-not-allowed'
+                                }`}
+                                aria-label={`Remove ${role.label}`}
+                                title={tooltipText}
+                              >
+                                <Trash2 className="w-4 h-4 text-brand-g" />
+                              </button>
+                              {/* Tooltip */}
+                              {!canActuallyRemove && tooltipText && (
+                                <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50">
+                                  <div className="bg-brand-l text-brand-q text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
+                                    {tooltipText}
+                                    <div className="absolute top-full right-4 -mt-1 border-4 border-transparent border-t-brand-l"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                    {/* Info message about role removal */}
-                    {roleDisplays.some(role => !canRemoveRole(role.id, roleDisplays)) && (
-                      <p className="text-xs text-brand-g mt-2">
-                        Cannot remove a single role. User must have at least one role assigned.
-                      </p>
-                    )}
                   </>
                 ) : (
                   <div className="border border-dashed border-brand-f rounded-lg p-8 text-center">
@@ -293,6 +370,18 @@ export default function EditUserModal({
         onClose={() => setIsRoleModalOpen(false)}
         onAdd={handleAddRole}
         currentRoles={roleDisplays.map(r => r.id)}
+      />
+
+      {/* Warning Modal for Generic SwepAdmin */}
+      <ConfirmModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        onConfirm={() => setShowWarningModal(false)}
+        title="Role Configuration Required"
+        message="You should add more specific location role for your Swep Administrator"
+        variant="warning"
+        confirmLabel="OK"
+        cancelLabel=""
       />
     </>
   );

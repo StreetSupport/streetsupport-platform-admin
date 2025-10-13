@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, Shield, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { IUser } from '@/types/IUser';
-import { parseAuthClaims } from '@/lib/userService';
+import { parseAuthClaims, hasGenericSwepAdmin } from '@/lib/userService';
 
 interface ViewUserModalProps {
   isOpen: boolean;
@@ -13,6 +14,18 @@ interface ViewUserModalProps {
 }
 
 export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  // Check for generic SwepAdmin when modal opens
+  useEffect(() => {
+    if (isOpen && user && hasGenericSwepAdmin(user.AuthClaims)) {
+      setShowWarningModal(true);
+    } else if (!isOpen) {
+      // Reset warning modal state when view modal closes
+      setShowWarningModal(false);
+    }
+  }, [isOpen, user]);
+
   if (!isOpen || !user) return null;
 
   const formatDate = (date: Date | string): string => {
@@ -162,6 +175,18 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
           </div>
         </div>
       </div>
+
+      {/* Warning Modal for Generic SwepAdmin */}
+      <ConfirmModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        onConfirm={() => setShowWarningModal(false)}
+        title="Role Configuration Required"
+        message="You should add more specific location role for your Swep Administrator"
+        variant="warning"
+        confirmLabel="OK"
+        cancelLabel=""
+      />
     </>
   );
 }

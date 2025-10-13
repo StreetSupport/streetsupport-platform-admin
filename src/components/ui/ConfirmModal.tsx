@@ -27,10 +27,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   variant = 'danger',
   isLoading = false
 }) => {
-  // Handle escape key
+  // Handle escape key (only if cancel button is available)
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
+      if (e.key === 'Escape' && isOpen && !isLoading && cancelLabel) {
         onClose();
       }
     };
@@ -79,7 +79,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isLoading) {
+        if (e.target === e.currentTarget && !isLoading && cancelLabel) {
           onClose();
         }
       }}
@@ -115,7 +115,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               </p>
             </div>
           </div>
-          {!isLoading && (
+          {!isLoading && cancelLabel && (
             <button
               onClick={onClose}
               className="flex-shrink-0 text-brand-f hover:text-brand-k transition-colors ml-4"
@@ -128,14 +128,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 px-6 pb-6 pt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="min-w-[100px]"
-          >
-            {cancelLabel}
-          </Button>
+          {cancelLabel && (
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+              className="min-w-[100px]"
+            >
+              {cancelLabel}
+            </Button>
+          )}
           <button
             onClick={() => {
               onConfirm();
