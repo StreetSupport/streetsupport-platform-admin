@@ -45,7 +45,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, isLoading, onClose]);
+  }, [isOpen, isLoading, onClose, cancelLabel]);
 
   if (!isOpen) return null;
 
