@@ -40,3 +40,4 @@ jobs:
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               description: 'Vercel deployment triggered',
               context: 'ci/deployment-triggered'
+              })
