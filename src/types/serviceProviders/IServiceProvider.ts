@@ -1,4 +1,6 @@
 import { IAddress } from "./IAddress";
+import { IAdministrator } from "./IAdministrator";
+import { INotes } from "./INotes";
 
 export interface IServiceProvider {
     _id: string;
@@ -25,4 +27,6 @@ export interface IServiceProvider {
     Facebook?: string;
     Twitter?: string;
     Addresses: IAddress[];
+    Notes: INotes[];
+    Administrators: IAdministrator[];
 }
