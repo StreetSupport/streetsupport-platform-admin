@@ -37,7 +37,6 @@ export default function EditUserModal({
   const userAuthClaims = session?.user?.authClaims;
   const currentUserLocations = userAuthClaims ? getUserLocationSlugs(userAuthClaims) : null;
   const isSuperAdmin = userAuthClaims?.roles.includes(ROLES.SUPER_ADMIN) || false;
-  const isVolunteerAdmin = userAuthClaims?.roles.includes(ROLES.VOLUNTEER_ADMIN) || false;
 
   useEffect(() => {
     if (user && isOpen) {
@@ -85,8 +84,8 @@ export default function EditUserModal({
    * CityAdmin can only manage roles from their own locations
    */
   const canManageRole = (role: RoleDisplay): { canManage: boolean; reason?: string } => {
-    // SuperAdmin and VolunteerAdmin can manage all roles
-    if (isSuperAdmin || isVolunteerAdmin) {
+    // SuperAdmin can manage all roles
+    if (isSuperAdmin) {
       return { canManage: true };
     }
 

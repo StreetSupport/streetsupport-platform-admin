@@ -32,7 +32,6 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   
   const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
   const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN);
-  const isVolunteerAdmin = userAuthClaims.roles.includes(ROLES.VOLUNTEER_ADMIN);
   const isCityAdmin = userAuthClaims.roles.includes(ROLES.CITY_ADMIN) || userAuthClaims.specificClaims.includes(ROLE_PREFIXES.CITY_ADMIN_FOR);
 
   useEffect(() => {
@@ -192,7 +191,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               )}
 
               {/* Location Administrator */}
-              {(isSuperAdmin || isVolunteerAdmin || isCityAdmin) && (
+              {(isSuperAdmin || isCityAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
@@ -226,7 +225,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               </label>
 
               {/* Volunteer Administrator */}
-              {(isSuperAdmin || isVolunteerAdmin) && (
+              {(isSuperAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
@@ -244,7 +243,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               )}
 
               {/* SWEP Administrator */}
-              {(isSuperAdmin || isVolunteerAdmin || isCityAdmin) && (
+              {(isSuperAdmin || isCityAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"

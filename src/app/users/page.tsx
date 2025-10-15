@@ -22,7 +22,7 @@ import { getAvailableLocations } from '@/utils/locationUtils';
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN],
     requiredPage: '/users',
     autoRedirect: true
   });
