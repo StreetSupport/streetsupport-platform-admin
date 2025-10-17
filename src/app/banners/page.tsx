@@ -11,12 +11,10 @@ import { ICity } from '@/types';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import BannerCard from '@/components/banners/BannerCard';
 import Link from 'next/link';
-import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { useSession } from 'next-auth/react';
-import { UserAuthClaims } from '@/types/auth';
-import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function BannersListPage() {
   // Check authorization FIRST
@@ -26,7 +24,6 @@ export default function BannersListPage() {
     autoRedirect: true
   });
 
-  const { data: session } = useSession();
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +41,6 @@ export default function BannersListPage() {
   
   const limit = 5;
   
-  // Get user auth claims
-  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
-  
-  // Filter locations based on user permissions
-  const availableLocations = getAvailableLocations(userAuthClaims, locations);
-
   // Only run effects if authorized
   useEffect(() => {
     if (isAuthorized) {
@@ -78,9 +69,10 @@ export default function BannersListPage() {
       if (statusFilter) params.append('isActive', statusFilter);
       if (locationFilter) params.append('location', locationFilter);
       
-      const response = await fetch(`/api/banners?${params.toString()}`);
+      const response = await authenticatedFetch(`/api/banners?${params.toString()}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch banners');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch banners');
       }
 
       const result = await response.json();
@@ -118,15 +110,18 @@ export default function BannersListPage() {
 
   const fetchLocations = async () => {
     try {
-      const response = await fetch('/api/cities');
+      const response = await authenticatedFetch('/api/cities');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch locations');
+      }
       const result = await response.json();
       if (result.success) {
         setLocations(result.data);
-      } else {
-        console.error('Failed to fetch cities');
       }
     } catch (err) {
-      console.error('Failed to fetch cities:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load locations';
+      console.error('Failed to fetch locations:', errorMessage);
     }
   };
 
@@ -144,7 +139,7 @@ export default function BannersListPage() {
     const toastId = loadingToast.delete('banner');
     
     try {
-      const response = await fetch(`/api/banners/${bannerToDelete._id}`, {
+      const response = await authenticatedFetch(`/api/banners/${bannerToDelete._id}`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -172,7 +167,7 @@ export default function BannersListPage() {
     setTogglingId(banner._id);
     
     try {
-      const response = await fetch(`/api/banners/${banner._id}/toggle`, {
+      const response = await authenticatedFetch(`/api/banners/${banner._id}/toggle`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
@@ -257,7 +252,7 @@ export default function BannersListPage() {
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="" className="text-brand-k">All Locations</option>
-                  {availableLocations.map(city => (
+                  {locations.map(city => (
                     <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
                   ))}
                 </select>

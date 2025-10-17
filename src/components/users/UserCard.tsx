@@ -5,6 +5,7 @@ import { IUser } from '@/types/IUser';
 import { Button } from '@/components/ui/Button';
 import { Edit, Trash2, Calendar, MapPin, Shield, Eye, EyeOff } from 'lucide-react';
 import { parseAuthClaims } from '@/lib/userService';
+import { formatRoleDisplay, formatClaimDisplay } from '@/constants/roles';
 
 interface UserCardProps {
   user: IUser;
@@ -170,12 +171,12 @@ const UserCard = React.memo(function UserCard({
                     'template-type'
                   }`}
                 >
-                  {role}
+                  {formatRoleDisplay(role)}
                 </span>
               ))}
               {specificClaims.slice(0, 3).map((claim, index) => (
                 <span key={`claim-${index}`} className="service-tag location">
-                  {claim}
+                  {formatClaimDisplay(claim)}
                 </span>
               ))}
               {specificClaims.length > 3 && (

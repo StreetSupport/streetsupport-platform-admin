@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
 import { UserAuthClaims } from '@/types/auth';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 
@@ -15,8 +15,10 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     // Add location filtering for CityAdmin users
+    // Check if this request is from Users page (restrictVolunteerAdmin query param)
+    const restrictVolunteerAdmin = req.nextUrl.searchParams.get('restrictVolunteerAdmin') === 'true';
     const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
-    const locationSlugs = getUserLocationSlugs(userAuthClaims);
+    const locationSlugs = getUserLocationSlugs(userAuthClaims, restrictVolunteerAdmin);
     
     // Build query string
     let url = `${API_BASE_URL}/api/cities`;
@@ -36,14 +38,15 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`Backend API error: ${response.status}`);
+      return sendError(response.status, data.error || 'Failed to fetch cities');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Cities API error:', error);
+    console.error('Locations API error:', error);
     return sendInternalError();
   }
 };

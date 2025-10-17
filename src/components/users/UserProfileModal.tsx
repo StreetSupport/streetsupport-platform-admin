@@ -4,6 +4,7 @@ import React from 'react';
 import { X, Mail, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { UserAuthClaims } from '@/types/auth';
+import { formatRoleDisplay, formatClaimDisplay } from '@/constants/roles';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -72,12 +73,12 @@ export default function UserProfileModal({ isOpen, onClose, email, authClaims }:
                           'template-type'
                         }`}
                       >
-                        {role}
+                        {formatRoleDisplay(role)}
                       </span>
                     ))}
                     {specificClaims.map((claim, index) => (
                       <span key={`claim-${index}`} className="service-tag location">
-                        {claim}
+                        {formatClaimDisplay(claim)}
                       </span>
                     ))}
                   </div>

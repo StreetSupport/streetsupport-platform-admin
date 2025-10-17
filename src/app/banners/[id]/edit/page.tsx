@@ -7,6 +7,7 @@ import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { IBanner, IMediaAsset } from '@/types';
 import { ArrowLeft } from 'lucide-react';
@@ -88,10 +89,11 @@ export default function EditBannerPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`/api/banners/${bannerId}`);
+        const response = await authenticatedFetch(`/api/banners/${bannerId}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch banner');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch banner');
         }
         
         const result = await response.json();
@@ -218,7 +220,7 @@ export default function EditBannerPage() {
       }
     });
 
-    const response = await fetch(`/api/banners/${bannerId}`, {
+    const response = await authenticatedFetch(`/api/banners/${bannerId}`, {
       method: HTTP_METHODS.PUT,
       body: formData
     });
