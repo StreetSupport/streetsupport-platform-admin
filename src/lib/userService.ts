@@ -17,6 +17,7 @@ export interface ApiUser {
   AuthClaims: string[];
   AssociatedAreaId: string;
   AssociatedProviderLocationIds: string[];
+  IsActive: boolean;
 }
 
 /**
@@ -259,6 +260,22 @@ export function canRemoveRole(roleId: string, allRoles: RoleDisplay[]): boolean 
     }
     
     // Can remove if there are other location roles of the same type OR other role groups
+    return true;
+  }
+
+  // For org-specific roles, check if there are multiple of the same type
+  if (roleToCheck?.type === 'org') {
+    // Get all org roles
+    const sameTypeRoles = allRoles.filter(r => 
+      r.type === 'org' && r.baseRole === ROLES.ORG_ADMIN
+    );
+    
+    // If this is the only org role AND it's the only role group, can't remove
+    if (sameTypeRoles.length === 1 && totalGroups === 1) {
+      return false;
+    }
+    
+    // Can remove if there are other org roles OR other role groups
     return true;
   }
 

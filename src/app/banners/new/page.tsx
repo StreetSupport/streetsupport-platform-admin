@@ -6,7 +6,8 @@ import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { withAuthorization } from '@/components/auth/withAuthorization';
 import { validateBannerForm } from '@/schemas/bannerSchema';
-import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
+import toastUtils, { successToast, errorToast, loadingToast } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
 // import type { IAccentGraphic } from '@/types';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
@@ -117,7 +118,7 @@ function NewBannerPage() {
         }
       });
 
-      const response = await fetch('/api/banners', {
+      const response = await authenticatedFetch('/api/banners', {
         method: HTTP_METHODS.POST,
         body: formData
       });

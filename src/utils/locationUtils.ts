@@ -13,63 +13,36 @@ export interface Location {
 }
 
 /**
- * Get available locations based on current user's permissions
- * 
- * @param userAuthClaims - User's authentication claims with roles and specific claims
- * @param locations - Full list of available locations
- * @returns Filtered array of locations the user has access to
- * 
- * @example
- * // SuperAdmin or VolunteerAdmin - returns all locations
- * getAvailableLocations(superAdminClaims, allLocations) // => all locations
- * 
- * // CityAdmin with specific cities - returns only allowed cities
- * getAvailableLocations(cityAdminClaims, allLocations) // => filtered locations
- */
-export function getAvailableLocations(
-  userAuthClaims: UserAuthClaims,
-  locations: Location[]
-): Location[] {
-  // SuperAdmin and VolunteerAdmin have access to all locations
-  if (isSuperAdmin(userAuthClaims.roles) || hasRole(userAuthClaims.roles, ROLES.VOLUNTEER_ADMIN)) {
-    return locations;
-  }
-
-  // CityAdmin (base role or location-specific) - filter by their assigned cities
-  if (hasRole(userAuthClaims.roles, ROLES.CITY_ADMIN)) {
-    const userCities = userAuthClaims.specificClaims
-      .filter((claim: string) => claim.startsWith(ROLE_PREFIXES.CITY_ADMIN_FOR))
-      .map((claim: string) => claim.replace(ROLE_PREFIXES.CITY_ADMIN_FOR, ''));
-    
-    // If CityAdmin has specific claims, filter by them
-    if (userCities.length > 0) {
-      return locations.filter(loc => userCities.includes(loc.Key));
-    }
-    
-    // If CityAdmin has no specific claims, they have access to all locations
-    return locations;
-  }
-  
-  // Default: no locations accessible
-  return [];
-}
-
-/**
  * Get location slugs that a user has access to (for API query filtering)
  * 
  * @param userAuthClaims - User's authentication claims
+ * @param restrictVolunteerAdmin - If true, VolunteerAdmin will be filtered by CityAdmin claims (for Users page only)
  * @returns Array of location slugs the user can access, or null for unrestricted access
  * 
  * @example
  * // SuperAdmin - returns null (no filter needed)
  * getUserLocationSlugs(superAdminClaims) // => null
  * 
+ * // VolunteerAdmin on most pages - returns null (unrestricted)
+ * getUserLocationSlugs(volunteerAdminClaims) // => null
+ * 
+ * // VolunteerAdmin on Users page - filtered by CityAdmin claims
+ * getUserLocationSlugs(volunteerAdminClaims, true) // => ['birmingham'] (if they have CityAdmin)
+ * 
  * // CityAdmin for specific cities - returns those city slugs
  * getUserLocationSlugs(cityAdminClaims) // => ['birmingham', 'manchester']
  */
-export function getUserLocationSlugs(userAuthClaims: UserAuthClaims): string[] | null {
-  // SuperAdmin and VolunteerAdmin - no location filtering needed
-  if (isSuperAdmin(userAuthClaims.roles) || hasRole(userAuthClaims.roles, ROLES.VOLUNTEER_ADMIN)) {
+export function getUserLocationSlugs(
+  userAuthClaims: UserAuthClaims, 
+  restrictVolunteerAdmin: boolean = false
+): string[] | null {
+  // SuperAdmin always has unrestricted location access
+  if (isSuperAdmin(userAuthClaims.roles)) {
+    return null;
+  }
+  
+  // VolunteerAdmin has unrestricted access on all pages EXCEPT Users page
+  if (!restrictVolunteerAdmin && hasRole(userAuthClaims.roles, ROLES.VOLUNTEER_ADMIN)) {
     return null;
   }
 

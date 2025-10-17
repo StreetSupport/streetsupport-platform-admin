@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
@@ -22,14 +22,14 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
 
     if (!response.ok) {
       const errorData = await response.json();
-      return NextResponse.json(errorData, { status: response.status });
+      return sendError(response.status, errorData.error || 'Failed to fetch banner');
     }
 
     const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-
-    return sendInternalError(`Failed to fetch banner: ${error}`);
+    console.error('Error fetching banner:', error);
+    return sendInternalError('Failed to fetch banner');
   }
 };
 
@@ -49,15 +49,16 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       body: formData,
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(errorData, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to update banner');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    return sendInternalError(`Failed to update banner: ${error}`);
+    console.error('Error updating banner:', error);
+    return sendInternalError('Failed to update banner');
   }
 };
 
@@ -76,12 +77,12 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(errorData, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to delete banner');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error deleting banner:', error);

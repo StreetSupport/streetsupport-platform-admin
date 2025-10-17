@@ -12,12 +12,10 @@ import UserCard from '@/components/users/UserCard';
 import AddUserModal from '@/components/users/AddUserModal';
 import ViewUserModal from '@/components/users/ViewUserModal';
 import EditUserModal from '@/components/users/EditUserModal';
-import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { ROLES, getRoleOptions } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { useSession } from 'next-auth/react';
-import { UserAuthClaims } from '@/types/auth';
-import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
@@ -27,7 +25,6 @@ export default function UsersPage() {
     autoRedirect: true
   });
 
-  const { data: session } = useSession();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,14 +48,8 @@ export default function UsersPage() {
   
   const limit = 9;
 
-  // Get user auth claims
-  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
-  
   // Available roles for filtering
   const availableRoles = getRoleOptions();
-  
-  // Filter locations based on user permissions
-  const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
   // Only run effects if authorized
   useEffect(() => {
@@ -76,7 +67,9 @@ export default function UsersPage() {
 
   const fetchLocations = async () => {
     try {
-      const response = await fetch('/api/cities');
+      // IMPORTANT: Pass restrictVolunteerAdmin=true to restrict VolunteerAdmin on Users page
+      const response = await authenticatedFetch('/api/cities?restrictVolunteerAdmin=true');
+      
       if (response.ok) {
         const data = await response.json();
         setLocations(data.data || []);
@@ -99,9 +92,10 @@ export default function UsersPage() {
       if (roleFilter) params.append('role', roleFilter);
       if (locationFilter) params.append('location', locationFilter);
       
-      const response = await fetch(`/api/users?${params.toString()}`);
+      const response = await authenticatedFetch(`/api/users?${params.toString()}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch users');
       }
 
       const result = await response.json();
@@ -165,7 +159,7 @@ export default function UsersPage() {
     const toastId = loadingToast.process(action === 'activate' ? 'Activating user' : 'Deactivating user');
     
     try {
-      const response = await fetch(`/api/users/${user._id}/toggle-active`, {
+      const response = await authenticatedFetch(`/api/users/${user._id}/toggle-active`, {
         method: HTTP_METHODS.PATCH
       });
 
@@ -206,7 +200,7 @@ export default function UsersPage() {
     const toastId = loadingToast.delete('user');
     
     try {
-      const response = await fetch(`/api/users/${userToDelete._id}`, {
+      const response = await authenticatedFetch(`/api/users/${userToDelete._id}`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -305,7 +299,7 @@ export default function UsersPage() {
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                 >
                   <option value="" className="text-brand-k">All Locations</option>
-                  {availableLocations.map(city => (
+                  {locations.map(city => (
                     <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
                   ))}
                 </select>
@@ -435,7 +429,7 @@ export default function UsersPage() {
           }}
           onConfirm={confirmDelete}
           title="Delete User"
-          message={`Are you sure you want to delete user "${userToDelete?.UserName}"? This action cannot be undone.`}
+          message={`Are you sure you want to delete user "${userToDelete?.Email}"? This action cannot be undone.`}
           variant="danger"
           confirmLabel="Delete"
           cancelLabel="Cancel"

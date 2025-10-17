@@ -5,7 +5,8 @@ import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
+import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -38,7 +39,7 @@ export default function BannerViewPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/banners/${id}`);
+      const response = await authenticatedFetch(`/api/banners/${id}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -77,7 +78,7 @@ export default function BannerViewPage() {
     try {
       setDeleting(true);
       
-      const response = await fetch(`/api/banners/${id}`, {
+      const response = await authenticatedFetch(`/api/banners/${id}`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -105,13 +106,12 @@ export default function BannerViewPage() {
     setToggling(true);
     
     try {
-      const response = await fetch(`/api/banners/${id}/toggle`,
-        {
-          method: HTTP_METHODS.PATCH,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+      const response = await authenticatedFetch(`/api/banners/${id}/toggle`, {
+        method: HTTP_METHODS.PATCH,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
