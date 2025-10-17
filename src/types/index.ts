@@ -11,7 +11,7 @@ export * from './serviceProviders/IAddress.js';
 export * from './serviceProviders/IOpeningTime.js';
 export * from './serviceProviders/ILocation.js';
 export * from './serviceProviders/IAdministrator.js';
-export * from './serviceProviders/INotes.js';
+export * from './serviceProviders/INote.js';
 
 // Banner related types
 export * from './banners/IBanner';

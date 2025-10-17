@@ -1,4 +1,4 @@
-export interface INotes {
+export interface INote {
     CreationDate: Date;
     Date: Date;
     StaffName: string;

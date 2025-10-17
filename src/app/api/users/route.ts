@@ -1,25 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { sendUnauthorized, sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
-import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
+import { hasApiAccess } from '@/lib/userService';
+import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 import { UserAuthClaims } from '@/types/auth';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL;
 
 // GET /api/users - Get all users with filtering
-export async function GET(req: NextRequest) {
+const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken) {
-      return sendUnauthorized();
-    }
-
-    // Optional RBAC check (mirrors other routes)
-    const canAccess = hasApiAccess(session.user.authClaims, '/api/users', HTTP_METHODS.GET);
-    if (!canAccess) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/users', HTTP_METHODS.GET)) {
       return sendForbidden();
     }
 
@@ -27,7 +19,7 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     
     // Add location filtering for CityAdmin users when dropdown is empty (showing all their locations)
-    const userAuthClaims = session.user.authClaims as UserAuthClaims;
+    const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
     const locationSlugs = getUserLocationSlugs(userAuthClaims);
     const selectedLocation = searchParams.get('location');
     
@@ -43,65 +35,60 @@ export async function GET(req: NextRequest) {
     const response = await fetch(url, {
       method: HTTP_METHODS.GET,
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
         { success: false, error: data.error || 'Failed to fetch users' },
         { status: response.status }
       );
     }
 
+    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching users:', error);
     return sendInternalError();
   }
-}
+};
 
 // POST /api/users - Create new user
-export async function POST(req: NextRequest) {
+const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.accessToken) {
-      return sendUnauthorized();
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/users', HTTP_METHODS.POST)) {
+      return sendForbidden();
     }
 
     const body = await req.json();
-    
-    // Optional RBAC check
-    const canCreate = hasApiAccess(session.user.authClaims, '/api/users', HTTP_METHODS.POST);
-    if (!canCreate) {
-      return sendForbidden();
-    }
 
     const response = await fetch(`${API_BASE_URL}/api/users`, {
       method: HTTP_METHODS.POST,
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.accessToken}`,
       },
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
         { success: false, error: data.error || 'Failed to create user' },
         { status: response.status }
       );
     }
 
+    const data = await response.json();
     return proxyResponse(data, 201);
   } catch (error) {
     console.error('Error creating user:', error);
     return sendInternalError();
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);
