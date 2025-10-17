@@ -1,6 +1,7 @@
 import { getServerSession, Session } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from './auth';
+import { sendUnauthorized } from '@/utils/apiResponses';
 
 export interface AuthContext {
   session: Session;
@@ -20,7 +21,7 @@ export function withAuth<P extends RouteParams = RouteParams>(handler: Authentic
     const session = await getServerSession(authOptions);
 
     if (!session?.accessToken) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return sendUnauthorized();
     }
 
     // Await the params Promise and pass the resolved value to our handler

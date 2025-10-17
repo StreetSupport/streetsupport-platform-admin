@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { validateCreateUser } from '@/schemas/userSchema';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { parseAuthClaimsForDisplay, RoleDisplay } from '@/lib/userService';
@@ -135,7 +136,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
         return;
       }
 
-      const response = await fetch('/api/users', {
+      const response = await authenticatedFetch('/api/users', {
         method: HTTP_METHODS.POST,
         headers: {
           'Content-Type': 'application/json',

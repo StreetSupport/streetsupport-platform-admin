@@ -19,10 +19,11 @@ export default function SwepManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCities = useCallback(async () => {
+  const fetchLocations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      // TODO: handle error response. Take example from users
       // const response = await fetch('/api/cities', {
       //   headers: {
       //     'Authorization': `Bearer ${session?.accessToken}`,
@@ -31,21 +32,21 @@ export default function SwepManagement() {
       // });
 
       // if (!response.ok) {
-      //   throw new Error('Failed to fetch cities');
+      //   throw new Error('Failed to fetch locations');
       // }
 
       // const result = await response.json();
       // setCities(result.success ? result.data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch cities');
+      setError(err instanceof Error ? err.message : 'Failed to fetch locations');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCities();
-  }, [fetchCities]);
+    fetchLocations();
+  }, [fetchLocations]);
 
   // const userAuthClaims = session?.user?.authClaims;
   // const isCityAdmin = userAuthClaims?.roles.includes(ROLES.CITY_ADMIN);
@@ -97,7 +98,7 @@ export default function SwepManagement() {
           <p className="mt-1 text-sm text-gray-500">{error}</p>
           <div className="mt-6">
             <button
-              onClick={fetchCities}
+              onClick={fetchLocations}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-a hover:bg-brand-b focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-a"
             >
               Try Again

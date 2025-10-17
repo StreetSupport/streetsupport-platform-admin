@@ -60,7 +60,7 @@ export const BASE_ROLES_ARRAY: readonly BaseRole[] = [
  */
 export const ROLE_LABELS: Record<BaseRole, string> = {
   [ROLES.SUPER_ADMIN]: 'Super Admin',
-  [ROLES.CITY_ADMIN]: 'City Admin',
+  [ROLES.CITY_ADMIN]: 'Location Admin',
   [ROLES.VOLUNTEER_ADMIN]: 'Volunteer Admin',
   [ROLES.ORG_ADMIN]: 'Organisation Admin',
   [ROLES.SWEP_ADMIN]: 'SWEP Admin',
@@ -72,7 +72,7 @@ export const ROLE_LABELS: Record<BaseRole, string> = {
  */
 export const ROLE_DESCRIPTIONS: Record<BaseRole, string> = {
   [ROLES.SUPER_ADMIN]: 'Full access to all features and settings',
-  [ROLES.CITY_ADMIN]: 'Manage city-specific content and services',
+  [ROLES.CITY_ADMIN]: 'Manage location-specific content and services',
   [ROLES.VOLUNTEER_ADMIN]: 'Manage volunteers and volunteer-related content',
   [ROLES.ORG_ADMIN]: 'Manage specific organisation content',
   [ROLES.SWEP_ADMIN]: 'Manage SWEP (Severe Weather Emergency Protocol) banners and content',
@@ -285,6 +285,51 @@ export function getRoleOptions() {
     label: ROLE_LABELS[role],
     description: ROLE_DESCRIPTIONS[role],
   }));
+}
+
+// ============================================================================
+// UI DISPLAY HELPERS (shared)
+// ============================================================================
+
+/**
+ * Format a base role value for UI display without changing the underlying value
+ * Example: 'CityAdmin' -> 'Location Administrator'
+ */
+export function formatRoleDisplay(role: string): string {
+  switch (role) {
+    case ROLES.SUPER_ADMIN:
+      return 'Super Administrator';
+    case ROLES.VOLUNTEER_ADMIN:
+      return 'Volunteer Administrator';
+    case ROLES.CITY_ADMIN:
+      return 'Location Administrator';
+    case ROLES.SWEP_ADMIN:
+      return 'SWEP Administrator';
+    case ROLES.ORG_ADMIN:
+      return 'Organisation Administrator';
+    default:
+      return role;
+  }
+}
+
+/**
+ * Format a specific claim value for UI display without changing the underlying value
+ * Examples:
+ *  - 'CityAdminFor:manchester' -> 'Location Administrator: manchester'
+ *  - 'SwepAdminFor:birmingham' -> 'SWEP Administrator: birmingham'
+ *  - 'AdminFor:org-slug' -> 'Organisation Administrator: org-slug'
+ */
+export function formatClaimDisplay(claim: string): string {
+  if (claim.startsWith(ROLE_PREFIXES.CITY_ADMIN_FOR)) {
+    return claim.replace(ROLE_PREFIXES.CITY_ADMIN_FOR, 'Location Administrator: ');
+  }
+  if (claim.startsWith(ROLE_PREFIXES.SWEP_ADMIN_FOR)) {
+    return claim.replace(ROLE_PREFIXES.SWEP_ADMIN_FOR, 'SWEP Administrator: ');
+  }
+  if (claim.startsWith(ROLE_PREFIXES.ADMIN_FOR)) {
+    return claim.replace(ROLE_PREFIXES.ADMIN_FOR, 'Organisation Administrator: ');
+  }
+  return claim;
 }
 
 // ============================================================================

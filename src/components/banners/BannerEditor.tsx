@@ -14,6 +14,7 @@ import { Plus, Trash } from 'lucide-react';
 import { BannerTemplateType, UrgencyLevel, CharterType, ResourceType, IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant } from '@/types';
 import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMimeType, isValidResourceFileType } from '@/types/banners/IResourceFile';
 import { errorToast } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 // Helper function to format file size
@@ -101,20 +102,25 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
 
   useEffect(() => {
-    async function fetchCities() {
+    async function fetchLocations() {
       try {
-        const response = await fetch('/api/cities');
+        const response = await authenticatedFetch('/api/cities');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch locations');
+        }
         const result = await response.json();
         if (result.success) {
           setCities(result.data);
         } else {
-          errorToast.load('cities data');
+          errorToast.load('locations data');
         }
-      } catch {
-        errorToast.load('cities data');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load locations';
+        errorToast.load(errorMessage);
       }
     }
-    fetchCities();
+    fetchLocations();
   }, []);
 
   // Define default form data - used for both initialization and cancel on create

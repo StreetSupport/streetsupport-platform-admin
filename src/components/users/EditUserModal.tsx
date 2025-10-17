@@ -8,6 +8,7 @@ import AddRoleModal from './AddRoleModal';
 import { IUser } from '@/types/IUser';
 import { parseAuthClaimsForDisplay, canRemoveRole, RoleDisplay, hasGenericSwepAdmin } from '@/lib/userService';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ROLES } from '@/constants/roles';
 import { validateUpdateUser } from '@/schemas/userSchema';
@@ -35,7 +36,7 @@ export default function EditUserModal({
 
   // Get current user's accessible locations
   const userAuthClaims = session?.user?.authClaims;
-  const currentUserLocations = userAuthClaims ? getUserLocationSlugs(userAuthClaims) : null;
+  const currentUserLocations = userAuthClaims ? getUserLocationSlugs(userAuthClaims, true) : null;
   const isSuperAdmin = userAuthClaims?.roles.includes(ROLES.SUPER_ADMIN) || false;
 
   useEffect(() => {
@@ -192,7 +193,7 @@ export default function EditUserModal({
         throw new Error(errorMessages || 'Validation failed');
       }
 
-      const response = await fetch(`/api/users/${user._id}`, {
+      const response = await authenticatedFetch(`/api/users/${user._id}`, {
         method: HTTP_METHODS.PUT,
         headers: {
           'Content-Type': 'application/json',

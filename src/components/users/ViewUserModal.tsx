@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { IUser } from '@/types/IUser';
 import { parseAuthClaims, hasGenericSwepAdmin } from '@/lib/userService';
+import { formatRoleDisplay, formatClaimDisplay } from '@/constants/roles';
 
 interface ViewUserModalProps {
   isOpen: boolean;
@@ -111,12 +112,12 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
                           'template-type'
                         }`}
                       >
-                        {role}
+                        {formatRoleDisplay(role)}
                       </span>
                     ))}
                     {specificClaims.map((claim, index) => (
                       <span key={`claim-${index}`} className="service-tag location">
-                        {claim}
+                        {formatClaimDisplay(claim)}
                       </span>
                     ))}
                   </div>

@@ -4,9 +4,9 @@ import { X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { errorToast } from '@/utils/toast';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { UserAuthClaims } from '@/types/auth';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
-import { getAvailableLocations } from '@/utils/locationUtils';
 
 interface Location {
   _id: string;
@@ -43,14 +43,16 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   const fetchLocations = async () => {
     setLoadingLocations(true);
     try {
-      const response = await fetch('/api/cities');
+      const response = await authenticatedFetch('/api/cities');
       if (!response.ok) {
-        throw new Error('Failed to fetch locations');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch locations');
       }
       const data = await response.json();
       setLocations(data.data || []);
-    } catch {
-      errorToast.generic('Failed to load locations');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load locations';
+      errorToast.generic(errorMessage);
     } finally {
       setLoadingLocations(false);
     }
@@ -73,7 +75,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
     }
 
     if ((selectedRole === 'location-admin' || selectedRole === 'swep-admin') && selectedLocations.length === 0) {
-      errorToast.generic('Please select at least one location');
+      errorToast.generic('Please select at least one city');
       return;
     }
 
@@ -140,9 +142,6 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
     setSelectedLocations([]);
     onClose();
   };
-
-  // Filter locations based on current user's permissions using shared utility
-  const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
   return (
     <>
@@ -265,16 +264,16 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
             {(selectedRole === 'location-admin' || selectedRole === 'swep-admin') && (
               <div className="space-y-3">
                 <label className="field-label">
-                  Select Location{availableLocations.length > 1 ? 's' : ''}
+                  Select City{locations.length > 1 ? 's' : ''}
                 </label>
                 
                 {loadingLocations ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-a"></div>
                   </div>
-                ) : availableLocations.length > 0 ? (
+                ) : locations.length > 0 ? (
                   <div className="border border-brand-q rounded-lg max-h-64 overflow-y-auto">
-                    {availableLocations.map((location) => (
+                    {locations.map((location) => (
                       <label
                         key={location.Key}
                         className="flex items-center p-3 hover:bg-brand-i cursor-pointer border-b border-brand-q last:border-b-0"
@@ -290,7 +289,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                     ))}
                   </div>
                 ) : (
-                  <p className="text-small text-brand-f">No locations available</p>
+                  <p className="text-small text-brand-f">No cities available</p>
                 )}
               </div>
             )}
