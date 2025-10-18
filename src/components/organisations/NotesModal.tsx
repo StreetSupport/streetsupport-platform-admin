@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { IServiceProvider } from '@/types/serviceProviders/IServiceProvider';
+import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { X, Calendar, User } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface NotesModalProps {
   isOpen: boolean;
   onClose: () => void;
   onClearNotes: () => void;
-  organisation: IServiceProvider | null;
+  organisation: IOrganisation | null;
 }
 
 export const NotesModal: React.FC<NotesModalProps> = ({

@@ -120,8 +120,9 @@ export default function BannersListPage() {
         setLocations(result.data);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load locations';
-      console.error('Failed to fetch locations:', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch locations';
+      setError(errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 

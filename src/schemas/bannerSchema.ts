@@ -6,11 +6,8 @@ import {
 } from './bannerSchemaCore';
 import { getFieldErrors } from './validationHelpers';
 
-// Type exports
-export type BannerFormData = z.infer<typeof BannerSchemaCore>;
-
 // Validation function for frontend forms
-export function validateBannerForm(data: unknown): ValidationResult<BannerFormData> {
+export function validateBannerForm(data: unknown): ValidationResult<z.infer<typeof BannerSchemaCore>> {
   const result = BannerSchemaCore.safeParse(data);
   return createValidationResult(result);
 }

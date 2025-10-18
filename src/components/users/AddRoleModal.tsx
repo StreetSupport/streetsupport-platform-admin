@@ -264,7 +264,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
             {(selectedRole === 'location-admin' || selectedRole === 'swep-admin') && (
               <div className="space-y-3">
                 <label className="field-label">
-                  Select City{locations.length > 1 ? 's' : ''}
+                  Select Location{locations.length > 1 ? 's' : ''}
                 </label>
                 
                 {loadingLocations ? (
@@ -299,7 +299,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
           {/* Organisation Administrator Warning - Always show when selected */}
           {selectedRole === 'org-admin' && (
             <div className="px-6 pb-4">
-              <div className="bg-brand-j bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
+              <div className="bg-brand-i bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-brand-j flex-shrink-0 mt-0.5" />
                 <p className="text-small text-brand-k">
                   Organisation Administrator can be created only from Organisation page.

@@ -1,8 +1,8 @@
-import { ILocation } from "./ILocation";
+import { ILocationCoordinates } from "./ILocationCoordinates";
 import { IOpeningTime } from "./IOpeningTime";
 
 export interface IAddress {
-  Primary: boolean;
+  Primary?: boolean;
   Key: string;
   Street: string;
   Street1?: string;
@@ -13,6 +13,6 @@ export interface IAddress {
   Telephone?: string;
   IsOpen247?: boolean;
   IsAppointmentOnly?: boolean;
-  Location?: ILocation;
+  Location?: ILocationCoordinates;
   OpeningTimes: IOpeningTime[];
 }

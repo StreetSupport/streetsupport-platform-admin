@@ -11,7 +11,7 @@ import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toas
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ROLES } from '@/constants/roles';
-import { validateUpdateUser } from '@/schemas/userSchema';
+import { validateUser } from '@/schemas/userSchema';
 import { useSession } from 'next-auth/react';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 
@@ -187,7 +187,7 @@ export default function EditUserModal({
       };
 
       // Validate update data before sending
-      const validation = validateUpdateUser(updateData);
+      const validation = validateUser(updateData);
       if (!validation.success) {
         const errorMessages = validation.errors.map(err => err.message).join(', ');
         throw new Error(errorMessages || 'Validation failed');

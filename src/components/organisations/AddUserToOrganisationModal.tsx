@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { IServiceProvider } from '@/types/serviceProviders/IServiceProvider';
+import { IOrganisation } from '@/types/organisations/IOrganisation';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
@@ -14,7 +14,7 @@ interface AddUserToOrganisationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  organisation: IServiceProvider | null;
+  organisation: IOrganisation | null;
 }
 
 export default function AddUserToOrganisationModal({ 
@@ -141,16 +141,10 @@ export default function AddUserToOrganisationModal({
             </div>
           )}
 
-          {validationErrors.length > 0 && (
-            <div className="mb-4">
-              <ErrorDisplay ValidationErrors={validationErrors} />
-            </div>
-          )}
-
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-brand-k mb-2">
-                Email Address <span className="text-brand-g">*</span>
+                Email
               </label>
               <Input
                 id="email"
@@ -171,10 +165,16 @@ export default function AddUserToOrganisationModal({
                 <strong>Role:</strong> Organisation Administrator
               </p>
               <p className="text-xs text-brand-f">
-                This user will automatically be assigned the OrgAdmin role for <strong>{organisation.Name}</strong> and will have access to manage this organisation.
+                This user will automatically be assigned the Organisation Administrator role for <strong>{organisation.Name}</strong> and will have access to manage this organisation.
               </p>
             </div>
           </div>
+
+        {validationErrors.length > 0 && (
+            <div className="mt-4">
+              <ErrorDisplay ValidationErrors={validationErrors} />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 p-6 border-t border-brand-q">

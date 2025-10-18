@@ -74,8 +74,15 @@ export default function UsersPage() {
         const data = await response.json();
         setLocations(data.data || []);
       }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch locations');
+      }
     } catch (err) {
-      console.error('Failed to fetch locations:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch locations';
+      setError(errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 
@@ -103,7 +110,7 @@ export default function UsersPage() {
       setTotal(result.pagination?.total || 0);
       setTotalPages(result.pagination?.pages || 1);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load users';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users';
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {

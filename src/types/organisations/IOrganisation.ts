@@ -2,7 +2,7 @@ import { IAddress } from "./IAddress";
 import { IAdministrator } from "./IAdministrator";
 import { INote } from "./INote";
 
-export interface IServiceProvider {
+export interface IOrganisation {
     _id: string;
     DocumentCreationDate: Date;
     DocumentModifiedDate: Date;

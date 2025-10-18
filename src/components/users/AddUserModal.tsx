@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-import { validateCreateUser } from '@/schemas/userSchema';
+import { validateUser } from '@/schemas/userSchema';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { parseAuthClaimsForDisplay, RoleDisplay } from '@/lib/userService';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
@@ -124,7 +124,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       };
 
       // Validate user data before sending
-      const validation = validateCreateUser(userData);
+      const validation = validateUser(userData);
       if (!validation.success) {
         const errors = validation.errors.map(err => ({
           Path: err.path || 'Unknown',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { IServiceProvider } from '@/types/serviceProviders/IServiceProvider';
+import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { X } from 'lucide-react';
@@ -10,7 +10,7 @@ interface DisableOrganisationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (staffName: string, reason: string) => void;
-  organisation: IServiceProvider | null;
+  organisation: IOrganisation | null;
 }
 
 export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> = ({

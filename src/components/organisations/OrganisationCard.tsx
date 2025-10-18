@@ -1,21 +1,21 @@
 'use client';
 
 import React from 'react';
-import { IServiceProvider } from '@/types/serviceProviders/IServiceProvider';
+import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { Edit, Trash2, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText } from 'lucide-react';
 
 interface OrganisationCardProps {
-  organisation: IServiceProvider;
+  organisation: IOrganisation;
   isLoading?: boolean;
-  onView?: (organisation: IServiceProvider) => void;
-  onEdit?: (organisation: IServiceProvider) => void;
-  onDelete?: (organisation: IServiceProvider) => void;
-  onTogglePublished?: (organisation: IServiceProvider) => void;
-  onToggleVerified?: (organisation: IServiceProvider) => void;
-  onAddUser?: (organisation: IServiceProvider) => void;
-  onViewNotes?: (organisation: IServiceProvider) => void;
-  onDisableClick?: (organisation: IServiceProvider) => void;
+  onView?: (organisation: IOrganisation) => void;
+  onEdit?: (organisation: IOrganisation) => void;
+  onDelete?: (organisation: IOrganisation) => void;
+  onTogglePublished?: (organisation: IOrganisation) => void;
+  onToggleVerified?: (organisation: IOrganisation) => void;
+  onAddUser?: (organisation: IOrganisation) => void;
+  onViewNotes?: (organisation: IOrganisation) => void;
+  onDisableClick?: (organisation: IOrganisation) => void;
   isTogglingPublish?: boolean;
   isTogglingVerify?: boolean;
   isOrgAdmin?: boolean;

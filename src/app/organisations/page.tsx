@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { Search } from 'lucide-react';
-import { IServiceProvider } from '@/types/serviceProviders/IServiceProvider';
+import { Plus, Search } from 'lucide-react';
+import { IOrganisation } from '@/types/organisations/IOrganisation';
 import OrganisationCard from '@/components/organisations/OrganisationCard';
 import AddUserToOrganisationModal from '@/components/organisations/AddUserToOrganisationModal';
 import { NotesModal } from '@/components/organisations/NotesModal';
@@ -18,7 +18,6 @@ import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useSession } from 'next-auth/react';
 import { UserAuthClaims } from '@/types/auth';
-import { getAvailableLocations } from '@/utils/locationUtils';
 
 export default function OrganisationsPage() {
   // Check authorization FIRST before any other logic
@@ -29,7 +28,7 @@ export default function OrganisationsPage() {
   });
 
   const { data: session } = useSession();
-  const [organisations, setOrganisations] = useState<IServiceProvider[]>([]);
+  const [organisations, setOrganisations] = useState<IOrganisation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState(''); // Name input field value
@@ -46,9 +45,9 @@ export default function OrganisationsPage() {
   const [showClearNotesConfirmModal, setShowClearNotesConfirmModal] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
-  const [selectedOrganisation, setSelectedOrganisation] = useState<IServiceProvider | null>(null);
-  const [organisationToDelete, setOrganisationToDelete] = useState<IServiceProvider | null>(null);
-  const [organisationToDisable, setOrganisationToDisable] = useState<IServiceProvider | null>(null);
+  const [selectedOrganisation, setSelectedOrganisation] = useState<IOrganisation | null>(null);
+  const [organisationToDelete, setOrganisationToDelete] = useState<IOrganisation | null>(null);
+  const [organisationToDisable, setOrganisationToDisable] = useState<IOrganisation | null>(null);
   const [togglingPublishId, setTogglingPublishId] = useState<string | null>(null);
   const [togglingVerifyId, setTogglingVerifyId] = useState<string | null>(null);
   
@@ -62,9 +61,6 @@ export default function OrganisationsPage() {
                      !userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) &&
                      !userAuthClaims.roles.includes(ROLES.VOLUNTEER_ADMIN) &&
                      !userAuthClaims.roles.includes(ROLES.CITY_ADMIN);
-
-  // Filter locations based on user permissions
-  const availableLocations = getAvailableLocations(userAuthClaims, locations);
 
   // Only run effects if authorized
   useEffect(() => {
@@ -106,7 +102,7 @@ export default function OrganisationsPage() {
       if (isPublishedFilter) params.append('isPublished', isPublishedFilter);
       if (locationFilter) params.append('location', locationFilter);
       
-      const response = await fetch(`/api/service-providers?${params.toString()}`);
+      const response = await fetch(`/api/organisations?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch organisations');
       }
@@ -116,7 +112,7 @@ export default function OrganisationsPage() {
       setTotal(result.pagination?.total || 0);
       setTotalPages(result.pagination?.pages || 1);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load organisations';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organisations';
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {
@@ -150,27 +146,27 @@ export default function OrganisationsPage() {
     setCurrentPage(1);
   };
 
-  const handleView = (organisation: IServiceProvider) => {
+  const handleView = (organisation: IOrganisation) => {
     // TODO: Implement view modal or navigation
     console.log('View organisation:', organisation);
   };
 
-  const handleEdit = (organisation: IServiceProvider) => {
+  const handleEdit = (organisation: IOrganisation) => {
     // TODO: Implement edit modal or navigation
     console.log('Edit organisation:', organisation);
   };
 
-  const handleDelete = async (organisation: IServiceProvider) => {
+  const handleDelete = async (organisation: IOrganisation) => {
     setOrganisationToDelete(organisation);
     setShowDeleteConfirmModal(true);
   };
 
-  const handleDisableClick = (organisation: IServiceProvider) => {
+  const handleDisableClick = (organisation: IOrganisation) => {
     setOrganisationToDisable(organisation);
     setShowDisableModal(true);
   };
 
-  const handleTogglePublished = async (organisation: IServiceProvider, staffName?: string, reason?: string) => {
+  const handleTogglePublished = async (organisation: IOrganisation, staffName?: string, reason?: string) => {
     setTogglingPublishId(organisation._id);
     const isCurrentlyPublished = organisation.IsPublished;
     const action = isCurrentlyPublished ? 'disable' : 'publish';
@@ -187,7 +183,7 @@ export default function OrganisationsPage() {
         };
       }
 
-      const response = await fetch(`/api/service-providers/${organisation._id}/toggle-published`, {
+      const response = await fetch(`/api/organisations/${organisation._id}/toggle-published`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
@@ -218,14 +214,14 @@ export default function OrganisationsPage() {
     }
   };
 
-  const handleToggleVerified = async (organisation: IServiceProvider) => {
+  const handleToggleVerified = async (organisation: IOrganisation) => {
     setTogglingVerifyId(organisation._id);
     const isCurrentlyVerified = organisation.IsVerified;
     const action = isCurrentlyVerified ? 'unverify' : 'verify';
     const toastId = loadingToast.process(action === 'verify' ? 'Verifying organisation' : 'Unverifying organisation');
     
     try {
-      const response = await fetch(`/api/service-providers/${organisation._id}/toggle-verified`, {
+      const response = await fetch(`/api/organisations/${organisation._id}/toggle-verified`, {
         method: HTTP_METHODS.PATCH
       });
 
@@ -252,12 +248,12 @@ export default function OrganisationsPage() {
     }
   };
 
-  const handleAddUser = (organisation: IServiceProvider) => {
+  const handleAddUser = (organisation: IOrganisation) => {
     setSelectedOrganisation(organisation);
     setIsAddUserModalOpen(true);
   };
 
-  const handleViewNotes = (organisation: IServiceProvider) => {
+  const handleViewNotes = (organisation: IOrganisation) => {
     setSelectedOrganisation(organisation);
     setIsNotesModalOpen(true);
   };
@@ -273,7 +269,7 @@ export default function OrganisationsPage() {
     const toastId = loadingToast.process('Clearing notes');
     
     try {
-      const response = await fetch(`/api/service-providers/${selectedOrganisation._id}/notes`, {
+      const response = await fetch(`/api/organisations/${selectedOrganisation._id}/notes`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -304,7 +300,7 @@ export default function OrganisationsPage() {
     const toastId = loadingToast.delete('organisation');
     
     try {
-      const response = await fetch(`/api/service-providers/${organisationToDelete._id}`, {
+      const response = await fetch(`/api/organisations/${organisationToDelete._id}`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -357,6 +353,10 @@ export default function OrganisationsPage() {
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
                 <h1 className="heading-4">Organisations</h1>
+                <Button variant="primary" onClick={() => true }>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Organisation
+                </Button>
               </div>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function OrganisationsPage() {
                     className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
                   >
                     <option value="" className="text-brand-k">All Locations</option>
-                    {availableLocations.map(city => (
+                    {locations.map(city => (
                       <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
                     ))}
                   </select>

@@ -1,20 +1,20 @@
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
-import { sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/service-providers', HTTP_METHODS.GET)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.GET)) {
       return sendForbidden();
     }
 
     const { id } = context.params;
 
-    const response = await fetch(`${API_BASE_URL}/api/service-providers/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
       method: HTTP_METHODS.GET,
       headers: {
         'Content-Type': 'application/json',
@@ -22,29 +22,29 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
-      return NextResponse.json({ message: data?.message || 'Failed to fetch service provider' }, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to fetch organisation');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Error fetching service provider:', error);
+    console.error('Error fetching organisation:', error);
     return sendInternalError();
   }
 };
 
 const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/service-providers', HTTP_METHODS.PUT)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.PUT)) {
       return sendForbidden();
     }
 
     const { id } = context.params;
     const body = await req.json();
 
-    const response = await fetch(`${API_BASE_URL}/api/service-providers/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
       method: HTTP_METHODS.PUT,
       headers: {
         'Content-Type': 'application/json',
@@ -53,28 +53,28 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       body: JSON.stringify(body),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
-      return NextResponse.json({ message: data?.message || 'Failed to update service provider' }, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to update organisation');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Error updating service provider:', error);
+    console.error('Error updating organisation:', error);
     return sendInternalError();
   }
 };
 
 const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/service-providers', HTTP_METHODS.DELETE)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.DELETE)) {
       return sendForbidden();
     }
 
     const { id } = context.params;
 
-    const response = await fetch(`${API_BASE_URL}/api/service-providers/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
       method: HTTP_METHODS.DELETE,
       headers: {
         'Content-Type': 'application/json',
@@ -82,29 +82,29 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
-      return NextResponse.json({ message: data?.message || 'Failed to delete service provider' }, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to delete organisation');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Error deleting service provider:', error);
+    console.error('Error deleting organisation:', error);
     return sendInternalError();
   }
 };
 
 const patchHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/service-providers', HTTP_METHODS.PATCH)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.PATCH)) {
       return sendForbidden();
     }
 
     const { id } = context.params;
     const body = await req.json();
 
-    const response = await fetch(`${API_BASE_URL}/api/service-providers/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
       method: HTTP_METHODS.PATCH,
       headers: {
         'Content-Type': 'application/json',
@@ -113,15 +113,15 @@ const patchHandler: AuthenticatedApiHandler = async (req: NextRequest, context, 
       body: JSON.stringify(body),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
-      return NextResponse.json({ message: data?.message || 'Failed to patch service provider' }, { status: response.status });
+      return sendError(response.status, data.error || 'Failed to patch organisation');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
-    console.error('Error patching service provider:', error);
+    console.error('Error patching organisation:', error);
     return sendInternalError();
   }
 };
