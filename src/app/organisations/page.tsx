@@ -11,6 +11,7 @@ import { Plus, Search } from 'lucide-react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import OrganisationCard from '@/components/organisations/OrganisationCard';
 import AddUserToOrganisationModal from '@/components/organisations/AddUserToOrganisationModal';
+import { AddOrganisationModal } from '@/components/organisations/AddOrganisationModal';
 import { NotesModal } from '@/components/organisations/NotesModal';
 import { DisableOrganisationModal } from '@/components/organisations/DisableOrganisationModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
@@ -44,6 +45,7 @@ export default function OrganisationsPage() {
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [showClearNotesConfirmModal, setShowClearNotesConfirmModal] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isAddOrganisationModalOpen, setIsAddOrganisationModalOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState<IOrganisation | null>(null);
   const [organisationToDelete, setOrganisationToDelete] = useState<IOrganisation | null>(null);
@@ -353,7 +355,7 @@ export default function OrganisationsPage() {
             <div className="page-container">
               <div className="flex items-center justify-between h-16">
                 <h1 className="heading-4">Organisations</h1>
-                <Button variant="primary" onClick={() => true }>
+                <Button variant="primary" onClick={() => setIsAddOrganisationModalOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Organisation
                 </Button>
@@ -511,9 +513,20 @@ export default function OrganisationsPage() {
             setSelectedOrganisation(null);
           }}
           onSuccess={() => {
+            // Refresh the organisations list
             fetchOrganisations();
           }}
           organisation={selectedOrganisation}
+        />
+
+        {/* Add Organisation Modal */}
+        <AddOrganisationModal
+          isOpen={isAddOrganisationModalOpen}
+          onClose={() => setIsAddOrganisationModalOpen(false)}
+          onSuccess={() => {
+            // Refresh the organisations list
+            fetchOrganisations();
+          }}
         />
 
         {/* Notes Modal */}

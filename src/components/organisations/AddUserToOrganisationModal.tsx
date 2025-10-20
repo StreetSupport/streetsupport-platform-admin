@@ -144,7 +144,7 @@ export default function AddUserToOrganisationModal({
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-brand-k mb-2">
-                Email
+                Email <span className="text-brand-g">*</span>
               </label>
               <Input
                 id="email"

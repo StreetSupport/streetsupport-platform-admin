@@ -38,4 +38,36 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
   }
 };
 
+const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
+  try {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.POST)) {
+      return sendForbidden();
+    }
+
+    const body = await req.json();
+    const url = `${API_BASE_URL}/api/organisations`;
+
+    const response = await fetch(url, {
+      method: HTTP_METHODS.POST,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return sendError(response.status, data.error || 'Failed to create organisation');
+    }
+
+    return proxyResponse(data);
+  } catch (error) {
+    console.error('Error creating organisation:', error);
+    return sendInternalError();
+  }
+};
+
 export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

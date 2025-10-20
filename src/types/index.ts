@@ -4,16 +4,16 @@ export * from './ICity';
 export * from './IFaq';
 
 // Service provider related types
-export * from './organisations/IOrganisation.js';
-export * from './organisations/IGroupedService.js';
-export * from './organisations/IAccommodation.js';
-export * from './organisations/IAddress.js';
-export * from './organisations/IOpeningTime.js';
-export * from './organisations/ILocationCoordinates.js';
-export * from './organisations/IAdministrator.js';
-export * from './organisations/INote.js';
-export * from './organisations/ILocation.js';
-export * from './organisations/ISubCategory.js';
+export * from './organisations/IOrganisation';
+export * from './organisations/IGroupedService';
+export * from './organisations/IAccommodation';
+export * from './organisations/IAddress';
+export * from './organisations/IOpeningTime';
+export * from './organisations/ILocationCoordinates';
+export * from './organisations/IAdministrator';
+export * from './organisations/INote';
+export * from './organisations/ILocation';
+export * from './organisations/ISubCategory';
 
 // Banner related types
 export * from './banners/IBanner';

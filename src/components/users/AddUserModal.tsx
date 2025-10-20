@@ -206,7 +206,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
             {/* Email Input */}
             <div className="field-group">
               <label htmlFor="email" className="field-label required">
-                Email
+                Email <span className="text-brand-g">*</span>
               </label>
               <Input
                 type="email"
@@ -223,7 +223,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
             {/* Roles Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="field-label">Roles</label>
+                <label className="field-label">Roles <span className="text-brand-g">*</span></label>
                 <Button
                   variant="secondary"
                   size="sm"

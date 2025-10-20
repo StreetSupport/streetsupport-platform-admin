@@ -75,7 +75,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
     }
 
     if ((selectedRole === 'location-admin' || selectedRole === 'swep-admin') && selectedLocations.length === 0) {
-      errorToast.generic('Please select at least one city');
+      errorToast.generic('Please select at least one location');
       return;
     }
 
@@ -289,7 +289,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                     ))}
                   </div>
                 ) : (
-                  <p className="text-small text-brand-f">No cities available</p>
+                  <p className="text-small text-brand-f">No locations available</p>
                 )}
               </div>
             )}

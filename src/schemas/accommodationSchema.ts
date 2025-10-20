@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
-import { LocationSchema } from './organisationSchema';
+import { LocationCoordinatesSchema } from './organisationSchema';
 
 // Enum for discretionary values: 0 = No, 1 = Yes, 3 = Don't Know/Ask
 const DiscretionaryValueSchema = z.union([
@@ -42,7 +42,7 @@ const AccommodationAddressSchema = z.object({
   Street3: z.string().optional(),
   City: z.string().min(1, 'City is required'),
   Postcode: z.string().min(1, 'Postcode is required'),
-  Location: LocationSchema.optional(),
+  Location: LocationCoordinatesSchema.optional(),
   AssociatedCityId: z.string().min(1, 'Associated city ID is required'),
 });
 
