@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
 import { OpeningTimeSchema, AddressSchema } from './organisationSchema';
 
+// We don't need this scema on Admin part.
 // Provided Service schema (works for both create and update)
 // Form should validate these requirements for create operations
 export const ServiceSchema = z.object({

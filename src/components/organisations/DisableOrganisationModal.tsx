@@ -57,81 +57,98 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="flex items-center justify-between p-6 border-b border-brand-q">
-          <h2 className="heading-4">Disable Organisation</h2>
-          <button
-            onClick={onClose}
-            className="text-brand-f hover:text-brand-k transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
 
-        <form onSubmit={handleSubmit} className="p-6">
-          <p className="text-base text-brand-l mb-4">
-            You are about to disable <strong>{organisation?.Name}</strong>. Please provide the following information:
-          </p>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="staffName" className="block text-sm font-medium text-brand-k mb-2">
-                Staff Name <span className="text-brand-g">*</span>
-              </label>
-              <Input
-                id="staffName"
-                type="text"
-                value={staffName}
-                onChange={(e) => setStaffName(e.target.value)}
-                placeholder="Enter your name"
-                className={errors.staffName ? 'border-brand-g' : ''}
-              />
-              {errors.staffName && (
-                <p className="text-xs text-brand-g mt-1">{errors.staffName}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="reason" className="block text-sm font-medium text-brand-k mb-2">
-                Reason for Disabling <span className="text-brand-g">*</span>
-              </label>
-              <textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Please provide a reason for disabling this organisation"
-                rows={4}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-brand-a text-brand-k ${
-                  errors.reason ? 'border-brand-g' : 'border-brand-q'
-                }`}
-              />
-              {errors.reason && (
-                <p className="text-xs text-brand-g mt-1">{errors.reason}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-6">
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
+            <h2 className="heading-4">Disable Organisation</h2>
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={onClose}
-              className="flex-1"
+              className="p-2"
+              title="Close"
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="outline"
-              className="flex-1 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-            >
-              Disable Organisation
+              <X className="w-4 h-4" />
             </Button>
           </div>
-        </form>
+
+          {/* Content - form wrapper */}
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1">
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              <p className="text-base text-brand-l mb-4">
+                You are about to disable <strong>{organisation?.Name}</strong>. Please provide the following information:
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="staffName" className="block text-sm font-medium text-brand-k mb-2">
+                    Staff Name <span className="text-brand-g">*</span>
+                  </label>
+                  <Input
+                    id="staffName"
+                    type="text"
+                    value={staffName}
+                    onChange={(e) => setStaffName(e.target.value)}
+                    placeholder="Enter your name"
+                    className={errors.staffName ? 'border-brand-g' : ''}
+                  />
+                  {errors.staffName && (
+                    <p className="text-xs text-brand-g mt-1">{errors.staffName}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="reason" className="block text-sm font-medium text-brand-k mb-2">
+                    Reason for Disabling <span className="text-brand-g">*</span>
+                  </label>
+                  <textarea
+                    id="reason"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Please provide a reason for disabling this organisation"
+                    rows={4}
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-brand-a text-brand-k ${
+                      errors.reason ? 'border-brand-g' : 'border-brand-q'
+                    }`}
+                  />
+                  {errors.reason && (
+                    <p className="text-xs text-brand-g mt-1">{errors.reason}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer - fixed at bottom */}
+            <div className="border-t border-brand-q p-4 sm:p-6">
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="flex-1 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+                >
+                  Disable Organisation
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };

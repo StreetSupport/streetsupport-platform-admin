@@ -10,14 +10,14 @@ import { IAddressFormData, IOpeningTimeFormData } from '@/types/organisations/IO
 import { OpeningTimeFormSchema, AddressSchema } from '@/schemas/organisationSchema';
 import { OpeningTimesManager } from './OpeningTimesManager';
 import { errorToast } from '@/utils/toast';
-import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (location: IAddressFormData) => void;
   editingLocation?: IAddressFormData | null;
-  validationErrors?: { path: string; message: string }[];
+  validationErrors?: ValidationError[];
 }
 
 export function AddLocationModal({ 
@@ -28,9 +28,8 @@ export function AddLocationModal({
   validationErrors = [] 
 }: AddLocationModalProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [locationErrors, setLocationErrors] = useState<{ path: string; message: string }[]>([]);
+  const [locationErrors, setLocationErrors] = useState<ValidationError[]>([]);
   const [currentLocation, setCurrentLocation] = useState<IAddressFormData>({
-    Key: '',
     Street: '',
     Street1: '',
     Street2: '',
@@ -56,7 +55,6 @@ export function AddLocationModal({
 
   const resetForm = () => {
     setCurrentLocation({
-      Key: '',
       Street: '',
       Street1: '',
       Street2: '',
@@ -77,13 +75,10 @@ export function AddLocationModal({
   };
 
   const validateLocation = (): boolean => {
-    const errors: { path: string; message: string }[] = [];
+    const errors: ValidationError[] = [];
     
     // Validate using AddressSchema for comprehensive validation including Postcode format
-    const addressValidation = AddressSchema.safeParse({
-      ...currentLocation,
-      Key: currentLocation.Key || 'temp-key' // Provide temp key for validation
-    });
+    const addressValidation = AddressSchema.safeParse(currentLocation);
     
     if (!addressValidation.success) {
       addressValidation.error.issues.forEach((issue: any) => {
@@ -91,8 +86,8 @@ export function AddLocationModal({
         // Skip Key validation errors since it's auto-generated
         if (fieldName !== 'Key') {
           errors.push({ 
-            path: fieldName,
-            message: issue.message 
+            Path: fieldName,
+            Message: issue.message 
           });
         }
       });
@@ -101,14 +96,14 @@ export function AddLocationModal({
     // Validate opening times if not 24/7 and not appointment only
     if (!currentLocation.IsOpen247 && !currentLocation.IsAppointmentOnly) {
       if (currentLocation.OpeningTimes.length === 0) {
-        errors.push({ path: 'Opening Times', message: 'At least one opening time is required when location is not open 24/7 and not appointment only' });
+        errors.push({ Path: 'Opening Times', Message: 'At least one opening time is required when location is not open 24/7 and not appointment only' });
       } else {
         // Validate each opening time using OpeningTimeFormSchema
         for (const openingTime of currentLocation.OpeningTimes) {
           const result = OpeningTimeFormSchema.safeParse(openingTime);
           if (!result.success) {
             result.error.issues.forEach((issue: any) => {
-              errors.push({ path: 'Opening Times', message: issue.message });
+              errors.push({ Path: 'Opening Times', Message: issue.message });
             });
           }
         }
@@ -137,20 +132,6 @@ export function AddLocationModal({
     
     onSave(locationWithKey);
     onClose();
-  };
-
-  const handleCancel = () => {
-    // Check if form has been modified
-    const hasChanges = currentLocation.Street?.trim() || 
-                      currentLocation.City?.trim() || 
-                      currentLocation.Postcode?.trim() ||
-                      currentLocation.OpeningTimes.length > 0;
-    
-    if (hasChanges && !editingLocation) {
-      setShowConfirmModal(true);
-    } else {
-      onClose();
-    }
   };
 
   const confirmCancel = () => {
@@ -201,23 +182,30 @@ export function AddLocationModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-brand-q">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h2 className="heading-3">
               {editingLocation ? 'Edit Location' : 'Add New Location'}
             </h2>
-            <button
-              onClick={handleCancel}
-              className="text-brand-f hover:text-brand-k transition-colors"
-              aria-label="Close modal"
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConfirmModal(true)}
+              className="p-2"
+              title="Close"
             >
-              <X className="w-6 h-6" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* Main Content */}
+          {/* Content - scrollable */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="space-y-6">
               {/* Address Fields */}
@@ -327,7 +315,7 @@ export function AddLocationModal({
 
               {/* Opening Times Section */}
               <div className="space-y-6">
-                <h4 className="heading-4 border-b border-brand-q pb-3">Opening Hours</h4>
+                <h4 className="heading-4 border-b border-brand-q pb-3">Opening Times</h4>
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Checkbox
@@ -364,12 +352,12 @@ export function AddLocationModal({
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer - fixed at bottom */}
           <div className="border-t border-brand-q p-4 sm:p-6">
             {/* Error Display */}
             {locationErrors.length > 0 && (
               <ErrorDisplay
-                ValidationErrors={locationErrors.map(error => ({ Path: error.path, Message: error.message }))}
+                ValidationErrors={locationErrors}
                 ClassName="mb-6"
               />
             )}
@@ -378,7 +366,7 @@ export function AddLocationModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleCancel}
+                onClick={() => setShowConfirmModal(true)}
                 className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
               >
                 Cancel
@@ -401,10 +389,11 @@ export function AddLocationModal({
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={confirmCancel}
-        title="Discard Changes?"
-        message="You have unsaved changes. Are you sure you want to close without saving?"
-        confirmLabel="Discard Changes"
+        title="Close without saving?"
+        message="You may lose unsaved changes."
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
+        variant="warning"
       />
     </>
   );

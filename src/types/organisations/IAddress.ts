@@ -2,8 +2,6 @@ import { ILocationCoordinates } from "./ILocationCoordinates";
 import { IOpeningTime } from "./IOpeningTime";
 
 export interface IAddress {
-  Primary?: boolean;
-  Key: string;
   Street: string;
   Street1?: string;
   Street2?: string;

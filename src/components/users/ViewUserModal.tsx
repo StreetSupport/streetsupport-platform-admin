@@ -49,28 +49,28 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-brand-q px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h2 className="heading-4">User Details</h2>
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={onClose}
-              className="p-2 hover:bg-brand-q rounded-full transition-colors"
-              aria-label="Close modal"
+              className="p-2"
+              title="Close"
             >
-              <X className="w-5 h-5 text-brand-k" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
+          {/* Content - scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {/* Email Section */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-brand-f">
@@ -168,8 +168,8 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4 flex items-center justify-end">
+          {/* Footer - fixed at bottom */}
+          <div className="border-t border-brand-q p-4 sm:p-6 flex items-center justify-end">
             <Button variant="primary" onClick={onClose}>
               Close
             </Button>

@@ -15,7 +15,6 @@ export interface IOrganisation {
     Description: string;
     IsVerified: boolean;
     IsPublished: boolean;
-    RegisteredCharity?: number;
     Tags?: string;
     Email?: string;
     Telephone?: string;

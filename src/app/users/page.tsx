@@ -16,6 +16,7 @@ import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toas
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { ROLES, getRoleOptions } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { ICity } from '@/types';
 
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
@@ -39,7 +40,7 @@ export default function UsersPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
-  const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
+  const [locations, setLocations] = useState<ICity[]>([]);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showDeactivateConfirmModal, setShowDeactivateConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<IUser | null>(null);

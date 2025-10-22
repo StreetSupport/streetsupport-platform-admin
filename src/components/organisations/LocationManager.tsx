@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { IAddressFormData } from '@/types/organisations/IOrganisation';
+import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { AddLocationModal } from './AddLocationModal';
 
 interface LocationManagerProps {
   locations: IAddressFormData[];
   onChange: (locations: IAddressFormData[]) => void;
-  validationErrors?: { path: string; message: string }[];
+  validationErrors?: ValidationError[];
 }
 
 export function LocationManager({ locations, onChange, validationErrors = [] }: LocationManagerProps) {

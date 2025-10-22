@@ -12,6 +12,7 @@ import { IOrganisation } from '@/types/organisations/IOrganisation';
 import OrganisationCard from '@/components/organisations/OrganisationCard';
 import AddUserToOrganisationModal from '@/components/organisations/AddUserToOrganisationModal';
 import { AddOrganisationModal } from '@/components/organisations/AddOrganisationModal';
+import EditOrganisationModal from '@/components/organisations/EditOrganisationModal';
 import { NotesModal } from '@/components/organisations/NotesModal';
 import { DisableOrganisationModal } from '@/components/organisations/DisableOrganisationModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
@@ -46,6 +47,7 @@ export default function OrganisationsPage() {
   const [showClearNotesConfirmModal, setShowClearNotesConfirmModal] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isAddOrganisationModalOpen, setIsAddOrganisationModalOpen] = useState(false);
+  const [isEditOrganisationModalOpen, setIsEditOrganisationModalOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState<IOrganisation | null>(null);
   const [organisationToDelete, setOrganisationToDelete] = useState<IOrganisation | null>(null);
@@ -154,8 +156,8 @@ export default function OrganisationsPage() {
   };
 
   const handleEdit = (organisation: IOrganisation) => {
-    // TODO: Implement edit modal or navigation
-    console.log('Edit organisation:', organisation);
+    setSelectedOrganisation(organisation);
+    setIsEditOrganisationModalOpen(true);
   };
 
   const handleDelete = async (organisation: IOrganisation) => {
@@ -528,6 +530,22 @@ export default function OrganisationsPage() {
             fetchOrganisations();
           }}
         />
+
+        {/* Edit Organisation Modal */}
+        {selectedOrganisation && (
+          <EditOrganisationModal
+            isOpen={isEditOrganisationModalOpen}
+            onClose={() => {
+              setIsEditOrganisationModalOpen(false);
+              setSelectedOrganisation(null);
+            }}
+            organisation={selectedOrganisation}
+            onOrganisationUpdated={() => {
+              // Refresh the organisations list
+              fetchOrganisations();
+            }}
+          />
+        )}
 
         {/* Notes Modal */}
         <NotesModal

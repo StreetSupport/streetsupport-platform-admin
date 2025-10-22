@@ -1108,11 +1108,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={confirmCancel}
-        title="Cancel Changes"
-        message="Are you sure you want to cancel? All unsaved changes will be lost."
+        title="Close without saving?"
+        message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Yes, Cancel"
-        cancelLabel="No, Keep Editing"
+        confirmLabel="Close Without Saving"
+        cancelLabel="Continue Editing"
       />
     </div>
   );

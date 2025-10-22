@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { IOpeningTimeFormData, DAYS_OF_WEEK } from '@/types/organisations/IOrganisation';
+import { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface OpeningTimesManagerProps {
   openingTimes: IOpeningTimeFormData[];
   onChange: (openingTimes: IOpeningTimeFormData[]) => void;
-  validationErrors?: { path: string; message: string }[];
+  validationErrors?: ValidationError[];
 }
 
 export function OpeningTimesManager({ openingTimes, onChange, validationErrors = [] }: OpeningTimesManagerProps) {
@@ -51,8 +52,7 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-brand-q pb-3">
-        <h5 className="heading-5">Opening Times</h5>
+      <div className="space-y-3">
         <Button
           type="button"
           variant="outline"

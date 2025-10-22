@@ -118,23 +118,33 @@ export default function AddUserToOrganisationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-brand-q">
-          <div>
-            <h2 className="heading-4">Add User to Organisation</h2>
-            <p className="text-sm text-brand-f mt-1">{organisation.Name}</p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-brand-f hover:text-brand-k transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
 
-        <div className="flex-1 overflow-y-auto p-6">
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
+            <div>
+              <h2 className="heading-4">Add User to Organisation</h2>
+              <p className="text-sm text-brand-f mt-1">{organisation.Name}</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              className="p-2"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Content - scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {generalError && (
             <div className="mb-4 p-3 bg-red-50 border border-brand-g rounded-md">
               <p className="text-sm text-brand-g">{generalError}</p>
@@ -170,32 +180,34 @@ export default function AddUserToOrganisationModal({
             </div>
           </div>
 
-        {validationErrors.length > 0 && (
+          {validationErrors.length > 0 && (
             <div className="mt-4">
               <ErrorDisplay ValidationErrors={validationErrors} />
             </div>
           )}
-        </div>
+          </div>
 
-        <div className="flex gap-3 p-6 border-t border-brand-q">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={handleCreate}
-            className="flex-1"
-          >
-            Add User
-          </Button>
+          {/* Footer - fixed at bottom */}
+          <div className="border-t border-brand-q p-4 sm:p-6 flex flex-col-reverse sm:flex-row gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleCreate}
+              className="flex-1"
+            >
+              Add User
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

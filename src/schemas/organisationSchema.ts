@@ -52,8 +52,6 @@ export const OpeningTimeSchema = z.object({
 });
 
 export const AddressSchema = z.object({
-  Primary: z.boolean().optional(),
-  Key: z.string().min(1, 'Address key is required'),
   Street: z.string().min(1, 'Street is required'),
   Street1: z.string().optional(),
   Street2: z.string().optional(),
@@ -111,7 +109,6 @@ export const OrganisationSchema = z.object({
   // System fields
   IsVerified: z.boolean().default(false),
   IsPublished: z.boolean().default(false),
-  RegisteredCharity: z.number().optional(),
   Notes: z.array(NoteSchema).default([]),
 });
 

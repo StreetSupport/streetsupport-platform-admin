@@ -13,7 +13,7 @@ export * from './organisations/ILocationCoordinates';
 export * from './organisations/IAdministrator';
 export * from './organisations/INote';
 export * from './organisations/ILocation';
-export * from './organisations/ISubCategory';
+export * from './organisations/IServiceSubCategory';
 
 // Banner related types
 export * from './banners/IBanner';
