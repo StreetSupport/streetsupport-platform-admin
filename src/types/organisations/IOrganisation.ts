@@ -27,7 +27,7 @@ export interface IOrganisation {
 }
 
 // Form-specific version of IOrganisation with required fields and form-friendly types
-export interface IOrganisationFormData extends Omit<IOrganisation, '_id' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy' | 'Tags' | 'Addresses'> {
+export interface IOrganisationFormData extends Omit<IOrganisation, '_id' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy' | 'Tags' | 'Addresses' | 'Notes'> {
   // Override Tags to be array instead of string for easier form handling
   Tags: string[];
   

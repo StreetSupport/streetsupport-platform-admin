@@ -118,7 +118,8 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               <OrganisationTab
                 organisation={organisation}
                 onOrganisationUpdated={onOrganisationUpdated}
-                onClose={() => setShowConfirmModal(true)}
+                onClose={handleClose} // Direct close after successful update
+                onCancel={() => setShowConfirmModal(true)} // Show confirmation on manual cancel
               />
             )}
             {activeTab === 'services' && (

@@ -11,6 +11,7 @@ import { OpeningTimeFormSchema, AddressSchema } from '@/schemas/organisationSche
 import { OpeningTimesManager } from './OpeningTimesManager';
 import { errorToast } from '@/utils/toast';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
+import { decodeText } from '@/utils/htmlDecode';
 
 interface AddLocationModalProps {
   isOpen: boolean;
@@ -46,7 +47,13 @@ export function AddLocationModal({
   useEffect(() => {
     if (isOpen) {
       if (editingLocation) {
-        setCurrentLocation({ ...editingLocation });
+        setCurrentLocation({
+          ...editingLocation,
+          Street: decodeText(editingLocation.Street || ''),
+          Street1: decodeText(editingLocation.Street1 || ''),
+          Street2: decodeText(editingLocation.Street2 || ''),
+          Street3: decodeText(editingLocation.Street3 || '')
+        });
       } else {
         resetForm();
       }

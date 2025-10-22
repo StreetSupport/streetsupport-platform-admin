@@ -4,6 +4,7 @@ import React from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { Edit, Trash2, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText } from 'lucide-react';
+import { decodeText } from '@/utils/htmlDecode';
 
 interface OrganisationCardProps {
   organisation: IOrganisation;
@@ -215,7 +216,7 @@ const OrganisationCard = React.memo(function OrganisationCard({
 
         {/* Header */}
         <div className="mb-3">
-          <h3 className="heading-5 mb-2 break-words">{organisation.Name}</h3>
+          <h3 className="heading-5 mb-2 break-words">{decodeText(organisation.Name)}</h3>
           {/* Status Badges on separate line */}
           <div className="flex flex-wrap gap-2">
             <span className={`service-tag ${organisation.IsVerified ? 'verified' : 'template-type'}`}>
@@ -230,7 +231,7 @@ const OrganisationCard = React.memo(function OrganisationCard({
         {/* Short Description */}
         {organisation.ShortDescription && (
           <p className="text-sm text-brand-l mb-3 line-clamp-2">
-            {organisation.ShortDescription}
+            {decodeText(organisation.ShortDescription)}
           </p>
         )}
 

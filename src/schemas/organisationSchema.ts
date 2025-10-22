@@ -19,6 +19,12 @@ export function timeNumberToString(timeNum: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
+// Preprocessing helper to convert null/undefined to empty string
+const preprocessNullableString = (val: unknown) => {
+  if (val === null || val === undefined) return '';
+  return val;
+};
+
 // Nested schemas for organisation components
 export const LocationCoordinatesSchema = z.object({
   type: z.string().min(1, 'Location type is required'),
@@ -53,16 +59,16 @@ export const OpeningTimeSchema = z.object({
 
 export const AddressSchema = z.object({
   Street: z.string().min(1, 'Street is required'),
-  Street1: z.string().optional(),
-  Street2: z.string().optional(),
-  Street3: z.string().optional(),
-  City: z.string().optional(),
+  Street1: z.preprocess(preprocessNullableString, z.string().optional()),
+  Street2: z.preprocess(preprocessNullableString, z.string().optional()),
+  Street3: z.preprocess(preprocessNullableString, z.string().optional()),
+  City: z.preprocess(preprocessNullableString, z.string().optional()),
   Postcode: z.string().min(1, 'Postcode is required').refine((postcode) => {
     return isValidPostcodeFormat(postcode);
   }, {
     message: 'Invalid postcode format'
   }),
-  Telephone: z.string().optional(),
+  Telephone: z.preprocess(preprocessNullableString, z.string().optional()),
   IsOpen247: z.boolean().optional(),
   IsAppointmentOnly: z.boolean().optional(),
   Location: LocationCoordinatesSchema.optional(),
@@ -97,11 +103,15 @@ export const OrganisationSchema = z.object({
   Tags: z.array(z.string()).default([]),
   
   // Contact Information
-  Telephone: z.string().optional(),
-  Email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  Website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  Facebook: z.string().url('Invalid Facebook URL').optional().or(z.literal('')),
-  Twitter: z.string().url('Invalid Twitter URL').optional().or(z.literal('')),
+  Telephone: z.preprocess(preprocessNullableString, z.string().optional()),
+  Email: z.preprocess(preprocessNullableString, 
+    z.string().email('Invalid email address').optional().or(z.literal(''))
+  ),
+  Website: z.preprocess(preprocessNullableString,
+    z.string().url('Invalid website URL').optional().or(z.literal(''))
+  ),
+  Facebook: z.preprocess(preprocessNullableString, z.string().url('Invalid Facebook URL').optional().or(z.literal(''))),
+  Twitter: z.preprocess(preprocessNullableString, z.string().url('Invalid Twitter URL').optional().or(z.literal(''))),
   
   // Locations
   Addresses: z.array(AddressSchema).default([]),

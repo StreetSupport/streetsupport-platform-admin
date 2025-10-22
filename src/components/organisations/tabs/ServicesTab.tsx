@@ -8,6 +8,7 @@ import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import AddServiceModal from '@/components/organisations/AddServiceModal';
+import { decodeText } from '@/utils/htmlDecode';
 
 interface ServicesTabProps {
   organisation: IOrganisation;
@@ -103,7 +104,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
       return 'No subcategories';
     }
     
-    return service.SubCategories.map(sub => sub.Name).join(', ');
+    return service.SubCategories.map(sub => decodeText(sub.Name)).join(', ');
   };
 
   return (
@@ -158,7 +159,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
                     </p>
                     {service.Info && (
                       <p className="text-xs text-brand-f mt-1">
-                        {service.Info.substring(0, 100)}
+                        {decodeText(service.Info).substring(0, 100)}
                         {service.Info.length > 100 ? '...' : ''}
                       </p>
                     )}

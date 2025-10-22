@@ -8,29 +8,32 @@ import { timeNumberToString } from '@/schemas/organisationSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { OrganisationForm, OrganisationFormRef } from '../OrganisationForm';
+import { decodeText } from '@/utils/htmlDecode';
 
 interface OrganisationTabProps {
   organisation: IOrganisation;
   onOrganisationUpdated: () => void;
-  onClose: () => void;
+  onClose: () => void; // Called after successful update (no confirmation)
+  onCancel: () => void; // Called when user clicks Cancel (shows confirmation)
 }
 
 
 const OrganisationTab: React.FC<OrganisationTabProps> = ({
   organisation,
   onOrganisationUpdated,
-  onClose
+  onClose,
+  onCancel
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const formRef = React.useRef<OrganisationFormRef>(null);
 
-  // Prepare initial data for the form
+  // Prepare initial data for the form - decode HTML entities
   const initialData: Partial<IOrganisationFormData> = {
     Key: organisation.Key || '',
-    Name: organisation.Name || '',
-    ShortDescription: organisation.ShortDescription || '',
-    Description: organisation.Description || '',
+    Name: decodeText(organisation.Name || ''),
+    ShortDescription: decodeText(organisation.ShortDescription || ''),
+    Description: decodeText(organisation.Description || ''),
     AssociatedLocationIds: organisation.AssociatedLocationIds || [],
     Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) : [],
     IsVerified: organisation.IsVerified || false,
@@ -42,13 +45,16 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
     Twitter: organisation.Twitter || '',
     Addresses: (organisation.Addresses || []).map(address => ({
       ...address,
+      Street: decodeText(address.Street || ''),
+      Street1: decodeText(address.Street1 || ''),
+      Street2: decodeText(address.Street2 || ''),
+      Street3: decodeText(address.Street3 || ''),
       OpeningTimes: address.OpeningTimes.map(openingTime => ({
         Day: openingTime.Day,
         StartTime: timeNumberToString(openingTime.StartTime),
         EndTime: timeNumberToString(openingTime.EndTime)
       }))
-    })),
-    Notes: organisation.Notes || []
+    }))
   };
 
   const handleValidationChange = useCallback((errors: ValidationError[]) => {
@@ -120,7 +126,7 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
 
   const handleCancel = () => {
     setValidationErrors([]);
-    onClose();
+    onCancel(); // Trigger confirmation modal
   };
 
   return (

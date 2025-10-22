@@ -13,6 +13,7 @@ import { IOpeningTimeFormData } from '@/types/organisations/IOrganisation';
 import { IGroupedServiceFormData, validateGroupedService } from '@/schemas/groupedServiceSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
+import { decodeText } from '@/utils/htmlDecode';
 
 interface AddServiceModalProps {
   isOpen: boolean;
@@ -66,16 +67,16 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         _id: service._id,
         ProviderId: service.ProviderId,
         CategoryId: service.CategoryId,
-        CategoryName: service.CategoryName,
-        CategorySynopsis: service.CategorySynopsis,
-        Info: service.Info,
+        CategoryName: decodeText(service.CategoryName || ''),
+        CategorySynopsis: decodeText(service.CategorySynopsis || ''),
+        Info: decodeText(service.Info || ''),
         Tags: service.Tags,
         Location: {
-          OutreachLocationDescription: service.Location.Description,
-          StreetLine1: service.Location.StreetLine1,
-          StreetLine2: service.Location.StreetLine2,
-          StreetLine3: service.Location.StreetLine3,
-          StreetLine4: service.Location.StreetLine4,
+          OutreachLocationDescription: decodeText(service.Location.Description || ''),
+          StreetLine1: decodeText(service.Location.StreetLine1 || ''),
+          StreetLine2: decodeText(service.Location.StreetLine2 || ''),
+          StreetLine3: decodeText(service.Location.StreetLine3 || ''),
+          StreetLine4: decodeText(service.Location.StreetLine4 || ''),
           City: service.Location.City,
           Postcode: service.Location.Postcode,
           Location: service.Location.Location ? {
@@ -85,7 +86,11 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         },
         IsOpen247: service.IsOpen247,
         OpeningTimes: openingTimes,
-        SubCategories: service.SubCategories,
+        SubCategories: service.SubCategories?.map(sub => ({
+          ...sub,
+          Name: decodeText(sub.Name || ''),
+          Synopsis: decodeText(sub.Synopsis || '')
+        })),
         SubCategoriesIds: service.SubCategoriesIds,
         IsTelephoneService: service.IsTelephoneService,
         IsAppointmentOnly: service.IsAppointmentOnly

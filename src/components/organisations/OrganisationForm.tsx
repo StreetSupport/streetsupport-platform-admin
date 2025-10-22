@@ -43,13 +43,12 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     Tags: [],
     IsVerified: false,
     IsPublished: false,
-    Telephone: '',
-    Email: '',
-    Website: '',
-    Facebook: '',
-    Twitter: '',
+    // Telephone: '',
+    // Email: '',
+    // Website: '',
+    // Facebook: '',
+    // Twitter: '',
     Addresses: [],
-    Notes: [],
     ...initialData
   });
 
@@ -166,13 +165,12 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
       Tags: [],
       IsVerified: false,
       IsPublished: false,
-      Telephone: '',
-      Email: '',
-      Website: '',
-      Facebook: '',
-      Twitter: '',
+      // Telephone: '',
+      // Email: '',
+      // Website: '',
+      // Facebook: '',
+      // Twitter: '',
       Addresses: [],
-      Notes: [],
       ...initialData
     });
     setValidationErrors([]);
@@ -187,10 +185,8 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
 
   // Filter tags based on selected locations
   const getAvailableTags = () => {
-    const hasManchesterLocation = formData.AssociatedLocationIds.some(locationId => {
-      const location = locations.find(c => c._id === locationId);
-      return location?.Key === 'manchester';
-    });
+    // AssociatedLocationIds contains location Keys (not _id)
+    const hasManchesterLocation = formData.AssociatedLocationIds.includes('manchester');
 
     return ORGANISATION_TAGS.filter(tag => {
       // Show mcr-only tags only if manchester is selected
