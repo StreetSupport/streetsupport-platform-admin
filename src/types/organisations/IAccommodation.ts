@@ -1,10 +1,68 @@
+// Discretionary Values: 0 = No, 1 = Yes, 2 = Don't Know/Ask
+export enum DiscretionaryValue {
+  No = 0,
+  Yes = 1,
+  DontKnowAsk = 2
+}
+
+// Discretionary Options for Dropdowns
+export const DISCRETIONARY_OPTIONS = [
+  { value: DiscretionaryValue.No, label: 'No' },
+  { value: DiscretionaryValue.Yes, label: 'Yes' },
+  { value: DiscretionaryValue.DontKnowAsk, label: "Don't Know / Ask" }
+];
+
+// Accommodation Type Enum
+export enum AccommodationType {
+  EMERGENCY = 'emergency',
+  HOSTELS = 'hostels',
+  HOSTED = 'hosted',
+  RENTED = 'rented',
+  SUPPORTED = 'supported',
+  SOCIAL_HOUSING = 'social-housing',
+  NIGHT_SHELTER = 'night-shelter',
+  LETTINGS_AGENCIES = 'lettings-agencies',
+  BNBS = 'bnbs'
+}
+
+// Accommodation Type Options for Dropdown
+export const ACCOMMODATION_TYPES = [
+  { value: AccommodationType.EMERGENCY, label: 'Emergency' },
+  { value: AccommodationType.HOSTELS, label: 'Hostels' },
+  { value: AccommodationType.HOSTED, label: 'Hosted' },
+  { value: AccommodationType.RENTED, label: 'Rented' },
+  { value: AccommodationType.SUPPORTED, label: 'Supported' },
+  { value: AccommodationType.SOCIAL_HOUSING, label: 'Social Housing' },
+  { value: AccommodationType.NIGHT_SHELTER, label: 'Night shelter' },
+  { value: AccommodationType.LETTINGS_AGENCIES, label: 'Lettings Agencies' },
+  { value: AccommodationType.BNBS, label: 'B&Bs' }
+] as const;
+
+// Support Offered Enum
+export enum SupportOfferedType {
+  ALCOHOL = 'alcohol',
+  DOMESTIC_VIOLENCE = 'domestic-violence',
+  MENTAL_HEALTH = 'mental-health',
+  PHYSICAL_HEALTH = 'physical-health',
+  DRUG_DEPENDENCY = 'drug-dependency'
+}
+
+// Support Offered Options
+export const SUPPORT_OFFERED_OPTIONS = [
+  { value: SupportOfferedType.ALCOHOL, label: 'Alcohol' },
+  { value: SupportOfferedType.DOMESTIC_VIOLENCE, label: 'Domestic Violence' },
+  { value: SupportOfferedType.MENTAL_HEALTH, label: 'Mental Health' },
+  { value: SupportOfferedType.PHYSICAL_HEALTH, label: 'Physical Health' },
+  { value: SupportOfferedType.DRUG_DEPENDENCY, label: 'Drug Dependency' }
+] as const;
+
 export interface IAccommodation {
   _id: string;
   GeneralInfo: {
     Name: string;
     Synopsis?: string;
     Description?: string;
-    AccommodationType: string;
+    AccommodationType: AccommodationType;
     // We have this field in the DB but we use another field SupportProvidedInfo.SupportOffered on WEB.
     // SupportOffered: string[];
     ServiceProviderId: string;
@@ -16,7 +74,7 @@ export interface IAccommodation {
     ReferralIsRequired: boolean;
     ReferralNotes?: string;
     Price: string;
-    FoodIsIncluded: number;
+    FoodIsIncluded: DiscretionaryValue;
     AvailabilityOfMeals?: string;
   };
   ContactInformation: {
@@ -42,20 +100,20 @@ export interface IAccommodation {
     // IsPubliclyHidden: boolean;
   };
   FeaturesWithDiscretionary: {
-    AcceptsHousingBenefit?: number;
-    AcceptsPets?: number;
-    AcceptsCouples?: number;
-    HasDisabledAccess?: number;
-    IsSuitableForWomen?: number;
-    IsSuitableForYoungPeople?: number;
-    HasSingleRooms?: number;
-    HasSharedRooms?: number;
-    HasShowerBathroomFacilities?: number;
-    HasAccessToKitchen?: number;
-    HasLaundryFacilities?: number;
-    HasLounge?: number;
-    AllowsVisitors?: number;
-    HasOnSiteManager?: number;
+    AcceptsHousingBenefit?: DiscretionaryValue;
+    AcceptsPets?: DiscretionaryValue;
+    AcceptsCouples?: DiscretionaryValue;
+    HasDisabledAccess?: DiscretionaryValue;
+    IsSuitableForWomen?: DiscretionaryValue;
+    IsSuitableForYoungPeople?: DiscretionaryValue;
+    HasSingleRooms?: DiscretionaryValue;
+    HasSharedRooms?: DiscretionaryValue;
+    HasShowerBathroomFacilities?: DiscretionaryValue;
+    HasAccessToKitchen?: DiscretionaryValue;
+    HasLaundryFacilities?: DiscretionaryValue;
+    HasLounge?: DiscretionaryValue;
+    AllowsVisitors?: DiscretionaryValue;
+    HasOnSiteManager?: DiscretionaryValue;
     AdditionalFeatures?: string;
   };
   ResidentCriteriaInfo: {
@@ -67,8 +125,12 @@ export interface IAccommodation {
     AcceptsBenefitsClaimants?: boolean;
   };
   SupportProvidedInfo: {
-    HasOnSiteManager?: number;
-    SupportOffered?: string[];
+    HasOnSiteManager?: DiscretionaryValue;
+    SupportOffered?: SupportOfferedType[];
     SupportInfo?: string;
   };
+}
+
+// Form data interface for creating/editing accommodations
+export interface IAccommodationFormData extends Omit<IAccommodation, '_id'> {
 }

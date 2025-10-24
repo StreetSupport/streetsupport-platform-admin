@@ -97,7 +97,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleTabChange('organisation')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'organisation'
                     ? 'border-brand-a text-brand-a'
                     : 'border-transparent text-brand-f hover:text-brand-k hover:border-brand-q'
@@ -108,7 +108,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleTabChange('services')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'services'
                     ? 'border-brand-a text-brand-a'
                     : 'border-transparent text-brand-f hover:text-brand-k hover:border-brand-q'
@@ -119,7 +119,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleTabChange('accommodations')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'accommodations'
                     ? 'border-brand-a text-brand-a'
                     : 'border-transparent text-brand-f hover:text-brand-k hover:border-brand-q'

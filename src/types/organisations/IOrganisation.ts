@@ -30,7 +30,7 @@ export interface IOrganisation {
 // Form-specific version of IOrganisation with required fields and form-friendly types
 export interface IOrganisationFormData extends Omit<IOrganisation, '_id' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy' | 'Tags' | 'Addresses' | 'Notes'> {
   // Override Tags to be array instead of string for easier form handling
-  Tags: string[];
+  Tags: OrganisationTag[];
   
   // Override Addresses to use form-friendly version
   Addresses: IAddressFormData[];
@@ -47,11 +47,19 @@ export interface IOpeningTimeFormData extends Omit<IOpeningTime, 'StartTime' | '
   EndTime: string;   // Format: "HH:MM" for time inputs
 }
 
+// Organisation Tag Enum
+export enum OrganisationTag {
+  CHARITY = 'charity',
+  NO_WRONG_DOOR = 'no-wrong-door',
+  COALITION_OF_RELIEF = 'coalition-of-relief',
+  BIG_CHANGE = 'big-change'
+}
+
 export const ORGANISATION_TAGS = [
-  { value: 'charity', label: 'Registered Charity' },
-  { value: 'no-wrong-door', label: 'No Wrong Door' },
-  { value: 'coalition-of-relief', label: 'Coalition of Relief (mcr only)' },
-  { value: 'big-change', label: 'Big Change (mcr only)' }
+  { value: OrganisationTag.CHARITY, label: 'Registered Charity' },
+  { value: OrganisationTag.NO_WRONG_DOOR, label: 'No Wrong Door' },
+  { value: OrganisationTag.COALITION_OF_RELIEF, label: 'Coalition of Relief (mcr only)' },
+  { value: OrganisationTag.BIG_CHANGE, label: 'Big Change (mcr only)' }
 ];
 
 export const DAYS_OF_WEEK = [

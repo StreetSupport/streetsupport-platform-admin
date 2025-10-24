@@ -1,20 +1,33 @@
 import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
 import { LocationCoordinatesSchema } from './organisationSchema';
+import { AccommodationType, SupportOfferedType, DiscretionaryValue } from '@/types/organisations/IAccommodation';
 
-// Enum for discretionary values: 0 = No, 1 = Yes, 2 = Don't Know/Ask
-const DiscretionaryValueSchema = z.union([
-  z.literal(0),
-  z.literal(1),
-  z.literal(2),
-]);
+// Helper function to transform error paths to user-friendly names
+export function transformErrorPath(path: string): string {
+  const pathMap: Record<string, string> = {
+    'GeneralInfo.Name': 'Accommodation Name',
+    'GeneralInfo.AccommodationType': 'Accommodation Type',
+    'ContactInformation.Name': 'Contact Name',
+    'ContactInformation.Email': 'Email',
+    'Address.Street1': 'Street',
+    'Address.City': 'City',
+    'Address.Postcode': 'Postcode',
+    'Address.AssociatedCityId': 'Associated Location'
+  };
+  
+  return pathMap[path] || path;
+}
+
+// Enum for discretionary values: Use nativeEnum for proper type checking
+const DiscretionaryValueSchema = z.nativeEnum(DiscretionaryValue);
 
 // Nested schemas for accommodation sections
 const GeneralInfoSchema = z.object({
-  Name: z.string().min(1, 'Name is required'),
+  Name: z.string().min(1, 'Accommodation Name is required'),
   Synopsis: z.string().optional(),
   Description: z.string().optional(),
-  AccommodationType: z.string().min(1, 'Accommodation type is required'),
+  AccommodationType: z.nativeEnum(AccommodationType),
   ServiceProviderId: z.string().min(1, 'Service provider ID is required'),
   IsOpenAccess: z.boolean(),
   IsPubliclyVisible: z.boolean().optional(),
@@ -37,7 +50,7 @@ const ContactInformationSchema = z.object({
 });
 
 const AccommodationAddressSchema = z.object({
-  Street1: z.string().min(1, 'Street 1 is required'),
+  Street1: z.string().min(1, 'Street is required'),
   Street2: z.string().optional(),
   Street3: z.string().optional(),
   City: z.string().min(1, 'City is required'),
@@ -75,7 +88,7 @@ const ResidentCriteriaInfoSchema = z.object({
 
 const SupportProvidedInfoSchema = z.object({
   HasOnSiteManager: DiscretionaryValueSchema.optional(),
-  SupportOffered: z.array(z.string()).optional(),
+  SupportOffered: z.array(z.nativeEnum(SupportOfferedType)).optional(),
   SupportInfo: z.string().optional(),
 });
 
