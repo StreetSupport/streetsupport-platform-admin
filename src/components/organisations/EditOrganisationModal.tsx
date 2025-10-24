@@ -26,6 +26,8 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('organisation');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showTabSwitchConfirm, setShowTabSwitchConfirm] = useState(false);
+  const [pendingTab, setPendingTab] = useState<TabType | null>(null);
 
   // Reset to first tab when modal opens
   useEffect(() => {
@@ -35,7 +37,23 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
   }, [isOpen]);
 
   const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
+    if (tab !== activeTab) {
+      setPendingTab(tab);
+      setShowTabSwitchConfirm(true);
+    }
+  };
+
+  const confirmTabSwitch = () => {
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      setPendingTab(null);
+    }
+    setShowTabSwitchConfirm(false);
+  };
+
+  const cancelTabSwitch = () => {
+    setPendingTab(null);
+    setShowTabSwitchConfirm(false);
   };
 
   const handleClose = () => {
@@ -60,7 +78,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
-            <h2 className="heading-2 text-brand-k">Edit Organisation</h2>
+            <h3 className="heading-3 text-brand-k">Edit Organisation</h3>
             <Button
               type="button"
               variant="outline"
@@ -136,6 +154,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
         </div>
       </div>
 
+    {/* Close Confirmation Modal */}
     <ConfirmModal
       isOpen={showConfirmModal}
       onClose={() => setShowConfirmModal(false)}
@@ -144,6 +163,18 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
       message="You may lose unsaved changes."
       confirmLabel="Close Without Saving"
       cancelLabel="Continue Editing"
+      variant="warning"
+    />
+
+    {/* Tab Switch Confirmation Modal */}
+    <ConfirmModal
+      isOpen={showTabSwitchConfirm}
+      onClose={cancelTabSwitch}
+      onConfirm={confirmTabSwitch}
+      title="Switch tab without saving?"
+      message="You may lose unsaved changes in the current tab."
+      confirmLabel="Switch Tab"
+      cancelLabel="Stay on Current Tab"
       variant="warning"
     />
     </>

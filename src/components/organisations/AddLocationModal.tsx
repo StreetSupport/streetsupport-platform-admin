@@ -163,11 +163,15 @@ export function AddLocationModal({
     
     if (checked) {
       // Generate 24/7 opening times for all days
+      // IsOpen247 has priority - even if IsAppointmentOnly is also checked
       openingTimes = Array.from({ length: 7 }, (_, day) => ({
         Day: day,
         StartTime: '00:00',
         EndTime: '23:59'
       }));
+    } else if (currentLocation.IsAppointmentOnly) {
+      // If unchecking IsOpen247 but IsAppointmentOnly is still checked, keep empty array
+      openingTimes = [];
     }
     
     setCurrentLocation({
@@ -178,10 +182,27 @@ export function AddLocationModal({
   };
 
   const handleAppointmentOnlyChange = (checked: boolean) => {
+    let openingTimes: IOpeningTimeFormData[];
+    
+    if (currentLocation.IsOpen247) {
+      // IsOpen247 has priority - keep 7 opening times even if IsAppointmentOnly is checked
+      openingTimes = Array.from({ length: 7 }, (_, day) => ({
+        Day: day,
+        StartTime: '00:00',
+        EndTime: '23:59'
+      }));
+    } else if (checked) {
+      // Only clear opening times if IsOpen247 is not checked
+      openingTimes = [];
+    } else {
+      // Keep existing opening times when unchecking
+      openingTimes = currentLocation.OpeningTimes;
+    }
+    
     setCurrentLocation({
       ...currentLocation,
       IsAppointmentOnly: checked,
-      OpeningTimes: checked ? [] : currentLocation.OpeningTimes
+      OpeningTimes: openingTimes
     });
   };
 

@@ -127,8 +127,8 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     setFormData(prev => ({
       ...prev,
       [field]: value,
-      // Auto-generate key when name changes
-      ...(field === 'Name' && { Key: generateOrganisationKey(value) })
+      // Auto-generate key when name changes ONLY if creating new organisation (no initial Key)
+      ...(field === 'Name' && !initialData?.Key && { Key: generateOrganisationKey(value) })
     }));
   };
 
@@ -283,7 +283,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Telephone}
               onChange={(e) => updateFormData('Telephone', e.target.value)}
-              placeholder="0161 123 4567"
+              placeholder="Telephone number"
               type="tel"
             />
           </div>

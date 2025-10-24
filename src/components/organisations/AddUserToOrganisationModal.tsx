@@ -9,6 +9,7 @@ import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toas
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 
 interface AddUserToOrganisationModalProps {
   isOpen: boolean;
@@ -79,7 +80,7 @@ export default function AddUserToOrganisationModal({
         AuthClaims: authClaims,
       };
 
-      const response = await fetch('/api/users', {
+      const response = await authenticatedFetch('/api/users', {
         method: HTTP_METHODS.POST,
         headers: {
           'Content-Type': 'application/json',

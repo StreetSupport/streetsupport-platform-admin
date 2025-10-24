@@ -3,7 +3,7 @@
 import React from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
-import { Edit, Trash2, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText } from 'lucide-react';
+import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText } from 'lucide-react';
 import { decodeText } from '@/utils/htmlDecode';
 
 interface OrganisationCardProps {
@@ -11,7 +11,6 @@ interface OrganisationCardProps {
   isLoading?: boolean;
   onView?: (organisation: IOrganisation) => void;
   onEdit?: (organisation: IOrganisation) => void;
-  onDelete?: (organisation: IOrganisation) => void;
   onTogglePublished?: (organisation: IOrganisation) => void;
   onToggleVerified?: (organisation: IOrganisation) => void;
   onAddUser?: (organisation: IOrganisation) => void;
@@ -27,7 +26,6 @@ const OrganisationCard = React.memo(function OrganisationCard({
   isLoading = false,
   onView,
   onEdit,
-  onDelete,
   onTogglePublished,
   onToggleVerified,
   onAddUser,
@@ -63,13 +61,6 @@ const OrganisationCard = React.memo(function OrganisationCard({
     }
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onDelete) {
-      onDelete(organisation);
-    }
-  };
 
   const handleTogglePublished = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -137,17 +128,6 @@ const OrganisationCard = React.memo(function OrganisationCard({
             disabled={isLoading}
           >
             <Edit className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDelete}
-            title="Delete organisation"
-            className="text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-            disabled={isLoading}
-          >
-            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
 

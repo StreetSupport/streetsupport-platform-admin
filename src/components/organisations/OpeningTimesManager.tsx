@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash, Copy } from 'lucide-react';
+import { Plus, Trash, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -16,15 +16,27 @@ interface OpeningTimesManagerProps {
 
 export function OpeningTimesManager({ openingTimes, onChange, validationErrors = [] }: OpeningTimesManagerProps) {
   const [showForm, setShowForm] = useState(false);
-  const [newOpeningTime, setNewOpeningTime] = useState<IOpeningTimeFormData>({
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [formData, setFormData] = useState<IOpeningTimeFormData>({
     Day: 1, // Monday
     StartTime: '09:00',
     EndTime: '17:00'
   });
 
   const handleAdd = () => {
-    onChange([...openingTimes, { ...newOpeningTime }]);
-    setNewOpeningTime({
+    if (editingIndex !== null) {
+      // Update existing opening time
+      const updated = [...openingTimes];
+      updated[editingIndex] = { ...formData };
+      onChange(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new opening time
+      onChange([...openingTimes, { ...formData }]);
+    }
+    
+    // Reset form
+    setFormData({
       Day: 1,
       StartTime: '09:00',
       EndTime: '17:00'
@@ -37,9 +49,25 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
     onChange(updated);
   };
 
+  const handleEdit = (index: number) => {
+    setFormData({ ...openingTimes[index] });
+    setEditingIndex(index);
+    setShowForm(true);
+  };
+
   const handleDuplicate = (index: number) => {
     const itemToDuplicate = openingTimes[index];
     onChange([...openingTimes, { ...itemToDuplicate }]);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingIndex(null);
+    setFormData({
+      Day: 1,
+      StartTime: '09:00',
+      EndTime: '17:00'
+    });
   };
 
   const getDayLabel = (dayNumber: number) => {
@@ -47,7 +75,11 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
   };
 
   const formatTime = (time: string) => {
-    return time;
+    // Convert 24-hour format (HH:MM) to 12-hour format with AM/PM
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
   return (
@@ -86,6 +118,16 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
                   type="button"
                   variant="outline"
                   size="sm"
+                  onClick={() => handleEdit(index)}
+                  className="p-2"
+                  title="Edit"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleDuplicate(index)}
                   className="p-2"
                   title="Duplicate"
@@ -108,10 +150,12 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
         </div>
       )}
 
-      {/* Add Opening Time Form */}
+      {/* Add/Edit Opening Time Form */}
       {showForm && (
         <div className="p-4 bg-brand-i rounded-lg border border-brand-a">
-          <h5 className="heading-6 mb-4">Add Opening Time</h5>
+          <h5 className="heading-6 mb-4">
+            {editingIndex !== null ? 'Edit Opening Time' : 'Add Opening Time'}
+          </h5>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -119,9 +163,9 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
                 Day of Week
               </label>
               <Select
-                value={newOpeningTime.Day.toString()}
-                onChange={(e) => setNewOpeningTime({
-                  ...newOpeningTime,
+                value={formData.Day.toString()}
+                onChange={(e) => setFormData({
+                  ...formData,
                   Day: parseInt(e.target.value)
                 })}
                 options={DAYS_OF_WEEK.map(day => ({
@@ -137,9 +181,9 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
               </label>
               <Input
                 type="time"
-                value={newOpeningTime.StartTime}
-                onChange={(e) => setNewOpeningTime({
-                  ...newOpeningTime,
+                value={formData.StartTime}
+                onChange={(e) => setFormData({
+                  ...formData,
                   StartTime: e.target.value
                 })}
                 className="w-full"
@@ -152,9 +196,9 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
               </label>
               <Input
                 type="time"
-                value={newOpeningTime.EndTime}
-                onChange={(e) => setNewOpeningTime({
-                  ...newOpeningTime,
+                value={formData.EndTime}
+                onChange={(e) => setFormData({
+                  ...formData,
                   EndTime: e.target.value
                 })}
                 className="w-full"
@@ -166,7 +210,7 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
             <Button
               type="button"
               variant="outline"
-              onClick={() => setShowForm(false)}
+              onClick={handleCancel}
               className="flex-1"
             >
               Cancel
@@ -177,7 +221,7 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
               onClick={handleAdd}
               className="flex-1"
             >
-              Add Opening Time
+              {editingIndex !== null ? 'Update Opening Time' : 'Add Opening Time'}
             </Button>
           </div>
         </div>

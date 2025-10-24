@@ -2,14 +2,14 @@ import { ILocation } from "./ILocation";
 import { IOpeningTime } from "./IOpeningTime";
 import { IServiceSubCategory } from "./IServiceSubCategory";
 
-export interface IGroupedService extends Document {
+export interface IGroupedService {
   _id: string;
   DocumentCreationDate: Date;
   DocumentModifiedDate: Date;
   CreatedBy: string;
+  IsPublished: boolean;
   ProviderId: string;
   ProviderName?: string;
-  ProviderAssociatedLocationIds?: string[];
   CategoryId: string;
   CategoryName?: string;
   CategorySynopsis?: string;
@@ -19,7 +19,8 @@ export interface IGroupedService extends Document {
   IsOpen247: boolean;
   OpeningTimes?: IOpeningTime[];
   SubCategories: IServiceSubCategory[];
-  SubCategoriesIds?: string[];
+  SubCategoryIds?: string[];
   IsTelephoneService?: boolean;
   IsAppointmentOnly?: boolean;
+  Telephone?: string;
 }

@@ -20,6 +20,7 @@ import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useSession } from 'next-auth/react';
 import { UserAuthClaims } from '@/types/auth';
+import { authenticatedFetch } from '@/utils/authenticatedFetch';
 
 export default function OrganisationsPage() {
   // Check authorization FIRST before any other logic
@@ -42,7 +43,6 @@ export default function OrganisationsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [showClearNotesConfirmModal, setShowClearNotesConfirmModal] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
@@ -50,7 +50,6 @@ export default function OrganisationsPage() {
   const [isEditOrganisationModalOpen, setIsEditOrganisationModalOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState<IOrganisation | null>(null);
-  const [organisationToDelete, setOrganisationToDelete] = useState<IOrganisation | null>(null);
   const [organisationToDisable, setOrganisationToDisable] = useState<IOrganisation | null>(null);
   const [togglingPublishId, setTogglingPublishId] = useState<string | null>(null);
   const [togglingVerifyId, setTogglingVerifyId] = useState<string | null>(null);
@@ -82,7 +81,7 @@ export default function OrganisationsPage() {
 
   const fetchLocations = async () => {
     try {
-      const response = await fetch('/api/cities');
+      const response = await authenticatedFetch('/api/cities');
       if (response.ok) {
         const data = await response.json();
         setLocations(data.data || []);
@@ -106,7 +105,7 @@ export default function OrganisationsPage() {
       if (isPublishedFilter) params.append('isPublished', isPublishedFilter);
       if (locationFilter) params.append('location', locationFilter);
       
-      const response = await fetch(`/api/organisations?${params.toString()}`);
+      const response = await authenticatedFetch(`/api/organisations?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch organisations');
       }
@@ -160,11 +159,6 @@ export default function OrganisationsPage() {
     setIsEditOrganisationModalOpen(true);
   };
 
-  const handleDelete = async (organisation: IOrganisation) => {
-    setOrganisationToDelete(organisation);
-    setShowDeleteConfirmModal(true);
-  };
-
   const handleDisableClick = (organisation: IOrganisation) => {
     setOrganisationToDisable(organisation);
     setShowDisableModal(true);
@@ -187,7 +181,7 @@ export default function OrganisationsPage() {
         };
       }
 
-      const response = await fetch(`/api/organisations/${organisation._id}/toggle-published`, {
+      const response = await authenticatedFetch(`/api/organisations/${organisation._id}/toggle-published`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +219,7 @@ export default function OrganisationsPage() {
     const toastId = loadingToast.process(action === 'verify' ? 'Verifying organisation' : 'Unverifying organisation');
     
     try {
-      const response = await fetch(`/api/organisations/${organisation._id}/toggle-verified`, {
+      const response = await authenticatedFetch(`/api/organisations/${organisation._id}/toggle-verified`, {
         method: HTTP_METHODS.PATCH
       });
 
@@ -273,7 +267,7 @@ export default function OrganisationsPage() {
     const toastId = loadingToast.process('Clearing notes');
     
     try {
-      const response = await fetch(`/api/organisations/${selectedOrganisation._id}/notes`, {
+      const response = await authenticatedFetch(`/api/organisations/${selectedOrganisation._id}/notes`, {
         method: HTTP_METHODS.DELETE
       });
 
@@ -297,35 +291,6 @@ export default function OrganisationsPage() {
     }
   };
 
-  const confirmDelete = async () => {
-    if (!organisationToDelete) return;
-
-    setShowDeleteConfirmModal(false);
-    const toastId = loadingToast.delete('organisation');
-    
-    try {
-      const response = await fetch(`/api/organisations/${organisationToDelete._id}`, {
-        method: HTTP_METHODS.DELETE
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete organisation');
-      }
-
-      toastUtils.dismiss(toastId);
-      successToast.delete('Organisation');
-      
-      // Refresh the list
-      fetchOrganisations();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete organisation';
-      toastUtils.dismiss(toastId);
-      errorToast.delete('organisation', errorMessage);
-    } finally {
-      setOrganisationToDelete(null);
-    }
-  };
 
   const confirmDisable = (staffName: string, reason: string) => {
     if (!organisationToDisable) return;
@@ -478,7 +443,6 @@ export default function OrganisationsPage() {
                   organisation={organisation}
                   onView={handleView}
                   onEdit={handleEdit}
-                  onDelete={handleDelete}
                   onTogglePublished={handleTogglePublished}
                   onToggleVerified={handleToggleVerified}
                   onAddUser={handleAddUser}
@@ -567,21 +531,6 @@ export default function OrganisationsPage() {
           }}
           onConfirm={confirmDisable}
           organisation={organisationToDisable}
-        />
-
-        {/* Delete Confirmation Modal */}
-        <ConfirmModal
-          isOpen={showDeleteConfirmModal}
-          onClose={() => {
-            setShowDeleteConfirmModal(false);
-            setOrganisationToDelete(null);
-          }}
-          onConfirm={confirmDelete}
-          title="Delete Organisation"
-          message={`Are you sure you want to delete organisation "${organisationToDelete?.Name}"? This action cannot be undone.`}
-          variant="danger"
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
         />
 
         {/* Clear Notes Confirmation Modal */}

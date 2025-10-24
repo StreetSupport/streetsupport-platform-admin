@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { OrganisationForm, OrganisationFormRef } from './OrganisationForm';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-import { errorToast, successToast, loadingToast } from '@/utils/toast';
+import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddOrganisationModalProps {
@@ -39,7 +39,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
       errorToast.validation();
       return;
     }
-
+debugger
     // Get form data using ref
     const formData = formRef.current?.getFormData();
     if (!formData) {
@@ -79,18 +79,19 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
         throw new Error(errorData.error || 'Failed to create organisation');
       }
 
+      // Dismiss loading toast before showing success
+      toastUtils.dismiss(toastId);
       successToast.create('Organisation');
       onSuccess();
       onClose();
     } catch (error) {
+      // Dismiss loading toast before showing error
+      toastUtils.dismiss(toastId);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create organisation';
       setError(errorMessage);
       errorToast.create('organisation', errorMessage);
     } finally {
       setSaving(false);
-      if (toastId) {
-        // Dismiss loading toast if it exists
-      }
     }
   };
 

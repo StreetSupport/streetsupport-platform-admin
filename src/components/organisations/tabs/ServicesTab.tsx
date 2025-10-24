@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -19,6 +21,9 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<IGroupedService | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<IGroupedService | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   // Fetch services for the organisation
   useEffect(() => {
@@ -53,14 +58,17 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
     setIsAddModalOpen(true);
   };
 
-  const handleDeleteService = async (serviceId: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) {
-      return;
-    }
+  const handleDeleteService = (service: IGroupedService) => {
+    setServiceToDelete(service);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteService = async () => {
+    if (!serviceToDelete) return;
 
     try {
       const response = await authenticatedFetch(
-        `/api/organisations/${organisation.Key}/services/${serviceId}`,
+        `/api/organisations/${organisation.Key}/services/${serviceToDelete._id}`,
         {
           method: 'DELETE',
         }
@@ -76,6 +84,9 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete service';
       errorToast.generic(errorMessage);
+    } finally {
+      setShowDeleteConfirm(false);
+      setServiceToDelete(null);
     }
   };
 
@@ -109,6 +120,16 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Error Display */}
+      {validationErrors.length > 0 && (
+        <div className="px-4 sm:px-6 pt-4">
+          <ErrorDisplay
+            ValidationErrors={validationErrors}
+            ClassName="mb-4"
+          />
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="space-y-6">
           {/* Header */}
@@ -201,7 +222,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteService(service._id!)}
+                      onClick={() => handleDeleteService(service)}
                       className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
                       title="Delete"
                     >
@@ -225,6 +246,21 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
         organisation={organisation}
         service={editingService}
         onServiceSaved={handleServiceSaved}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setServiceToDelete(null);
+        }}
+        onConfirm={confirmDeleteService}
+        title="Delete Service"
+        message={`Are you sure you want to delete the service "${serviceToDelete?.CategoryName || 'this service'}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
       />
     </div>
   );

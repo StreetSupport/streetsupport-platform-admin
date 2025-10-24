@@ -55,9 +55,9 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select op
           {selectedOptions.length === 0 ? (
             <span className="text-brand-f">{placeholder}</span>
           ) : (
-            selectedOptions.map(option => (
+            selectedOptions.map((option, idx) => (
               <span
-                key={option.value}
+                key={`${option.value}-${idx}`}
                 className="inline-flex items-center gap-1 px-2 py-1 bg-brand-a text-white text-xs rounded"
               >
                 {option.label}
@@ -82,9 +82,9 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select op
               No options available
             </div>
           ) : (
-            options.map(option => (
+            options.map((option, idx) => (
               <div
-                key={option.value}
+                key={`${option.value}-${idx}`}
                 className={`px-3 py-2 cursor-pointer hover:bg-brand-i ${
                   value.includes(option.value) ? 'bg-brand-a text-white' : 'text-brand-k'
                 }`}

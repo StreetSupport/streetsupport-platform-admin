@@ -3,14 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { OpeningTimesManager } from '@/components/organisations/OpeningTimesManager';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { IServiceCategory } from '@/types/organisations/IServiceCategory';
 import { IOpeningTimeFormData } from '@/types/organisations/IOrganisation';
-import { IGroupedServiceFormData, validateGroupedService } from '@/schemas/groupedServiceSchema';
+import { IGroupedServiceFormData, validateGroupedService, OpeningTimeFormSchema, transformErrorPath } from '@/schemas/groupedServiceSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { decodeText } from '@/utils/htmlDecode';
@@ -23,7 +27,6 @@ interface AddServiceModalProps {
   onServiceSaved: () => void;
 }
 
-
 const AddServiceModal: React.FC<AddServiceModalProps> = ({
   isOpen,
   onClose,
@@ -33,8 +36,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<IGroupedServiceFormData>({
     ProviderId: organisation._id,
+    ProviderName: organisation.Name,
+    IsPublished: true,
     CategoryId: '',
     Location: {
+      IsOutreachLocation: false,
+      Description: '',
       StreetLine1: '',
       Postcode: ''
     },
@@ -48,6 +55,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<IServiceCategory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [showCancelConfirm, setShowConfirmModal] = useState(false);
+  const [originalData, setOriginalData] = useState<IGroupedServiceFormData | null>(null);
 
   // Initialize form data when service prop changes
   useEffect(() => {
@@ -63,52 +72,66 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
           ot.EndTime
       })) || [];
 
-      setFormData({
+      const initialData: IGroupedServiceFormData = {
         _id: service._id,
         ProviderId: service.ProviderId,
+        ProviderName: service.ProviderName || organisation.Name,
+        IsPublished: service.IsPublished,
         CategoryId: service.CategoryId,
         CategoryName: decodeText(service.CategoryName || ''),
         CategorySynopsis: decodeText(service.CategorySynopsis || ''),
         Info: decodeText(service.Info || ''),
         Tags: service.Tags,
         Location: {
-          OutreachLocationDescription: decodeText(service.Location.Description || ''),
+          IsOutreachLocation: service.Location.IsOutreachLocation || false,
+          Description: decodeText(service.Location.Description || ''),
           StreetLine1: decodeText(service.Location.StreetLine1 || ''),
-          StreetLine2: decodeText(service.Location.StreetLine2 || ''),
-          StreetLine3: decodeText(service.Location.StreetLine3 || ''),
-          StreetLine4: decodeText(service.Location.StreetLine4 || ''),
-          City: service.Location.City,
-          Postcode: service.Location.Postcode,
+          StreetLine2: service.Location.StreetLine2 || '',
+          StreetLine3: service.Location.StreetLine3 || '',
+          StreetLine4: service.Location.StreetLine4 || '',
+          City: service.Location.City || '',
+          Postcode: service.Location.Postcode || '',
           Location: service.Location.Location ? {
-            Latitude: service.Location.Location.coordinates[1],
-            Longitude: service.Location.Location.coordinates[0]
+            type: service.Location.Location.type,
+            coordinates: service.Location.Location.coordinates
           } : undefined
         },
         IsOpen247: service.IsOpen247,
         OpeningTimes: openingTimes,
         SubCategories: service.SubCategories?.map(sub => ({
           ...sub,
-          Name: decodeText(sub.Name || ''),
-          Synopsis: decodeText(sub.Synopsis || '')
-        })),
-        SubCategoriesIds: service.SubCategoriesIds,
+          Name: sub.Name || '',
+          Synopsis: sub.Synopsis || ''
+        })) || [],
+        SubCategoryIds: service.SubCategoryIds || [],
         IsTelephoneService: service.IsTelephoneService,
-        IsAppointmentOnly: service.IsAppointmentOnly
-      });
+        IsAppointmentOnly: service.IsAppointmentOnly,
+        Telephone: service.Telephone || ''
+      };
+      setFormData(initialData);
+      setOriginalData(JSON.parse(JSON.stringify(initialData)));
     } else {
       // Reset form for new service
-      setFormData({
-        ProviderId: organisation._id,
+      const initialData: IGroupedServiceFormData = {
+        ProviderId: organisation.Key,
+        ProviderName: organisation.Name,
+        IsPublished: organisation.IsPublished,
         CategoryId: '',
         Location: {
+          IsOutreachLocation: false,
+          Description: '',
           StreetLine1: '',
           Postcode: ''
         },
         IsOpen247: false,
         SubCategories: [],
+        SubCategoryIds: [],
         IsTelephoneService: false,
-        IsAppointmentOnly: false
-      });
+        IsAppointmentOnly: false,
+        Telephone: ''
+      };
+      setFormData(initialData);
+      setOriginalData(JSON.parse(JSON.stringify(initialData)));
     }
   }, [service, organisation._id]);
 
@@ -153,15 +176,73 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     setValidationErrors(prev => prev.filter(error => !error.Path.startsWith(field)));
   };
 
+  const handleIsOpen247Change = (checked: boolean) => {
+    let openingTimes: IOpeningTimeFormData[] = [];
+    
+    if (checked) {
+      // Generate 24/7 opening times for all days (Sunday=0 to Saturday=6)
+      // IsOpen247 has priority - even if IsAppointmentOnly is also checked
+      openingTimes = Array.from({ length: 7 }, (_, day) => ({
+        Day: day,
+        StartTime: '00:00',
+        EndTime: '23:59'
+      }));
+    } else if (formData.IsAppointmentOnly) {
+      // If unchecking IsOpen247 but IsAppointmentOnly is still checked, keep empty array
+      openingTimes = [];
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      IsOpen247: checked,
+      OpeningTimes: openingTimes
+    }));
+    // Clear validation errors
+    setValidationErrors(prev => prev.filter(error => !error.Path.startsWith('Opening Times')));
+  };
+
+  const handleIsAppointmentOnlyChange = (checked: boolean) => {
+    let openingTimes: IOpeningTimeFormData[];
+    
+    if (formData.IsOpen247) {
+      // IsOpen247 has priority - keep 7 opening times even if IsAppointmentOnly is checked
+      openingTimes = Array.from({ length: 7 }, (_, day) => ({
+        Day: day,
+        StartTime: '00:00',
+        EndTime: '23:59'
+      }));
+    } else if (checked) {
+      // Only clear opening times if IsOpen247 is not checked
+      openingTimes = [];
+    } else {
+      // Keep existing opening times when unchecking
+      openingTimes = formData.OpeningTimes || [];
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      IsAppointmentOnly: checked,
+      OpeningTimes: openingTimes
+    }));
+    // Clear validation errors
+    setValidationErrors(prev => prev.filter(error => !error.Path.startsWith('Opening Times')));
+  };
+
   const handleCategoryChange = (categoryId: string) => {
     const category = categories.find(cat => cat._id === categoryId);
     if (category) {
-      updateFormData('CategoryId', categoryId);
-      updateFormData('CategoryName', category.Name);
-      updateFormData('CategorySynopsis', category.Synopsis);
-      // Reset subcategories when category changes
-      updateFormData('SubCategories', []);
-      updateFormData('SubCategoriesIds', []);
+      setFormData(prev => ({
+        ...prev,
+        CategoryId: categoryId,
+        CategoryName: category.Name,
+        CategorySynopsis: category.Synopsis,
+        SubCategories: [],
+        SubCategoryIds: []
+      }));
+      // Clear validation errors
+      setValidationErrors(prev => prev.filter(error => 
+        !error.Path.startsWith('Category') && !error.Path.startsWith('Sub Categories')
+      ));
     }
   };
 
@@ -169,45 +250,101 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     if (!selectedCategory) return;
 
     const selectedSubCategories = selectedCategory.SubCategories.filter(sub => 
-      selectedIds.includes(sub._id)
-    );
+      selectedIds.includes(sub.Key)
+    ).map(sub => ({
+      _id: sub.Key,
+      Name: sub.Name,
+      Synopsis: sub.Synopsis
+    }));
 
-    updateFormData('SubCategories', selectedSubCategories);
-    updateFormData('SubCategoriesIds', selectedIds);
+    setFormData(prev => ({
+      ...prev,
+      SubCategories: selectedSubCategories,
+      SubCategoryIds: selectedIds
+    }));
+
+    // Clear validation errors for subcategories
+    setValidationErrors(prev => prev.filter(error => !error.Path.startsWith('Sub Categories')));
+  };
+
+  const handleIsOutreachLocationChange = (isOutreach: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      Location: {
+        ...prev.Location,
+        IsOutreachLocation: isOutreach,
+        // Clear fields based on type
+        Description: isOutreach ? prev.Location.Description : '',
+        StreetLine1: isOutreach ? '' : prev.Location.StreetLine1,
+        StreetLine2: isOutreach ? '' : prev.Location.StreetLine2,
+        StreetLine3: isOutreach ? '' : prev.Location.StreetLine3,
+        StreetLine4: isOutreach ? '' : prev.Location.StreetLine4,
+        City: isOutreach ? '' : prev.Location.City,
+        Postcode: isOutreach ? '' : prev.Location.Postcode,
+        Location: isOutreach ? undefined : prev.Location.Location
+      },
+      // Clear opening times when switching to outreach or fixed location
+      IsOpen247: false,
+      IsAppointmentOnly: false,
+      OpeningTimes: []
+    }));
   };
 
   const handleAddressSelect = (addressIndex: string) => {
     if (addressIndex === '') {
       // Clear address fields
-      updateFormData('Location', {
-        OutreachLocationDescription: formData.Location.OutreachLocationDescription,
-        StreetLine1: '',
-        StreetLine2: '',
-        StreetLine3: '',
-        StreetLine4: '',
-        City: '',
-        Postcode: '',
-        Location: undefined
-      });
+      setFormData(prev => ({
+        ...prev,
+        Location: {
+          ...prev.Location,
+          StreetLine1: '',
+          StreetLine2: '',
+          StreetLine3: '',
+          StreetLine4: '',
+          City: '',
+          Postcode: '',
+          Location: undefined
+        },
+        IsOpen247: false,
+        IsAppointmentOnly: false,
+        OpeningTimes: []
+      }));
       return;
     }
 
     const index = parseInt(addressIndex);
     const address = organisation.Addresses[index];
     if (address) {
-      updateFormData('Location', {
-        OutreachLocationDescription: formData.Location.OutreachLocationDescription,
-        StreetLine1: address.Street,
-        StreetLine2: address.Street1,
-        StreetLine3: address.Street2,
-        StreetLine4: address.Street3,
-        City: address.City,
-        Postcode: address.Postcode,
-        Location: address.Location ? {
-          Latitude: address.Location.coordinates[1],
-          Longitude: address.Location.coordinates[0]
-        } : undefined
-      });
+      // Auto-populate location fields AND opening times from selected address
+      const openingTimes = address.OpeningTimes?.map(ot => ({
+        Day: ot.Day,
+        StartTime: typeof ot.StartTime === 'number' ? 
+          `${Math.floor(ot.StartTime / 100).toString().padStart(2, '0')}:${(ot.StartTime % 100).toString().padStart(2, '0')}` : 
+          String(ot.StartTime),
+        EndTime: typeof ot.EndTime === 'number' ? 
+          `${Math.floor(ot.EndTime / 100).toString().padStart(2, '0')}:${(ot.EndTime % 100).toString().padStart(2, '0')}` : 
+          String(ot.EndTime)
+      })) || [];
+
+      setFormData(prev => ({
+        ...prev,
+        Location: {
+          ...prev.Location,
+          StreetLine1: address.Street || '',
+          StreetLine2: address.Street1 || '',
+          StreetLine3: address.Street2 || '',
+          StreetLine4: address.Street3 || '',
+          City: address.City || '',
+          Postcode: address.Postcode || '',
+          Location: address.Location ? {
+            type: address.Location.type,
+            coordinates: address.Location.coordinates
+          } : undefined
+        },
+        IsOpen247: address.IsOpen247 || false,
+        IsAppointmentOnly: address.IsAppointmentOnly || false,
+        OpeningTimes: openingTimes
+      }));
     }
   };
 
@@ -215,15 +352,31 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     updateFormData('OpeningTimes', openingTimes);
   };
 
+  // Helper function to convert time string (HH:MM) to number (HHMM)
+  const timeStringToNumber = (timeString: string): number => {
+    return parseInt(timeString.replace(':', ''));
+  };
+
   const validateForm = (): boolean => {
+
+    // Then validate the rest using GroupedServiceSchema
     const result = validateGroupedService(formData);
     
+    // Combine all errors
+    const allErrors = [];
     if (!result.success) {
-      const errors = (result.errors || []).map((error: any) => ({
-        Path: Array.isArray(error.path) ? error.path.join('.') : error.path,
-        Message: error.message
-      }));
-      setValidationErrors(errors);
+      const serviceErrors = (result.errors || []).map((error: any) => {
+        const originalPath = Array.isArray(error.path) ? error.path.join('.') : error.path;
+        return {
+          Path: transformErrorPath(originalPath),
+          Message: error.message
+        };
+      });
+      allErrors.push(...serviceErrors);
+    }
+    
+    if (allErrors.length > 0) {
+      setValidationErrors(allErrors);
       return false;
     }
     
@@ -247,14 +400,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         ...formData,
         OpeningTimes: formData.OpeningTimes?.map(ot => ({
           Day: ot.Day,
-          StartTime: parseInt(ot.StartTime.replace(':', '')),
-          EndTime: parseInt(ot.EndTime.replace(':', ''))
+          StartTime: timeStringToNumber(ot.StartTime),
+          EndTime: timeStringToNumber(ot.EndTime)
         }))
       };
 
       const url = service 
-        ? `/api/organisations/${organisation._id}/services/${service._id}`
-        : `/api/organisations/${organisation._id}/services`;
+        ? `/api/organisations/${service.ProviderId}/services/${service._id}`
+        : `/api/organisations/${submissionData.ProviderId}/services`;
       
       const method = service ? 'PUT' : 'POST';
 
@@ -272,7 +425,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       }
 
       service ? successToast.update('Service') : successToast.create('Service');
-      onServiceSaved();
+      onClose(); // Close the modal
+      onServiceSaved(); // Trigger parent refresh
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : `Failed to ${service ? 'update' : 'create'} service`;
       errorToast.generic(errorMessage);
@@ -281,12 +435,18 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     }
   };
 
-  const handleCancel = () => {
+  const handleConfirmCancel = () => {
     setValidationErrors([]);
+    setShowConfirmModal(false);
+    if (originalData) {
+      setFormData(JSON.parse(JSON.stringify(originalData)));
+    }
     onClose();
   };
 
   if (!isOpen) return null;
+
+  const isOutreachLocation = formData.Location.IsOutreachLocation === true;
 
   return (
     <>
@@ -298,286 +458,356 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
-          <h2 className="heading-2 text-brand-k">
-            {service ? 'Edit Service' : 'Add Service'}
-          </h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleCancel}
-            className="p-2"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+            <h3 className="heading-3 text-brand-k">
+              {service ? 'Edit Service' : 'Add Service'}
+            </h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConfirmModal(true)}
+              className="p-2"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
           {/* Content - scrollable */}
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="space-y-6">
-              {/* Category Selection */}
-              <div>
-                <h3 className="heading-3 mb-4">Category</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
-                      Service Category <span className="text-brand-g">*</span>
-                    </label>
-                    <select
-                      value={formData.CategoryId}
-                      onChange={(e) => handleCategoryChange(e.target.value)}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Select a category...</option>
-                      {categories.map(category => (
-                        <option key={category._id} value={category._id}>
-                          {category.Name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedCategory && selectedCategory.SubCategories.length > 0 && (
+              <div className="space-y-6">
+                {/* Category Selection */}
+                <div>
+                  <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Category</h4>
+                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-brand-k mb-2">
-                        Sub Categories <span className="text-brand-g">*</span>
+                        Service Category <span className="text-brand-g">*</span>
                       </label>
-                      <MultiSelect
-                        options={selectedCategory.SubCategories.map(sub => ({
-                          value: sub._id,
-                          label: sub.Name
-                        }))}
-                        value={formData.SubCategoriesIds || []}
-                        onChange={handleSubCategoriesChange}
-                        placeholder="Select subcategories..."
+                      <select
+                        value={formData.CategoryId}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
+                      >
+                        <option value="" className="text-brand-k">Select a category...</option>
+                        {categories.map(category => (
+                          <option key={category._id} value={category._id} className="text-brand-k">
+                            {category.Name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedCategory && selectedCategory.SubCategories.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-brand-k mb-2">
+                          Sub Categories <span className="text-brand-g">*</span>
+                        </label>
+                        <MultiSelect
+                          options={selectedCategory.SubCategories.map(sub => ({
+                            value: sub.Key,
+                            label: sub.Name
+                          }))}
+                          value={formData.SubCategoryIds || []}
+                          onChange={handleSubCategoriesChange}
+                          placeholder="Select subcategories..."
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Service Details */}
+                <div>
+                  <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Service Details</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-brand-k mb-2">
+                        Description
+                      </label>
+                      <Textarea
+                        value={formData.Info || ''}
+                        onChange={(e) => updateFormData('Info', e.target.value)}
+                        placeholder="Service description"
+                        rows={4}
                       />
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Service Details */}
-              <div>
-                <h3 className="heading-3 mb-4">Service Details</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.Info || ''}
-                      onChange={(e) => updateFormData('Info', e.target.value)}
-                      className="input-field"
-                      placeholder="Service description"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="isTelephoneService"
                       checked={formData.IsTelephoneService || false}
                       onChange={(e) => updateFormData('IsTelephoneService', e.target.checked)}
-                      className="checkbox-field"
+                      label="Is Telephone Service"
                     />
-                    <label htmlFor="isTelephoneService" className="text-sm text-brand-k ml-2">
-                      Is Telephone Service
-                    </label>
+
+                    <div>
+                      <label className="block text-sm font-medium text-brand-k mb-2">
+                        Telephone
+                      </label>
+                      <Input
+                        value={formData.Telephone || ''}
+                        onChange={(e) => updateFormData('Telephone', e.target.value)}
+                        placeholder="Telephone number"
+                        type="tel"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Location */}
-              <div>
-                <h3 className="heading-3 mb-4">Location</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
-                      Outreach Locations Description
-                    </label>
-                    <textarea
-                      value={formData.Location.OutreachLocationDescription || ''}
-                      onChange={(e) => updateFormData('Location', {
-                        ...formData.Location,
-                        OutreachLocationDescription: e.target.value
-                      })}
-                      className="input-field"
-                      placeholder="Enter a description for outreach services with no fixed address"
-                      rows={2}
-                    />
-                    <p className="text-xs text-brand-f mt-1">
+                {/* Location */}
+                <div>
+                  <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Location</h4>
+                  <div className="space-y-4">
+                    <p className="text-sm text-brand-f">
                       Enter a location for this service, either by selecting an existing address, or entering new details. 
-                      For outreach services with no fixed address, enter a description in the field above.
+                      For outreach services with no fixed address, check the box below and enter a description.
                     </p>
-                  </div>
 
+                    {/* Is Outreach Location Checkbox */}
+                    <Checkbox
+                      id="isOutreachLocation"
+                      checked={isOutreachLocation}
+                      onChange={(e) => handleIsOutreachLocationChange(e.target.checked)}
+                      label="Is Outreach Location (no fixed address)"
+                    />
+
+                    {/* Outreach Description - shown only if IsOutreachLocation is true */}
+                    {isOutreachLocation && (
+                      <div>
+                        <label className="block text-sm font-medium text-brand-k mb-2">
+                          Outreach Location Description <span className="text-brand-g">*</span>
+                        </label>
+                        <Textarea
+                          value={formData.Location.Description || ''}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            Location: {
+                              ...prev.Location,
+                              Description: e.target.value
+                            }
+                          }))}
+                          rows={4}
+                        />
+                      </div>
+                    )}
+
+                    {/* Fixed Location Fields - shown only if IsOutreachLocation is false */}
+                    {!isOutreachLocation && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-brand-k mb-2">
+                            Use Existing Address
+                          </label>
+                          <select
+                            onChange={(e) => handleAddressSelect(e.target.value)}
+                            className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
+                          >
+                            <option value="" className="text-brand-k">Select an existing address...</option>
+                            {organisation.Addresses.map((address, index) => (
+                              <option key={index} value={index.toString()} className="text-brand-k">
+                                {address.Street} - {address.Postcode}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-brand-f mt-1">
+                            Selecting an existing address will auto-populate the fields below including opening times
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Street <span className="text-brand-g">*</span>
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.StreetLine1 || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  StreetLine1: e.target.value
+                                }
+                              }))}
+                              placeholder="Main street address"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Street Line 2
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.StreetLine2 || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  StreetLine2: e.target.value
+                                }
+                              }))}
+                              placeholder="Building name, floor, etc."
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Street Line 3
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.StreetLine3 || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  StreetLine3: e.target.value
+                                }
+                              }))}
+                              placeholder="Additional address info"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Street Line 4
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.StreetLine4 || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  StreetLine4: e.target.value
+                                }
+                              }))}
+                              placeholder="Additional address info"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              City
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.City || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  City: e.target.value
+                                }
+                              }))}
+                              placeholder="City"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Postcode <span className="text-brand-g">*</span>
+                            </label>
+                            <Input
+                              type="text"
+                              value={formData.Location.Postcode || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                Location: {
+                                  ...prev.Location,
+                                  Postcode: e.target.value
+                                }
+                              }))}
+                              placeholder="M1 1AA"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Opening Times - shown only for fixed locations */}
+                {!isOutreachLocation && (
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
-                      Use Existing Address
-                    </label>
-                    <select
-                      onChange={(e) => handleAddressSelect(e.target.value)}
-                      className="input-field"
-                    >
-                      <option value="">Select an existing address...</option>
-                      {organisation.Addresses.map((address, index) => (
-                        <option key={index} value={index.toString()}>
-                          {address.Street} - {address.Postcode}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Opening Times</h4>
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Checkbox
+                          id="isOpen247"
+                          checked={formData.IsOpen247}
+                          onChange={(e) => handleIsOpen247Change(e.target.checked)}
+                          label="Open 24/7"
+                        />
+                        <Checkbox
+                          id="isAppointmentOnly"
+                          checked={formData.IsAppointmentOnly || false}
+                          onChange={(e) => handleIsAppointmentOnlyChange(e.target.checked)}
+                          label="Appointment Only"
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Street Line 1 <span className="text-brand-g">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.Location.StreetLine1}
-                        onChange={(e) => updateFormData('Location', {
-                          ...formData.Location,
-                          StreetLine1: e.target.value
-                        })}
-                        className="input-field"
-                        placeholder="Street address"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Postcode <span className="text-brand-g">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.Location.Postcode}
-                        onChange={(e) => updateFormData('Location', {
-                          ...formData.Location,
-                          Postcode: e.target.value
-                        })}
-                        className="input-field"
-                        placeholder="Postcode"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Street Line 2
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.Location.StreetLine2 || ''}
-                        onChange={(e) => updateFormData('Location', {
-                          ...formData.Location,
-                          StreetLine2: e.target.value
-                        })}
-                        className="input-field"
-                        placeholder="Street line 2"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.Location.City || ''}
-                        onChange={(e) => updateFormData('Location', {
-                          ...formData.Location,
-                          City: e.target.value
-                        })}
-                        className="input-field"
-                        placeholder="City"
-                      />
+                      {!formData.IsOpen247 && !formData.IsAppointmentOnly && (
+                        <OpeningTimesManager
+                          openingTimes={formData.OpeningTimes || []}
+                          onChange={handleOpeningTimesChange}
+                        />
+                      )}
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Opening Times */}
-              <div>
-                <h3 className="heading-3 mb-4">Opening Times</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="isOpen247"
-                      checked={formData.IsOpen247}
-                      onChange={(e) => updateFormData('IsOpen247', e.target.checked)}
-                      className="checkbox-field"
-                    />
-                    <label htmlFor="isOpen247" className="text-sm text-brand-k ml-2">
-                      Open 24/7
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="isAppointmentOnly"
-                      checked={formData.IsAppointmentOnly || false}
-                      onChange={(e) => updateFormData('IsAppointmentOnly', e.target.checked)}
-                      className="checkbox-field"
-                    />
-                    <label htmlFor="isAppointmentOnly" className="text-sm text-brand-k ml-2">
-                      Appointment Only
-                    </label>
-                  </div>
-
-                  {!formData.IsOpen247 && !formData.IsAppointmentOnly && (
-                    <OpeningTimesManager
-                      openingTimes={formData.OpeningTimes || []}
-                      onChange={handleOpeningTimesChange}
-                    />
-                  )}
-                </div>
+                )}
               </div>
             </div>
-          </div>
 
             {/* Error Display */}
             {validationErrors.length > 0 && (
-              <div className="px-4 sm:px-6">
-              <ErrorDisplay
-                ValidationErrors={validationErrors}
-                ClassName="mb-4"
-              />
-            </div>
-          )}
+              <div className="px-4 sm:px-6 pb-4">
+                <ErrorDisplay
+                  ValidationErrors={validationErrors}
+                  ClassName="mb-0"
+                />
+              </div>
+            )}
 
             {/* Footer - fixed at bottom */}
             <div className="border-t border-brand-q p-4 sm:p-6">
-            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-                className="flex-1 sm:flex-none"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isLoading}
-                className="flex-1 sm:flex-none"
-              >
-                {isLoading ? (service ? 'Updating...' : 'Creating...') : (service ? 'Update Service' : 'Create Service')}
-              </Button>
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowConfirmModal(true)}
+                  disabled={isLoading}
+                  className="flex-1 sm:flex-none"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                  className="flex-1 sm:flex-none"
+                >
+                  {isLoading ? (service ? 'Updating...' : 'Creating...') : (service ? 'Update Service' : 'Create Service')}
+                </Button>
+              </div>
             </div>
-          </div>
           </form>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="Close without saving?"
+        message="You may lose unsaved changes."
+        confirmLabel="Close Without Saving"
+        cancelLabel="Continue Editing"
+        variant="warning"
+      />
     </>
   );
 };

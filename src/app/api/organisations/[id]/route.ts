@@ -66,35 +66,6 @@ const putHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
   }
 };
 
-const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
-  try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.DELETE)) {
-      return sendForbidden();
-    }
-
-    const { id } = context.params;
-
-    const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
-      method: HTTP_METHODS.DELETE,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.accessToken}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return sendError(response.status, data.error || 'Failed to delete organisation');
-    }
-
-    return proxyResponse(data);
-  } catch (error) {
-    console.error('Error deleting organisation:', error);
-    return sendInternalError();
-  }
-};
-
 const patchHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {
   try {
     if (!hasApiAccess(auth.session.user.authClaims, '/api/organisations', HTTP_METHODS.PATCH)) {
@@ -128,5 +99,4 @@ const patchHandler: AuthenticatedApiHandler = async (req: NextRequest, context, 
 
 export const GET = withAuth(getHandler);
 export const PUT = withAuth(putHandler);
-export const DELETE = withAuth(deleteHandler);
 export const PATCH = withAuth(patchHandler);
