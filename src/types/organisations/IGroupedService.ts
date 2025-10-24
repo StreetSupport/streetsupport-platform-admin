@@ -8,6 +8,7 @@ export interface IGroupedService {
   DocumentModifiedDate: Date;
   CreatedBy: string;
   IsPublished: boolean;
+  IsVerified: boolean;
   ProviderId: string;
   ProviderName?: string;
   CategoryId: string;
@@ -19,7 +20,6 @@ export interface IGroupedService {
   IsOpen247: boolean;
   OpeningTimes?: IOpeningTime[];
   SubCategories: IServiceSubCategory[];
-  SubCategoryIds?: string[];
   IsTelephoneService?: boolean;
   IsAppointmentOnly?: boolean;
   Telephone?: string;

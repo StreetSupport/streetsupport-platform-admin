@@ -5,6 +5,8 @@ export interface IAccommodation {
     Synopsis?: string;
     Description?: string;
     AccommodationType: string;
+    // We have this field in the DB but we use another field SupportProvidedInfo.SupportOffered on WEB.
+    // SupportOffered: string[];
     ServiceProviderId: string;
     IsOpenAccess: boolean;
     IsPubliclyVisible?: boolean;
@@ -34,6 +36,10 @@ export interface IAccommodation {
       coordinates: [number, number];
     };
     AssociatedCityId: string;
+    // We have these fields i nthe database but we don't need them
+    // PublicTransportInfo: string;
+    // NearestSupportProviderId: string;
+    // IsPubliclyHidden: boolean;
   };
   FeaturesWithDiscretionary: {
     AcceptsHousingBenefit?: number;

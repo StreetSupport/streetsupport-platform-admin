@@ -96,6 +96,7 @@ export const NoteSchema = z.object({
 // Organisation form validation schema
 export const OrganisationSchema = z.object({
   // General Details
+  Key: z.string().min(1, 'Key is required').trim(),
   Name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   AssociatedLocationIds: z.array(z.string()).min(1, 'At least one associated location is required'),
   ShortDescription: z.string().min(1, 'Short description is required'),
@@ -104,14 +105,11 @@ export const OrganisationSchema = z.object({
   
   // Contact Information
   Telephone: z.preprocess(preprocessNullableString, z.string().optional()),
-  Email: z.preprocess(preprocessNullableString, 
-    z.string().email('Invalid email address').optional().or(z.literal(''))
-  ),
-  Website: z.preprocess(preprocessNullableString,
-    z.string().url('Invalid website URL').optional().or(z.literal(''))
-  ),
+  Email: z.preprocess(preprocessNullableString, z.string().email('Invalid email address').optional().or(z.literal(''))),
+  Website: z.preprocess(preprocessNullableString, z.string().url('Invalid website URL').optional().or(z.literal(''))),
   Facebook: z.preprocess(preprocessNullableString, z.string().url('Invalid Facebook URL').optional().or(z.literal(''))),
   Twitter: z.preprocess(preprocessNullableString, z.string().url('Invalid Twitter URL').optional().or(z.literal(''))),
+  Bluesky: z.preprocess(preprocessNullableString, z.string().url('Invalid Bluesky URL').optional().or(z.literal(''))),
   
   // Locations
   Addresses: z.array(AddressSchema).default([]),

@@ -2,11 +2,11 @@ import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
 import { LocationCoordinatesSchema } from './organisationSchema';
 
-// Enum for discretionary values: 0 = No, 1 = Yes, 3 = Don't Know/Ask
+// Enum for discretionary values: 0 = No, 1 = Yes, 2 = Don't Know/Ask
 const DiscretionaryValueSchema = z.union([
   z.literal(0),
   z.literal(1),
-  z.literal(3),
+  z.literal(2),
 ]);
 
 // Nested schemas for accommodation sections
@@ -22,7 +22,7 @@ const GeneralInfoSchema = z.object({
 });
 
 const PricingAndRequirementsInfoSchema = z.object({
-  ReferralIsRequired: z.boolean(),
+  ReferralIsRequired: z.boolean().default(false),
   ReferralNotes: z.string().optional(),
   Price: z.string().min(1, 'Price is required'),
   FoodIsIncluded: DiscretionaryValueSchema,

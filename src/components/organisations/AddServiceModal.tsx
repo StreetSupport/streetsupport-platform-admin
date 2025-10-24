@@ -37,7 +37,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   const [formData, setFormData] = useState<IGroupedServiceFormData>({
     ProviderId: organisation._id,
     ProviderName: organisation.Name,
-    IsPublished: true,
+    IsPublished: false,
+    IsVerified: false,
     CategoryId: '',
     Location: {
       IsOutreachLocation: false,
@@ -77,6 +78,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         ProviderId: service.ProviderId,
         ProviderName: service.ProviderName || organisation.Name,
         IsPublished: service.IsPublished,
+        IsVerified: service.IsVerified,
         CategoryId: service.CategoryId,
         CategoryName: decodeText(service.CategoryName || ''),
         CategorySynopsis: decodeText(service.CategorySynopsis || ''),
@@ -103,7 +105,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
           Name: sub.Name || '',
           Synopsis: sub.Synopsis || ''
         })) || [],
-        SubCategoryIds: service.SubCategoryIds || [],
         IsTelephoneService: service.IsTelephoneService,
         IsAppointmentOnly: service.IsAppointmentOnly,
         Telephone: service.Telephone || ''
@@ -116,6 +117,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         ProviderId: organisation.Key,
         ProviderName: organisation.Name,
         IsPublished: organisation.IsPublished,
+        IsVerified: organisation.IsVerified,
         CategoryId: '',
         Location: {
           IsOutreachLocation: false,
@@ -125,7 +127,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         },
         IsOpen247: false,
         SubCategories: [],
-        SubCategoryIds: [],
         IsTelephoneService: false,
         IsAppointmentOnly: false,
         Telephone: ''
@@ -236,8 +237,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         CategoryId: categoryId,
         CategoryName: category.Name,
         CategorySynopsis: category.Synopsis,
-        SubCategories: [],
-        SubCategoryIds: []
+        SubCategories: []
       }));
       // Clear validation errors
       setValidationErrors(prev => prev.filter(error => 
@@ -259,8 +259,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
     setFormData(prev => ({
       ...prev,
-      SubCategories: selectedSubCategories,
-      SubCategoryIds: selectedIds
+      SubCategories: selectedSubCategories
     }));
 
     // Clear validation errors for subcategories
@@ -509,7 +508,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                             value: sub.Key,
                             label: sub.Name
                           }))}
-                          value={formData.SubCategoryIds || []}
+                          value={formData.SubCategories.map(sub => sub._id)}
                           onChange={handleSubCategoriesChange}
                           placeholder="Select subcategories..."
                         />

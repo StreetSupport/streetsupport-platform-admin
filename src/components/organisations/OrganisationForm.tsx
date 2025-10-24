@@ -43,11 +43,12 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     Tags: [],
     IsVerified: false,
     IsPublished: false,
-    // Telephone: '',
-    // Email: '',
-    // Website: '',
-    // Facebook: '',
-    // Twitter: '',
+    Telephone: '',
+    Email: '',
+    Website: '',
+    Facebook: '',
+    Twitter: '',
+    Bluesky: '',
     Addresses: [],
     ...initialData
   });
@@ -332,6 +333,18 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               value={formData.Twitter}
               onChange={(e) => updateFormData('Twitter', e.target.value)}
               placeholder="https://twitter.com/organisation"
+              type="url"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brand-k mb-2">
+              Bluesky
+            </label>
+            <Input
+              value={formData.Bluesky}
+              onChange={(e) => updateFormData('Bluesky', e.target.value)}
+              placeholder="https://bsky.app/profile/organisation"
               type="url"
             />
           </div>

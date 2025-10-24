@@ -89,6 +89,7 @@ export const GroupedServiceSchema = z.object({
   DocumentModifiedDate: z.date().optional(),
   CreatedBy: z.preprocess(preprocessNullableString, z.string().optional()),
   IsPublished: z.boolean().default(false),
+  IsVerified: z.boolean().default(false),
   ProviderId: z.string().min(1, 'Provider ID is required'),
   ProviderName: z.preprocess(preprocessNullableString, z.string().optional()),
   CategoryId: z.string().min(1, 'Category is required'),
@@ -99,7 +100,6 @@ export const GroupedServiceSchema = z.object({
   IsOpen247: z.boolean().default(false),
   OpeningTimes: z.array(OpeningTimeFormSchema).optional(),
   SubCategories: z.array(ServiceSubCategorySchema).min(1, 'At least one subcategory is required'),
-  SubCategoryIds: z.array(z.string()).optional(),
   IsTelephoneService: z.boolean().optional().default(false),
   IsAppointmentOnly: z.boolean().optional().default(false),
   Telephone: z.preprocess(preprocessNullableString, z.string().optional())
@@ -120,6 +120,7 @@ export interface IGroupedServiceFormData {
   ProviderId: string;
   ProviderName?: string;
   IsPublished: boolean;
+  IsVerified: boolean;
   CategoryId: string;
   CategoryName?: string;
   CategorySynopsis?: string;
@@ -150,7 +151,6 @@ export interface IGroupedServiceFormData {
     Name: string;
     Synopsis?: string;
   }>;
-  SubCategoryIds?: string[];
   IsTelephoneService?: boolean;
   IsAppointmentOnly?: boolean;
   Telephone?: string;
