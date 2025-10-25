@@ -15,6 +15,7 @@ interface OrganisationTabProps {
   onOrganisationUpdated: () => void;
   onClose: () => void; // Called after successful update (no confirmation)
   onCancel: () => void; // Called when user clicks Cancel (shows confirmation)
+  viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
 
@@ -22,7 +23,8 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
   organisation,
   onOrganisationUpdated,
   onClose,
-  onCancel
+  onCancel,
+  viewMode = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -35,7 +37,7 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
     ShortDescription: decodeText(organisation.ShortDescription || ''),
     Description: decodeText(organisation.Description || ''),
     AssociatedLocationIds: organisation.AssociatedLocationIds || [],
-    Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) : [],
+    Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) as any : [],
     IsVerified: organisation.IsVerified || false,
     IsPublished: organisation.IsPublished || false,
     Telephone: organisation.Telephone || '',
@@ -138,6 +140,7 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
             ref={formRef}
             initialData={initialData}
             onValidationChange={handleValidationChange}
+            viewMode={viewMode}
           />
         </div>
 
@@ -152,27 +155,29 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
         )}
 
         {/* Footer */}
-        <div className="border-t border-brand-q p-4 sm:p-6">
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-              className="flex-1 sm:flex-none"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isLoading}
-              className="flex-1 sm:flex-none"
-            >
-              {isLoading ? 'Updating...' : 'Update Organisation'}
-            </Button>
+        {!viewMode && (
+          <div className="border-t border-brand-q p-4 sm:p-6">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isLoading}
+                className="flex-1 sm:flex-none"
+              >
+                {isLoading ? 'Updating...' : 'Update Organisation'}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </div>
   );

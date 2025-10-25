@@ -12,9 +12,10 @@ import { AddAccommodationModal } from '../AddAccommodationModal';
 
 interface AccommodationsTabProps {
   organisation: IOrganisation;
+  viewMode?: boolean; // When true, hide add/edit/delete actions
 }
 
-const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) => {
+const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation, viewMode = false }) => {
   const [accommodations, setAccommodations] = useState<IAccommodation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -78,6 +79,11 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) =
     setIsAddModalOpen(true);
   };
 
+  const handleViewAccommodation = (accommodation: IAccommodation) => {
+    setEditingAccommodation(accommodation);
+    setIsAddModalOpen(true);
+  };
+
   const handleDeleteAccommodation = (accommodation: IAccommodation) => {
     setAccommodationToDelete(accommodation);
     setShowDeleteConfirm(true);
@@ -116,17 +122,19 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) =
         <div className="space-y-6">
           
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h3 className="heading-3">Accommodations</h3>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleAddAccommodation}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Accommodation
-            </Button>
+            {!viewMode && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleAddAccommodation}
+                className="flex items-center gap-2 w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4" />
+                Add Accommodation
+              </Button>
+            )}
           </div>
 
           {/* Accommodations List */}
@@ -137,14 +145,16 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) =
           ) : accommodations.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-brand-f mb-4">No accommodations found for this organisation.</p>
-              <Button
-                variant="primary"
-                onClick={handleAddAccommodation}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add First Accommodation
-              </Button>
+              {!viewMode && (
+                <Button
+                  variant="primary"
+                  onClick={handleAddAccommodation}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add First Accommodation
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -184,26 +194,40 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) =
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditAccommodation(accommodation)}
-                      className="p-2"
-                      title="Edit"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteAccommodation(accommodation)}
-                      className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-                      title="Delete"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </Button>
+                    {viewMode ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewAccommodation(accommodation)}
+                        title="View"
+                      >
+                        View
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditAccommodation(accommodation)}
+                          className="p-2"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteAccommodation(accommodation)}
+                          className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+                          title="Delete"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -242,6 +266,7 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation }) =
           providerId={organisation.Key}
           availableCities={availableCities}
           accommodation={editingAccommodation}
+          viewMode={viewMode}
         />
       )}
     </div>

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
 import { LocationCoordinatesSchema } from './organisationSchema';
 import { AccommodationType, SupportOfferedType, DiscretionaryValue } from '@/types/organisations/IAccommodation';
+import { isValidPostcodeFormat } from '@/utils/postcodeValidation';
 
 // Helper function to transform error paths to user-friendly names
 export function transformErrorPath(path: string): string {
@@ -13,11 +14,24 @@ export function transformErrorPath(path: string): string {
     'Address.Street1': 'Street',
     'Address.City': 'City',
     'Address.Postcode': 'Postcode',
-    'Address.AssociatedCityId': 'Associated Location'
+    'Address.AssociatedCityId': 'Associated Location',
+    'PricingAndRequirementsInfo.Price': 'Price',
   };
   
   return pathMap[path] || path;
 }
+
+// Preprocessing helper to convert null/undefined to empty string
+const preprocessNullableString = (val: unknown) => {
+  if (val === null || val === undefined) return '';
+  return val;
+};
+
+// Preprocessing helper to convert null/undefined to empty string
+const preprocessNullableObject = (val: unknown) => {
+  if (val === null || val === undefined) return {};
+  return val;
+};
 
 // Enum for discretionary values: Use nativeEnum for proper type checking
 const DiscretionaryValueSchema = z.nativeEnum(DiscretionaryValue);
@@ -25,8 +39,8 @@ const DiscretionaryValueSchema = z.nativeEnum(DiscretionaryValue);
 // Nested schemas for accommodation sections
 const GeneralInfoSchema = z.object({
   Name: z.string().min(1, 'Accommodation Name is required'),
-  Synopsis: z.string().optional(),
-  Description: z.string().optional(),
+  Synopsis: z.preprocess(preprocessNullableString, z.string().optional()),
+  Description: z.preprocess(preprocessNullableString, z.string().optional()),
   AccommodationType: z.nativeEnum(AccommodationType),
   ServiceProviderId: z.string().min(1, 'Service provider ID is required'),
   IsOpenAccess: z.boolean(),
@@ -36,27 +50,31 @@ const GeneralInfoSchema = z.object({
 
 const PricingAndRequirementsInfoSchema = z.object({
   ReferralIsRequired: z.boolean().default(false),
-  ReferralNotes: z.string().optional(),
+  ReferralNotes: z.preprocess(preprocessNullableString, z.string().optional()),
   Price: z.string().min(1, 'Price is required'),
   FoodIsIncluded: DiscretionaryValueSchema,
-  AvailabilityOfMeals: z.string().optional(),
+  AvailabilityOfMeals: z.preprocess(preprocessNullableString, z.string().optional()),
 });
 
 const ContactInformationSchema = z.object({
   Name: z.string().min(1, 'Contact name is required'),
   Email: z.string().email('Invalid email address').min(1, 'Email is required'),
-  Telephone: z.string().optional(),
-  AdditionalInfo: z.string().optional(),
+  Telephone: z.preprocess(preprocessNullableString, z.string().optional()),
+  AdditionalInfo: z.preprocess(preprocessNullableString, z.string().optional()),
 });
 
 const AccommodationAddressSchema = z.object({
   Street1: z.string().min(1, 'Street is required'),
-  Street2: z.string().optional(),
-  Street3: z.string().optional(),
+  Street2: z.preprocess(preprocessNullableString, z.string().optional()),
+  Street3: z.preprocess(preprocessNullableString, z.string().optional()),
   City: z.string().min(1, 'City is required'),
-  Postcode: z.string().min(1, 'Postcode is required'),
+  Postcode: z.string().min(1, 'Postcode is required').refine((postcode) => {
+    return isValidPostcodeFormat(postcode);
+  }, {
+    message: 'Invalid postcode format'
+  }),
   Location: LocationCoordinatesSchema.optional(),
-  AssociatedCityId: z.string().min(1, 'Associated city ID is required'),
+  AssociatedCityId: z.string().min(1, 'Associated Location is required'),
 });
 
 const FeaturesWithDiscretionarySchema = z.object({
@@ -74,7 +92,7 @@ const FeaturesWithDiscretionarySchema = z.object({
   HasLounge: DiscretionaryValueSchema.optional(),
   AllowsVisitors: DiscretionaryValueSchema.optional(),
   HasOnSiteManager: DiscretionaryValueSchema.optional(),
-  AdditionalFeatures: z.string().optional(),
+  AdditionalFeatures: z.preprocess(preprocessNullableString, z.string().optional()),
 });
 
 const ResidentCriteriaInfoSchema = z.object({
@@ -89,7 +107,7 @@ const ResidentCriteriaInfoSchema = z.object({
 const SupportProvidedInfoSchema = z.object({
   HasOnSiteManager: DiscretionaryValueSchema.optional(),
   SupportOffered: z.array(z.nativeEnum(SupportOfferedType)).optional(),
-  SupportInfo: z.string().optional(),
+  SupportInfo: z.preprocess(preprocessNullableString, z.string().optional()),
 });
 
 // Accommodation schema (works for both create and update)
@@ -99,9 +117,9 @@ export const AccommodationSchema = z.object({
   PricingAndRequirementsInfo: PricingAndRequirementsInfoSchema,
   ContactInformation: ContactInformationSchema,
   Address: AccommodationAddressSchema,
-  FeaturesWithDiscretionary: FeaturesWithDiscretionarySchema.optional(),
-  ResidentCriteriaInfo: ResidentCriteriaInfoSchema.optional(),
-  SupportProvidedInfo: SupportProvidedInfoSchema.optional(),
+  FeaturesWithDiscretionary: z.preprocess(preprocessNullableObject, FeaturesWithDiscretionarySchema.optional()),
+  ResidentCriteriaInfo: z.preprocess(preprocessNullableObject, ResidentCriteriaInfoSchema.optional()),
+  SupportProvidedInfo: z.preprocess(preprocessNullableObject, SupportProvidedInfoSchema.optional()),
 });
 
 // Validation function

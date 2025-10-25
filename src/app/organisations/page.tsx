@@ -48,6 +48,7 @@ export default function OrganisationsPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isAddOrganisationModalOpen, setIsAddOrganisationModalOpen] = useState(false);
   const [isEditOrganisationModalOpen, setIsEditOrganisationModalOpen] = useState(false);
+  const [isViewOrganisationModalOpen, setIsViewOrganisationModalOpen] = useState(false);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState<IOrganisation | null>(null);
   const [organisationToDisable, setOrganisationToDisable] = useState<IOrganisation | null>(null);
@@ -150,8 +151,8 @@ export default function OrganisationsPage() {
   };
 
   const handleView = (organisation: IOrganisation) => {
-    // TODO: Implement view modal or navigation
-    console.log('View organisation:', organisation);
+    setSelectedOrganisation(organisation);
+    setIsViewOrganisationModalOpen(true);
   };
 
   const handleEdit = (organisation: IOrganisation) => {
@@ -508,6 +509,23 @@ export default function OrganisationsPage() {
               // Refresh the organisations list
               fetchOrganisations();
             }}
+          />
+        )}
+
+        {/* View Organisation Modal (Read-only) */}
+        {selectedOrganisation && (
+          <EditOrganisationModal
+            isOpen={isViewOrganisationModalOpen}
+            onClose={() => {
+              setIsViewOrganisationModalOpen(false);
+              setSelectedOrganisation(null);
+            }}
+            organisation={selectedOrganisation}
+            onOrganisationUpdated={() => {
+              // Refresh the organisations list
+              fetchOrganisations();
+            }}
+            viewMode={true}
           />
         )}
 

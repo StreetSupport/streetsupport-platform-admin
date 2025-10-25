@@ -19,6 +19,7 @@ interface AddLocationModalProps {
   onSave: (location: IAddressFormData) => void;
   editingLocation?: IAddressFormData | null;
   validationErrors?: ValidationError[];
+  viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
 export function AddLocationModal({ 
@@ -26,7 +27,8 @@ export function AddLocationModal({
   onClose, 
   onSave, 
   editingLocation = null,
-  validationErrors = [] 
+  validationErrors = [],
+  viewMode = false
 }: AddLocationModalProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [locationErrors, setLocationErrors] = useState<ValidationError[]>([]);
@@ -219,13 +221,13 @@ export function AddLocationModal({
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h2 className="heading-3">
-              {editingLocation ? 'Edit Location' : 'Add New Location'}
+              {viewMode ? 'View Location' : (editingLocation ? 'Edit Location' : 'Add New Location')}
             </h2>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
               className="p-2"
               title="Close"
             >
@@ -251,7 +253,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Street: e.target.value
                       })}
-                      placeholder="Main street address"
+                      placeholder={viewMode ? '' : 'Main street address'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -265,7 +268,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Street1: e.target.value
                       })}
-                      placeholder="Building name, floor, etc."
+                      placeholder={viewMode ? '' : 'Building name, floor, etc.'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -279,7 +283,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Street2: e.target.value
                       })}
-                      placeholder="Additional address info"
+                      placeholder={viewMode ? '' : 'Additional address info'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -293,7 +298,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Street3: e.target.value
                       })}
-                      placeholder="Additional address info"
+                      placeholder={viewMode ? '' : 'Additional address info'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -307,7 +313,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         City: e.target.value
                       })}
-                      placeholder="City"
+                      placeholder={viewMode ? '' : 'City'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -321,7 +328,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Postcode: e.target.value
                       })}
-                      placeholder="M1 1AA"
+                      placeholder={viewMode ? '' : 'M1 1AA'}
+                      disabled={viewMode}
                     />
                   </div>
 
@@ -335,7 +343,8 @@ export function AddLocationModal({
                         ...currentLocation,
                         Telephone: e.target.value
                       })}
-                      placeholder="0161 123 4567"
+                      placeholder={viewMode ? '' : '0161 123 4567'}
+                      disabled={viewMode}
                     />
                   </div>
                 </div>
@@ -351,6 +360,7 @@ export function AddLocationModal({
                     checked={currentLocation.IsOpen247}
                     onChange={(e) => handle24x7Change(e.target.checked)}
                     label="Open 24/7"
+                    disabled={viewMode}
                   />
                   
                   <Checkbox
@@ -358,6 +368,7 @@ export function AddLocationModal({
                     checked={currentLocation.IsAppointmentOnly}
                     onChange={(e) => handleAppointmentOnlyChange(e.target.checked)}
                     label="Appointment Only"
+                    disabled={viewMode}
                   />
                 </div>
 
@@ -366,6 +377,7 @@ export function AddLocationModal({
                     openingTimes={currentLocation.OpeningTimes}
                     onChange={handleOpeningTimesChange}
                     validationErrors={validationErrors}
+                    viewMode={viewMode}
                   />
                 )}
 
@@ -381,34 +393,36 @@ export function AddLocationModal({
           </div>
 
           {/* Footer - fixed at bottom */}
-          <div className="border-t border-brand-q p-4 sm:p-6">
-            {/* Error Display */}
-            {locationErrors.length > 0 && (
-              <ErrorDisplay
-                ValidationErrors={locationErrors}
-                ClassName="mb-6"
-              />
-            )}
+          {!viewMode && (
+            <div className="border-t border-brand-q p-4 sm:p-6">
+              {/* Error Display */}
+              {locationErrors.length > 0 && (
+                <ErrorDisplay
+                  ValidationErrors={locationErrors}
+                  ClassName="mb-6"
+                />
+              )}
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowConfirmModal(true)}
-                className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleSave}
-                className="w-full sm:w-auto sm:min-w-24 order-1 sm:order-2"
-              >
-                {editingLocation ? 'Update Location' : 'Add Location'}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowConfirmModal(true)}
+                  className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleSave}
+                  className="w-full sm:w-auto sm:min-w-24 order-1 sm:order-2"
+                >
+                  {editingLocation ? 'Update Location' : 'Add Location'}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

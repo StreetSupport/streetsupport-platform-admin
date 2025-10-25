@@ -15,14 +15,14 @@ export const DISCRETIONARY_OPTIONS = [
 // Accommodation Type Enum
 export enum AccommodationType {
   EMERGENCY = 'emergency',
-  HOSTELS = 'hostels',
+  HOSTELS = 'hostel',
   HOSTED = 'hosted',
   RENTED = 'rented',
   SUPPORTED = 'supported',
-  SOCIAL_HOUSING = 'social-housing',
-  NIGHT_SHELTER = 'night-shelter',
+  SOCIAL_HOUSING = 'social',
+  NIGHT_SHELTER = 'shelter',
   LETTINGS_AGENCIES = 'lettings-agencies',
-  BNBS = 'bnbs'
+  BNBS = 'b-and-bs'
 }
 
 // Accommodation Type Options for Dropdown
@@ -41,10 +41,10 @@ export const ACCOMMODATION_TYPES = [
 // Support Offered Enum
 export enum SupportOfferedType {
   ALCOHOL = 'alcohol',
-  DOMESTIC_VIOLENCE = 'domestic-violence',
-  MENTAL_HEALTH = 'mental-health',
-  PHYSICAL_HEALTH = 'physical-health',
-  DRUG_DEPENDENCY = 'drug-dependency'
+  DOMESTIC_VIOLENCE = 'domestic violence',
+  MENTAL_HEALTH = 'mental health',
+  PHYSICAL_HEALTH = 'physical health',
+  DRUG_DEPENDENCY = 'substances'
 }
 
 // Support Offered Options
@@ -58,6 +58,9 @@ export const SUPPORT_OFFERED_OPTIONS = [
 
 export interface IAccommodation {
   _id: string;
+  DocumentCreationDate: Date;
+  DocumentModifiedDate: Date;
+  CreatedBy: string;
   GeneralInfo: {
     Name: string;
     Synopsis?: string;
@@ -132,5 +135,5 @@ export interface IAccommodation {
 }
 
 // Form data interface for creating/editing accommodations
-export interface IAccommodationFormData extends Omit<IAccommodation, '_id'> {
+export interface IAccommodationFormData extends Omit<IAccommodation, '_id' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
 }

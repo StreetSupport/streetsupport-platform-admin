@@ -12,9 +12,10 @@ interface OpeningTimesManagerProps {
   openingTimes: IOpeningTimeFormData[];
   onChange: (openingTimes: IOpeningTimeFormData[]) => void;
   validationErrors?: ValidationError[];
+  viewMode?: boolean; // When true, hide add/edit/delete actions
 }
 
-export function OpeningTimesManager({ openingTimes, onChange, validationErrors = [] }: OpeningTimesManagerProps) {
+export function OpeningTimesManager({ openingTimes, onChange, validationErrors = [], viewMode = false }: OpeningTimesManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<IOpeningTimeFormData>({
@@ -84,18 +85,20 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Opening Time
-        </Button>
-      </div>
+      {!viewMode && (
+        <div className="space-y-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Opening Time
+          </Button>
+        </div>
+      )}
 
       {/* Opening Times List */}
       {openingTimes.length > 0 && (
@@ -113,38 +116,40 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
                   {formatTime(time.StartTime)} - {formatTime(time.EndTime)}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(index)}
-                  className="p-2"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDuplicate(index)}
-                  className="p-2"
-                  title="Duplicate"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRemove(index)}
-                  className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-                  title="Remove"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
+              {!viewMode && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(index)}
+                    className="p-2"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDuplicate(index)}
+                    className="p-2"
+                    title="Duplicate"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRemove(index)}
+                    className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+                    title="Remove"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

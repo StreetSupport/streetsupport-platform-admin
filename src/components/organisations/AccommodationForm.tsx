@@ -4,6 +4,7 @@ import React, { useState, useEffect, useImperativeHandle } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IAccommodation, IAccommodationFormData, DiscretionaryValue, AccommodationType } from '@/types/organisations/IAccommodation';
+import { validateAccommodation } from '@/schemas/accommodationSchema';
 import { GeneralInfoSection } from './accommodation-sections/GeneralInfoSection';
 import { ContactDetailsSection } from './accommodation-sections/ContactDetailsSection';
 import { LocationSection } from './accommodation-sections/LocationSection';
@@ -24,6 +25,7 @@ interface AccommodationFormProps {
   availableCities: Array<{ _id: string; Name: string; Key: string }>;
   onFormDataChange?: (formData: IAccommodationFormData, isValid: boolean) => void;
   onValidationChange?: (errors: ValidationError[]) => void;
+  viewMode?: boolean;
 }
 
 interface CollapsibleSectionProps {
@@ -64,7 +66,8 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   providerId,
   availableCities,
   onFormDataChange,
-  onValidationChange
+  onValidationChange,
+  viewMode = false
 }, ref) => {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
@@ -97,7 +100,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         Name: '',
         Synopsis: '',
         Description: '',
-        AccommodationType: AccommodationType.EMERGENCY,
+        AccommodationType: '' as any, // Empty string for placeholder, will be validated on submit
         ServiceProviderId: providerId,
         IsOpenAccess: false,
         IsPubliclyVisible: true,
@@ -216,36 +219,20 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     validate: () => {
-      // Basic validation - you can enhance this
-      const errors: ValidationError[] = [];
+      // Use schema validation
+      const result = validateAccommodation(formData);
       
-      if (!formData.GeneralInfo.Name) {
-        errors.push({ Path: 'GeneralInfo.Name', Message: 'Name is required' });
-      }
-      if (!formData.GeneralInfo.AccommodationType) {
-        errors.push({ Path: 'GeneralInfo.AccommodationType', Message: 'Accommodation type is required' });
-      }
-      if (!formData.ContactInformation.Name) {
-        errors.push({ Path: 'ContactInformation.Name', Message: 'Contact name is required' });
-      }
-      if (!formData.ContactInformation.Email) {
-        errors.push({ Path: 'ContactInformation.Email', Message: 'Contact email is required' });
-      }
-      if (!formData.Address.Street1) {
-        errors.push({ Path: 'Address.Street1', Message: 'Street address is required' });
-      }
-      if (!formData.Address.City) {
-        errors.push({ Path: 'Address.City', Message: 'City is required' });
-      }
-      if (!formData.Address.Postcode) {
-        errors.push({ Path: 'Address.Postcode', Message: 'Postcode is required' });
-      }
-      if (!formData.Address.AssociatedCityId) {
-        errors.push({ Path: 'Address.AssociatedCityId', Message: 'Associated city is required' });
+      if (!result.success) {
+        const errors = result.errors.map((error: any) => ({
+          Path: Array.isArray(error.path) ? error.path.join('.') : error.path,
+          Message: error.message
+        }));
+        setValidationErrors(errors);
+        return false;
       }
       
-      setValidationErrors(errors);
-      return errors.length === 0;
+      setValidationErrors([]);
+      return true;
     },
     getFormData: () => formData,
     resetForm: () => {
@@ -276,6 +263,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.GeneralInfo}
           onChange={handleFieldChange}
           errors={getErrorsForSection('GeneralInfo')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -290,6 +278,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.ContactInformation}
           onChange={handleFieldChange}
           errors={getErrorsForSection('ContactInformation')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -305,6 +294,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           onChange={handleFieldChange}
           errors={getErrorsForSection('Address')}
           availableCities={availableCities}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -319,6 +309,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.PricingAndRequirementsInfo}
           onChange={handleFieldChange}
           errors={getErrorsForSection('PricingAndRequirementsInfo')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -333,6 +324,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.FeaturesWithDiscretionary}
           onChange={handleFieldChange}
           errors={getErrorsForSection('FeaturesWithDiscretionary')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -347,6 +339,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.SupportProvidedInfo}
           onChange={handleFieldChange}
           errors={getErrorsForSection('SupportProvidedInfo')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
 
@@ -361,6 +354,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
           formData={formData.ResidentCriteriaInfo}
           onChange={handleFieldChange}
           errors={getErrorsForSection('ResidentCriteriaInfo')}
+          viewMode={viewMode}
         />
       </CollapsibleSection>
     </div>

@@ -14,9 +14,10 @@ interface MultiSelectProps {
   onChange: (value: string[]) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean; // When true, the multiselect is read-only
 }
 
-export function MultiSelect({ options, value, onChange, placeholder = "Select options...", className = '' }: MultiSelectProps) {
+export function MultiSelect({ options, value, onChange, placeholder = "Select options...", className = '', disabled = false }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,8 +49,12 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select op
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <div
-        className="min-h-[42px] w-full px-3 py-2 border border-brand-f rounded-md shadow-sm bg-white cursor-pointer flex items-center justify-between focus-within:ring-2 focus-within:ring-brand-a focus-within:border-brand-a"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`min-h-[42px] w-full px-3 py-2 border border-brand-f rounded-md shadow-sm flex items-center justify-between ${
+          disabled 
+            ? 'bg-brand-q cursor-not-allowed opacity-60' 
+            : 'bg-white cursor-pointer focus-within:ring-2 focus-within:ring-brand-a focus-within:border-brand-a'
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <div className="flex flex-wrap gap-1 flex-1">
           {selectedOptions.length === 0 ? (
@@ -61,13 +66,15 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select op
                 className="inline-flex items-center gap-1 px-2 py-1 bg-brand-a text-white text-xs rounded"
               >
                 {option.label}
-                <button
-                  type="button"
-                  onClick={(e) => handleRemoveOption(option.value, e)}
-                  className="hover:bg-brand-b rounded-full p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
+                {!disabled && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemoveOption(option.value, e)}
+                    className="hover:bg-brand-b rounded-full p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </span>
             ))
           )}
@@ -75,7 +82,7 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select op
         <ChevronDown className={`w-4 h-4 text-brand-f transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-brand-f rounded-md shadow-lg max-h-60 overflow-auto">
           {options.length === 0 ? (
             <div className="px-3 py-2 text-brand-f text-sm">

@@ -7,9 +7,10 @@ interface PricingSectionProps {
   formData: IAccommodationFormData['PricingAndRequirementsInfo'];
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
+  viewMode?: boolean;
 }
 
-export function PricingSection({ formData, onChange, errors }: PricingSectionProps) {
+export function PricingSection({ formData, onChange, errors, viewMode = false }: PricingSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center">
@@ -19,6 +20,7 @@ export function PricingSection({ formData, onChange, errors }: PricingSectionPro
           checked={formData.ReferralIsRequired}
           onChange={(e) => onChange('PricingAndRequirementsInfo.ReferralIsRequired', e.target.checked)}
           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          disabled={viewMode}
         />
         <label htmlFor="referralRequired" className="ml-2 block text-sm text-gray-700">
           Referral Required
@@ -36,7 +38,8 @@ export function PricingSection({ formData, onChange, errors }: PricingSectionPro
               onChange={(e) => onChange('PricingAndRequirementsInfo.ReferralNotes', e.target.value)}
               rows={3}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Provide details about referral requirements"
+              placeholder={viewMode ? '' : 'Provide details about referral requirements'}
+              disabled={viewMode}
             />
           </FormField>
         </div>
@@ -48,6 +51,7 @@ export function PricingSection({ formData, onChange, errors }: PricingSectionPro
           value={formData.Price}
           onChange={(e) => onChange('PricingAndRequirementsInfo.Price', e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          disabled={viewMode}
         />
       </FormField>
 
@@ -56,6 +60,7 @@ export function PricingSection({ formData, onChange, errors }: PricingSectionPro
           value={formData.FoodIsIncluded}
           onChange={(e) => onChange('PricingAndRequirementsInfo.FoodIsIncluded', parseInt(e.target.value))}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          disabled={viewMode}
         >
           {DISCRETIONARY_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -71,7 +76,8 @@ export function PricingSection({ formData, onChange, errors }: PricingSectionPro
           onChange={(e) => onChange('PricingAndRequirementsInfo.AvailabilityOfMeals', e.target.value)}
           rows={3}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Describe meal availability"
+          placeholder={viewMode ? '' : 'Describe meal availability'}
+          disabled={viewMode}
         />
       </FormField>
     </div>

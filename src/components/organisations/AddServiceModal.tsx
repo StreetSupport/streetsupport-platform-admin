@@ -25,6 +25,7 @@ interface AddServiceModalProps {
   organisation: IOrganisation;
   service?: IGroupedService | null;
   onServiceSaved: () => void;
+  viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
 const AddServiceModal: React.FC<AddServiceModalProps> = ({
@@ -32,7 +33,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   onClose,
   organisation,
   service,
-  onServiceSaved
+  onServiceSaved,
+  viewMode = false
 }) => {
   const [formData, setFormData] = useState<IGroupedServiceFormData>({
     ProviderId: organisation._id,
@@ -458,13 +460,13 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h3 className="heading-3 text-brand-k">
-              {service ? 'Edit Service' : 'Add Service'}
+              {viewMode ? 'View Service' : (service ? 'Edit Service' : 'Add Service')}
             </h3>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
               className="p-2"
               title="Close"
             >
@@ -488,6 +490,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         value={formData.CategoryId}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
+                        disabled={viewMode}
                       >
                         <option value="" className="text-brand-k">Select a category...</option>
                         {categories.map(category => (
@@ -510,7 +513,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           }))}
                           value={formData.SubCategories.map(sub => sub._id)}
                           onChange={handleSubCategoriesChange}
-                          placeholder="Select subcategories..."
+                          placeholder={viewMode ? '' : 'Select subcategories...'}
+                          disabled={viewMode}
                         />
                       </div>
                     )}
@@ -528,8 +532,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       <Textarea
                         value={formData.Info || ''}
                         onChange={(e) => updateFormData('Info', e.target.value)}
-                        placeholder="Service description"
+                        placeholder={viewMode ? '' : 'Service description'}
                         rows={4}
+                        disabled={viewMode}
                       />
                     </div>
 
@@ -538,6 +543,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       checked={formData.IsTelephoneService || false}
                       onChange={(e) => updateFormData('IsTelephoneService', e.target.checked)}
                       label="Is Telephone Service"
+                      disabled={viewMode}
                     />
 
                     <div>
@@ -547,8 +553,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       <Input
                         value={formData.Telephone || ''}
                         onChange={(e) => updateFormData('Telephone', e.target.value)}
-                        placeholder="Telephone number"
+                        placeholder={viewMode ? '' : 'Telephone number'}
                         type="tel"
+                        disabled={viewMode}
                       />
                     </div>
                   </div>
@@ -568,7 +575,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       id="isOutreachLocation"
                       checked={isOutreachLocation}
                       onChange={(e) => handleIsOutreachLocationChange(e.target.checked)}
-                      label="Is Outreach Location (no fixed address)"
+                      label="Is Outreach Location (no physical address)"
+                      disabled={viewMode}
                     />
 
                     {/* Outreach Description - shown only if IsOutreachLocation is true */}
@@ -579,14 +587,13 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         </label>
                         <Textarea
                           value={formData.Location.Description || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            Location: {
-                              ...prev.Location,
-                              Description: e.target.value
-                            }
-                          }))}
-                          rows={4}
+                          onChange={(e) => updateFormData('Location', {
+                            ...formData.Location,
+                            Description: e.target.value
+                          })}
+                          placeholder={viewMode ? '' : 'Describe the outreach area or service delivery method'}
+                          rows={3}
+                          disabled={viewMode}
                         />
                       </div>
                     )}
@@ -594,25 +601,27 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                     {/* Fixed Location Fields - shown only if IsOutreachLocation is false */}
                     {!isOutreachLocation && (
                       <>
-                        <div>
-                          <label className="block text-sm font-medium text-brand-k mb-2">
-                            Use Existing Address
-                          </label>
-                          <select
-                            onChange={(e) => handleAddressSelect(e.target.value)}
-                            className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
-                          >
-                            <option value="" className="text-brand-k">Select an existing address...</option>
-                            {organisation.Addresses.map((address, index) => (
-                              <option key={index} value={index.toString()} className="text-brand-k">
-                                {address.Street} - {address.Postcode}
-                              </option>
-                            ))}
-                          </select>
-                          <p className="text-xs text-brand-f mt-1">
-                            Selecting an existing address will auto-populate the fields below including opening times
-                          </p>
-                        </div>
+                        {!viewMode && (
+                          <div>
+                            <label className="block text-sm font-medium text-brand-k mb-2">
+                              Use Existing Address
+                            </label>
+                            <select
+                              onChange={(e) => handleAddressSelect(e.target.value)}
+                              className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
+                            >
+                              <option value="" className="text-brand-k">Select an existing address...</option>
+                              {organisation.Addresses.map((address, index) => (
+                                <option key={index} value={index.toString()} className="text-brand-k">
+                                  {address.Street} - {address.Postcode}
+                                </option>
+                              ))}
+                            </select>
+                            <p className="text-xs text-brand-f mt-1">
+                              Selecting an existing address will auto-populate the fields below including opening times
+                            </p>
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                           <div>
@@ -629,7 +638,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   StreetLine1: e.target.value
                                 }
                               }))}
-                              placeholder="Main street address"
+                              placeholder={viewMode ? '' : 'Main street address'}
+                              disabled={viewMode}
                             />
                           </div>
 
@@ -647,7 +657,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   StreetLine2: e.target.value
                                 }
                               }))}
-                              placeholder="Building name, floor, etc."
+                              placeholder={viewMode ? '' : 'Building name, floor, etc.'}
+                              disabled={viewMode}
                             />
                           </div>
 
@@ -665,7 +676,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   StreetLine3: e.target.value
                                 }
                               }))}
-                              placeholder="Additional address info"
+                              placeholder={viewMode ? '' : 'Additional address info'}
+                              disabled={viewMode}
                             />
                           </div>
 
@@ -683,7 +695,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   StreetLine4: e.target.value
                                 }
                               }))}
-                              placeholder="Additional address info"
+                              placeholder={viewMode ? '' : 'Additional address info'}
+                              disabled={viewMode}
                             />
                           </div>
 
@@ -701,7 +714,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   City: e.target.value
                                 }
                               }))}
-                              placeholder="City"
+                              placeholder={viewMode ? '' : 'City'}
+                              disabled={viewMode}
                             />
                           </div>
 
@@ -719,7 +733,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                   Postcode: e.target.value
                                 }
                               }))}
-                              placeholder="M1 1AA"
+                              placeholder={viewMode ? '' : 'M1 1AA'}
+                              disabled={viewMode}
                             />
                           </div>
                         </div>
@@ -739,12 +754,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           checked={formData.IsOpen247}
                           onChange={(e) => handleIsOpen247Change(e.target.checked)}
                           label="Open 24/7"
+                          disabled={viewMode}
                         />
                         <Checkbox
                           id="isAppointmentOnly"
                           checked={formData.IsAppointmentOnly || false}
                           onChange={(e) => handleIsAppointmentOnlyChange(e.target.checked)}
                           label="Appointment Only"
+                          disabled={viewMode}
                         />
                       </div>
 
@@ -752,6 +769,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         <OpeningTimesManager
                           openingTimes={formData.OpeningTimes || []}
                           onChange={handleOpeningTimesChange}
+                          viewMode={viewMode}
                         />
                       )}
                     </div>
@@ -771,27 +789,29 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             )}
 
             {/* Footer - fixed at bottom */}
-            <div className="border-t border-brand-q p-4 sm:p-6">
-              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowConfirmModal(true)}
-                  disabled={isLoading}
-                  className="flex-1 sm:flex-none"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isLoading}
-                  className="flex-1 sm:flex-none"
-                >
-                  {isLoading ? (service ? 'Updating...' : 'Creating...') : (service ? 'Update Service' : 'Create Service')}
-                </Button>
+            {!viewMode && (
+              <div className="border-t border-brand-q p-4 sm:p-6">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowConfirmModal(true)}
+                    disabled={isLoading}
+                    className="flex-1 sm:flex-none"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isLoading}
+                    className="flex-1 sm:flex-none"
+                  >
+                    {isLoading ? (service ? 'Updating...' : 'Creating...') : (service ? 'Update Service' : 'Create Service')}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </form>
         </div>
       </div>

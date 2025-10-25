@@ -11,9 +11,10 @@ interface LocationManagerProps {
   locations: IAddressFormData[];
   onChange: (locations: IAddressFormData[]) => void;
   validationErrors?: ValidationError[];
+  viewMode?: boolean; // When true, hide add/edit/delete actions
 }
 
-export function LocationManager({ locations, onChange, validationErrors = [] }: LocationManagerProps) {
+export function LocationManager({ locations, onChange, validationErrors = [], viewMode = false }: LocationManagerProps) {
   const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingLocation, setEditingLocation] = useState<IAddressFormData | null>(null);
@@ -38,6 +39,12 @@ export function LocationManager({ locations, onChange, validationErrors = [] }: 
   };
 
   const handleEdit = (index: number) => {
+    setEditingLocation({ ...locations[index] });
+    setEditingIndex(index);
+    setShowModal(true);
+  };
+
+  const handleView = (index: number) => {
     setEditingLocation({ ...locations[index] });
     setEditingIndex(index);
     setShowModal(true);
@@ -71,15 +78,17 @@ export function LocationManager({ locations, onChange, validationErrors = [] }: 
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-brand-q pb-3">
         <h4 className="heading-4">Locations</h4>
-        <Button
-          type="button"
-          variant="primary"
-          onClick={handleAddLocation}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Location
-        </Button>
+        {!viewMode && (
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleAddLocation}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Location
+          </Button>
+        )}
       </div>
 
       {/* Locations List */}
@@ -119,26 +128,40 @@ export function LocationManager({ locations, onChange, validationErrors = [] }: 
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(index)}
-                  className="p-2"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRemove(index)}
-                  className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-                  title="Delete"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
+                {viewMode ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleView(index)}
+                    title="View"
+                  >
+                    View
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(index)}
+                      className="p-2"
+                      title="Edit"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemove(index)}
+                      className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+                      title="Delete"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -152,6 +175,7 @@ export function LocationManager({ locations, onChange, validationErrors = [] }: 
         onSave={handleSaveLocation}
         editingLocation={editingLocation}
         validationErrors={validationErrors}
+        viewMode={viewMode}
       />
 
       {locations.length === 0 && (

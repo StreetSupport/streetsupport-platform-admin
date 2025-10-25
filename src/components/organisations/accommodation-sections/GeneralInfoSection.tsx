@@ -3,20 +3,16 @@
 import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { ACCOMMODATION_TYPES } from '@/types/organisations/IAccommodation';
+import { IAccommodationFormData } from '@/types';
 
 interface GeneralInfoSectionProps {
-  formData: {
-    Name: string;
-    Synopsis?: string;
-    Description?: string;
-    AccommodationType: string;
-    IsOpenAccess: boolean;
-  };
+  formData: IAccommodationFormData['GeneralInfo'];
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
+  viewMode?: boolean;
 }
 
-export function GeneralInfoSection({ formData, onChange, errors }: GeneralInfoSectionProps) {
+export function GeneralInfoSection({ formData, onChange, errors, viewMode = false }: GeneralInfoSectionProps) {
   return (
     <div className="space-y-4">
       <FormField label="Accommodation Name" required>
@@ -25,7 +21,8 @@ export function GeneralInfoSection({ formData, onChange, errors }: GeneralInfoSe
           value={formData.Name}
           onChange={(e) => onChange('GeneralInfo.Name', e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Accommodation name"
+          placeholder={viewMode ? '' : 'Accommodation name'}
+          disabled={viewMode}
         />
       </FormField>
 
@@ -34,17 +31,19 @@ export function GeneralInfoSection({ formData, onChange, errors }: GeneralInfoSe
           options={ACCOMMODATION_TYPES}
           value={formData.AccommodationType}
           onChange={(e) => onChange('GeneralInfo.AccommodationType', e.target.value)}
-          placeholder="Select accommodation type"
+          placeholder={viewMode ? '' : 'Select accommodation type'}
+          disabled={viewMode}
         />
       </FormField>
 
       <FormField label="Short Description">
-        <input
-          type="text"
+        <textarea
           value={formData.Synopsis || ''}
           onChange={(e) => onChange('GeneralInfo.Synopsis', e.target.value)}
+          rows={2}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Short description"
+          placeholder={viewMode ? '' : 'Short description'}
+          disabled={viewMode}
         />
       </FormField>
 
@@ -54,7 +53,8 @@ export function GeneralInfoSection({ formData, onChange, errors }: GeneralInfoSe
           onChange={(e) => onChange('GeneralInfo.Description', e.target.value)}
           rows={4}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Detailed description of the accommodation"
+          placeholder={viewMode ? '' : 'Detailed description of the accommodation'}
+          disabled={viewMode}
         />
       </FormField>
 
@@ -65,6 +65,7 @@ export function GeneralInfoSection({ formData, onChange, errors }: GeneralInfoSe
           checked={formData.IsOpenAccess}
           onChange={(e) => onChange('GeneralInfo.IsOpenAccess', e.target.checked)}
           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          disabled={viewMode}
         />
         <label htmlFor="isOpenAccess" className="ml-2 block text-sm text-gray-700">
           Open Access (No referral required)

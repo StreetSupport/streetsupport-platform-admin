@@ -4,9 +4,10 @@ import { FormField } from '@/components/ui/FormField';
 import { IAccommodationFormData, DISCRETIONARY_OPTIONS, DiscretionaryValue } from '@/types/organisations/IAccommodation';
 
 interface FeaturesSectionProps {
-  formData: IAccommodationFormData['FeaturesWithDiscretionary'];
+  formData?: IAccommodationFormData['FeaturesWithDiscretionary'] | null;
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
+  viewMode?: boolean;
 }
 
 interface FeatureRowProps {
@@ -14,9 +15,10 @@ interface FeatureRowProps {
   field: string;
   value: number | undefined;
   onChange: (field: string, value: number) => void;
+  disabled?: boolean;
 }
 
-function FeatureRow({ label, field, value, onChange }: FeatureRowProps) {
+function FeatureRow({ label, field, value, onChange, disabled = false }: FeatureRowProps) {
   return (
     <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 sm:items-center py-2 border-b border-gray-200">
       <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -24,6 +26,7 @@ function FeatureRow({ label, field, value, onChange }: FeatureRowProps) {
         value={value ?? DiscretionaryValue.DontKnowAsk}
         onChange={(e) => onChange(field, parseInt(e.target.value))}
         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        disabled={disabled}
       >
         {DISCRETIONARY_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -35,7 +38,8 @@ function FeatureRow({ label, field, value, onChange }: FeatureRowProps) {
   );
 }
 
-export function FeaturesSection({ formData, onChange, errors }: FeaturesSectionProps) {
+export function FeaturesSection({ formData, onChange, errors, viewMode = false }: FeaturesSectionProps) {
+  const safeFormData = (formData ?? {}) as IAccommodationFormData['FeaturesWithDiscretionary'];
   return (
     <div className="space-y-4">
       <div className="bg-gray-50 p-4 rounded-md">
@@ -43,98 +47,114 @@ export function FeaturesSection({ formData, onChange, errors }: FeaturesSectionP
           <FeatureRow
             label="Single Rooms"
             field="FeaturesWithDiscretionary.HasSingleRooms"
-            value={formData.HasSingleRooms}
+            value={safeFormData.HasSingleRooms}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Shared Rooms"
             field="FeaturesWithDiscretionary.HasSharedRooms"
-            value={formData.HasSharedRooms}
+            value={safeFormData.HasSharedRooms}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Disabled Access"
             field="FeaturesWithDiscretionary.HasDisabledAccess"
-            value={formData.HasDisabledAccess}
+            value={safeFormData.HasDisabledAccess}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Allows Pets"
             field="FeaturesWithDiscretionary.AcceptsPets"
-            value={formData.AcceptsPets}
+            value={safeFormData.AcceptsPets}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Allows Visitors"
             field="FeaturesWithDiscretionary.AllowsVisitors"
-            value={formData.AllowsVisitors}
+            value={safeFormData.AllowsVisitors}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Shower/Bathroom Facilities"
             field="FeaturesWithDiscretionary.HasShowerBathroomFacilities"
-            value={formData.HasShowerBathroomFacilities}
+            value={safeFormData.HasShowerBathroomFacilities}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Access to Kitchen"
             field="FeaturesWithDiscretionary.HasAccessToKitchen"
-            value={formData.HasAccessToKitchen}
+            value={safeFormData.HasAccessToKitchen}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Communal/Social Area"
             field="FeaturesWithDiscretionary.HasLounge"
-            value={formData.HasLounge}
+            value={safeFormData.HasLounge}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Laundry Facilities"
             field="FeaturesWithDiscretionary.HasLaundryFacilities"
-            value={formData.HasLaundryFacilities}
+            value={safeFormData.HasLaundryFacilities}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Accepts Housing Benefit"
             field="FeaturesWithDiscretionary.AcceptsHousingBenefit"
-            value={formData.AcceptsHousingBenefit}
+            value={safeFormData.AcceptsHousingBenefit}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Accepts Couples"
             field="FeaturesWithDiscretionary.AcceptsCouples"
-            value={formData.AcceptsCouples}
+            value={safeFormData.AcceptsCouples}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Suitable for Women"
             field="FeaturesWithDiscretionary.IsSuitableForWomen"
-            value={formData.IsSuitableForWomen}
+            value={safeFormData.IsSuitableForWomen}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Suitable for Young People"
             field="FeaturesWithDiscretionary.IsSuitableForYoungPeople"
-            value={formData.IsSuitableForYoungPeople}
+            value={safeFormData.IsSuitableForYoungPeople}
             onChange={onChange}
+            disabled={viewMode}
           />
           <FeatureRow
             label="Has On-Site Manager"
             field="FeaturesWithDiscretionary.HasOnSiteManager"
-            value={formData.HasOnSiteManager}
+            value={safeFormData.HasOnSiteManager}
             onChange={onChange}
+            disabled={viewMode}
           />
         </div>
       </div>
       <FormField label="Additional Features" error={errors['FeaturesWithDiscretionary.AdditionalFeatures']}>
         <textarea
-          value={formData.AdditionalFeatures || ''}
+          value={safeFormData.AdditionalFeatures || ''}
           onChange={(e) => onChange('FeaturesWithDiscretionary.AdditionalFeatures', e.target.value)}
           rows={3}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="Describe any additional features (optional)"
+          placeholder={viewMode ? '' : 'Describe any additional features (optional)'}
+          disabled={viewMode}
         />
       </FormField>
     </div>
   );
 }
+

@@ -14,6 +14,7 @@ interface EditOrganisationModalProps {
   onClose: () => void;
   organisation: IOrganisation;
   onOrganisationUpdated: () => void;
+  viewMode?: boolean; // When true, all inputs are disabled and edit actions hidden
 }
 
 type TabType = 'organisation' | 'services' | 'accommodations';
@@ -22,7 +23,8 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
   isOpen,
   onClose,
   organisation,
-  onOrganisationUpdated
+  onOrganisationUpdated,
+  viewMode = false
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('organisation');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -36,10 +38,15 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabClick = (tab: TabType) => {
     if (tab !== activeTab) {
-      setPendingTab(tab);
-      setShowTabSwitchConfirm(true);
+      // In view mode, switch tabs immediately without confirmation
+      if (viewMode) {
+        setActiveTab(tab);
+      } else {
+        setShowTabSwitchConfirm(true);
+        setPendingTab(tab);
+      }
     }
   };
 
@@ -78,12 +85,14 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
-            <h3 className="heading-3 text-brand-k">Edit Organisation</h3>
+            <h3 className="heading-3 text-brand-k">
+              {viewMode ? 'View Organisation' : 'Edit Organisation'}
+            </h3>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              onClick={() => viewMode ? handleClose() : setShowConfirmModal(true)}
               className="p-2"
               title="Close"
             >
@@ -96,7 +105,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
             <nav className="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
               <button
                 type="button"
-                onClick={() => handleTabChange('organisation')}
+                onClick={() => handleTabClick('organisation')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'organisation'
                     ? 'border-brand-a text-brand-a'
@@ -107,7 +116,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => handleTabChange('services')}
+                onClick={() => handleTabClick('services')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'services'
                     ? 'border-brand-a text-brand-a'
@@ -118,7 +127,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => handleTabChange('accommodations')}
+                onClick={() => handleTabClick('accommodations')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
                   activeTab === 'accommodations'
                     ? 'border-brand-a text-brand-a'
@@ -138,16 +147,19 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
                 onOrganisationUpdated={onOrganisationUpdated}
                 onClose={handleClose} // Direct close after successful update
                 onCancel={() => setShowConfirmModal(true)} // Show confirmation on manual cancel
+                viewMode={viewMode}
               />
             )}
             {activeTab === 'services' && (
               <ServicesTab
                 organisation={organisation}
+                viewMode={viewMode}
               />
             )}
             {activeTab === 'accommodations' && (
               <AccommodationsTab
                 organisation={organisation}
+                viewMode={viewMode}
               />
             )}
           </div>

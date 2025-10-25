@@ -19,6 +19,7 @@ interface AddAccommodationModalProps {
   providerId: string;
   availableCities: Array<{ _id: string; Name: string; Key: string }>;
   accommodation?: IAccommodation | null;
+  viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
 export function AddAccommodationModal({
@@ -28,7 +29,8 @@ export function AddAccommodationModal({
   organisationId,
   providerId,
   availableCities,
-  accommodation
+  accommodation,
+  viewMode = false
 }: AddAccommodationModalProps) {
   const formRef = useRef<AccommodationFormRef>(null);
   const isEditMode = !!accommodation;
@@ -144,10 +146,10 @@ export function AddAccommodationModal({
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h3 className="heading-3 text-brand-k">
-              {isEditMode ? 'Edit Accommodation' : 'Add Accommodation'}
+              {viewMode ? 'View Accommodation' : (isEditMode ? 'Edit Accommodation' : 'Add Accommodation')}
             </h3>
             <button
-              onClick={handleCancelClick}
+              onClick={viewMode ? onClose : handleCancelClick}
               className="text-brand-f hover:text-brand-k transition-colors"
             >
               <X className="w-6 h-6" />
@@ -164,41 +166,44 @@ export function AddAccommodationModal({
                 availableCities={availableCities}
                 onFormDataChange={handleFormDataChange}
                 onValidationChange={handleValidationChange}
+                viewMode={viewMode}
               />
             </div>
 
             {/* Footer - Fixed at bottom */}
-            <div className="border-t border-brand-q p-4 sm:p-6">
-              {/* Error Display */}
-              <ErrorDisplay
-                ErrorMessage={errorMessage || undefined}
-                ValidationErrors={validationErrors}
-                ClassName="mb-4"
-              />
+            {!viewMode && (
+              <div className="border-t border-brand-q p-4 sm:p-6">
+                {/* Error Display */}
+                <ErrorDisplay
+                  ErrorMessage={errorMessage || undefined}
+                  ValidationErrors={validationErrors}
+                  ClassName="mb-4"
+                />
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancelClick}
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto sm:min-w-24 order-1 sm:order-2"
-                >
-                  {isSubmitting 
-                    ? (isEditMode ? 'Updating...' : 'Creating...') 
-                    : (isEditMode ? 'Update Accommodation' : 'Create Accommodation')
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelClick}
+                    disabled={isSubmitting}
+                    className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting}
+                    className="w-full sm:w-auto sm:min-w-24 order-1 sm:order-2"
+                  >
+                    {isSubmitting 
+                      ? (isEditMode ? 'Updating...' : 'Creating...') 
+                      : (isEditMode ? 'Update Accommodation' : 'Create Accommodation')
                   }
                 </Button>
               </div>
             </div>
+            )}
           </form>
         </div>
       </div>

@@ -14,9 +14,10 @@ import { decodeText } from '@/utils/htmlDecode';
 
 interface ServicesTabProps {
   organisation: IOrganisation;
+  viewMode?: boolean; // When true, hide add/edit/delete actions
 }
 
-const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
+const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = false }) => {
   const [services, setServices] = useState<IGroupedService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -54,6 +55,11 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
   };
 
   const handleEditService = (service: IGroupedService) => {
+    setEditingService(service);
+    setIsAddModalOpen(true);
+  };
+
+  const handleViewService = (service: IGroupedService) => {
     setEditingService(service);
     setIsAddModalOpen(true);
   };
@@ -135,15 +141,17 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <h3 className="heading-3">Services</h3>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleAddService}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Service
-            </Button>
+            {!viewMode && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleAddService}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Service
+              </Button>
+            )}
           </div>
 
           {/* Services List */}
@@ -154,14 +162,16 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
           ) : services.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-brand-f mb-4">No services found for this organisation.</p>
-              <Button
-                variant="primary"
-                onClick={handleAddService}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add First Service
-              </Button>
+              {!viewMode && (
+                <Button
+                  variant="primary"
+                  onClick={handleAddService}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add First Service
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -208,26 +218,40 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditService(service)}
-                      className="p-2"
-                      title="Edit"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteService(service)}
-                      className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
-                      title="Delete"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </Button>
+                    {viewMode ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewService(service)}
+                        title="View"
+                      >
+                        View
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditService(service)}
+                          className="p-2"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteService(service)}
+                          className="p-2 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+                          title="Delete"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -245,6 +269,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation }) => {
         }}
         organisation={organisation}
         service={editingService}
+        viewMode={viewMode}
         onServiceSaved={handleServiceSaved}
       />
 

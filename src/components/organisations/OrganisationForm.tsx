@@ -24,12 +24,14 @@ interface OrganisationFormProps {
   initialData?: Partial<IOrganisationFormData>;
   onFormDataChange?: (formData: IOrganisationFormData, isValid: boolean) => void;
   onValidationChange?: (errors: ValidationError[]) => void;
+  viewMode?: boolean; // When true, all inputs are disabled (read-only)
 }
 
 export const OrganisationForm = React.forwardRef<OrganisationFormRef, OrganisationFormProps>(({
   initialData,
   onFormDataChange,
-  onValidationChange
+  onValidationChange,
+  viewMode = false
 }, ref) => {
   const [locations, setLocations] = useState<ICity[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -212,7 +214,8 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Name}
               onChange={(e) => updateFormData('Name', e.target.value)}
-              placeholder="Organisation name"
+              placeholder={viewMode ? '' : 'Organisation name'}
+              disabled={viewMode}
             />
           </div>
 
@@ -227,7 +230,8 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               })) || []}
               value={formData.AssociatedLocationIds || []}
               onChange={(selectedIds) => updateFormData('AssociatedLocationIds', selectedIds)}
-              placeholder={locations.length === 0 ? "Loading locations..." : "Select locations..."}
+              placeholder={viewMode ? '' : (locations.length === 0 ? "Loading locations..." : "Select locations...")}
+              disabled={viewMode}
             />
           </div>
 
@@ -235,10 +239,12 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <label className="block text-sm font-medium text-brand-k mb-2">
               Short Description <span className="text-brand-g">*</span>
             </label>
-            <Input
+            <Textarea
               value={formData.ShortDescription}
               onChange={(e) => updateFormData('ShortDescription', e.target.value)}
-              placeholder="Short description"
+              placeholder={viewMode ? '' : 'Short description'}
+              rows={2}
+              disabled={viewMode}
             />
           </div>
 
@@ -249,8 +255,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Textarea
               value={formData.Description}
               onChange={(e) => updateFormData('Description', e.target.value)}
-              placeholder="Detailed description of the organisation"
+              placeholder={viewMode ? '' : 'Detailed description of the organisation'}
               rows={4}
+              disabled={viewMode}
             />
           </div>
         </div>
@@ -266,6 +273,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
                 checked={formData.Tags.includes(tag.value)}
                 onChange={(e) => handleTagChange(tag.value, e.target.checked)}
                 label={tag.label}
+                disabled={viewMode}
               />
             ))}
           </div>
@@ -284,8 +292,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Telephone}
               onChange={(e) => updateFormData('Telephone', e.target.value)}
-              placeholder="Telephone number"
+              placeholder={viewMode ? '' : 'Telephone number'}
               type="tel"
+              disabled={viewMode}
             />
           </div>
 
@@ -296,8 +305,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Email}
               onChange={(e) => updateFormData('Email', e.target.value)}
-              placeholder="contact@organisation.org"
+              placeholder={viewMode ? '' : 'contact@organisation.org'}
               type="email"
+              disabled={viewMode}
             />
           </div>
 
@@ -308,8 +318,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Website}
               onChange={(e) => updateFormData('Website', e.target.value)}
-              placeholder="https://www.organisation.org"
+              placeholder={viewMode ? '' : 'https://www.organisation.org'}
               type="url"
+              disabled={viewMode}
             />
           </div>
 
@@ -320,8 +331,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Facebook}
               onChange={(e) => updateFormData('Facebook', e.target.value)}
-              placeholder="https://facebook.com/organisation"
+              placeholder={viewMode ? '' : 'https://facebook.com/organisation'}
               type="url"
+              disabled={viewMode}
             />
           </div>
 
@@ -332,8 +344,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Twitter}
               onChange={(e) => updateFormData('Twitter', e.target.value)}
-              placeholder="https://twitter.com/organisation"
+              placeholder={viewMode ? '' : 'https://twitter.com/organisation'}
               type="url"
+              disabled={viewMode}
             />
           </div>
 
@@ -344,8 +357,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
             <Input
               value={formData.Bluesky}
               onChange={(e) => updateFormData('Bluesky', e.target.value)}
-              placeholder="https://bsky.app/profile/organisation"
+              placeholder={viewMode ? '' : 'https://bsky.app/profile/organisation'}
               type="url"
+              disabled={viewMode}
             />
           </div>
         </div>
@@ -357,6 +371,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           locations={formData.Addresses}
           onChange={handleAddressesChange}
           validationErrors={validationErrors}
+          viewMode={viewMode}
         />
       </div>
     </div>
