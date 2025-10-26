@@ -24,7 +24,7 @@ export interface IOrganisation {
     Bluesky?: string;
     Addresses: IAddress[];
     Notes: INote[];
-    //Administrators: IAdministrator[];
+    Administrators: IAdministrator[];
 }
 
 // Form-specific version of IOrganisation with required fields and form-friendly types

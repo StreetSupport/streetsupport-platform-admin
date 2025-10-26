@@ -66,6 +66,13 @@ export default function OrganisationsPage() {
                      !userAuthClaims.roles.includes(ROLES.VOLUNTEER_ADMIN) &&
                      !userAuthClaims.roles.includes(ROLES.CITY_ADMIN);
 
+  // Get organisation keys from AdminFor: claims for OrgAdmin users
+  const orgAdminKeys = isOrgAdmin 
+    ? userAuthClaims.specificClaims
+        .filter((claim: string) => claim.startsWith('AdminFor:'))
+        .map((claim: string) => claim.replace('AdminFor:', ''))
+    : [];
+
   // Only run effects if authorized
   useEffect(() => {
     if (isAuthorized) {
@@ -96,25 +103,45 @@ export default function OrganisationsPage() {
     try {
       setLoading(true);
       setError(null);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: limit.toString(),
-      });
-      
-      if (searchName) params.append('search', searchName);
-      if (isVerifiedFilter) params.append('isVerified', isVerifiedFilter);
-      if (isPublishedFilter) params.append('isPublished', isPublishedFilter);
-      if (locationFilter) params.append('location', locationFilter);
-      
-      const response = await authenticatedFetch(`/api/organisations?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch organisations');
-      }
 
-      const result = await response.json();
-      setOrganisations(result.data || []);
-      setTotal(result.pagination?.total || 0);
-      setTotalPages(result.pagination?.pages || 1);
+      // OrgAdmin users: Fetch organisations by key (currently only first org, but supports multiple in future)
+      if (isOrgAdmin && orgAdminKeys.length > 0) {
+        // TODO: In the future, we can extend this to fetch multiple organisations by keys
+        // For now, fetch the first organisation the user administers
+        const orgKey = orgAdminKeys[0];
+        
+        const response = await authenticatedFetch(`/api/organisations/${orgKey}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch organisation');
+        }
+
+        const result = await response.json();
+        // API returns single organisation, wrap in array for consistent display
+        setOrganisations(result.data ? [result.data] : []);
+        setTotal(1);
+        setTotalPages(1);
+      } else {
+        // All other roles: Fetch organisations with pagination and filters
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: limit.toString(),
+        });
+        
+        if (searchName) params.append('search', searchName);
+        if (isVerifiedFilter) params.append('isVerified', isVerifiedFilter);
+        if (isPublishedFilter) params.append('isPublished', isPublishedFilter);
+        if (locationFilter) params.append('location', locationFilter);
+        
+        const response = await authenticatedFetch(`/api/organisations?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch organisations');
+        }
+
+        const result = await response.json();
+        setOrganisations(result.data || []);
+        setTotal(result.pagination?.total || 0);
+        setTotalPages(result.pagination?.pages || 1);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organisations';
       setError(errorMessage);
@@ -317,20 +344,20 @@ export default function OrganisationsPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
-        {/* Header - Hidden for OrgAdmin */}
-        {!isOrgAdmin && (
-          <div className="nav-container">
-            <div className="page-container">
-              <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">Organisations</h1>
+        {/* Header - Always show but with conditional content */}
+        <div className="nav-container">
+          <div className="page-container">
+            <div className={`flex items-center justify-between h-16 ${isOrgAdmin ? 'mb-6' : ''}`}>
+              <h1 className="heading-4">{isOrgAdmin ? 'My Organisation' : 'Organisations'}</h1>
+              {!isOrgAdmin && (
                 <Button variant="primary" onClick={() => setIsAddOrganisationModalOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Organisation
                 </Button>
-              </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         <div className="page-container section-spacing padding-top-zero">
           {/* Filters - Hidden for OrgAdmin */}
@@ -396,12 +423,14 @@ export default function OrganisationsPage() {
             </div>
           )}
 
-          {/* Results Summary */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-base text-brand-f">
-              {loading ? '' : `${total} organisation${total !== 1 ? 's' : ''} found`}
-            </p>
-          </div>
+          {/* Results Summary - Hidden for OrgAdmin */}
+          {!isOrgAdmin && (
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-base text-brand-f">
+                {loading ? '' : `${total} organisation${total !== 1 ? 's' : ''} found`}
+              </p>
+            </div>
+          )}
 
           {/* Loading State */}
           {loading && (
@@ -457,8 +486,8 @@ export default function OrganisationsPage() {
             </div>
           )}
 
-          {/* Pagination */}
-          {!loading && !error && totalPages > 1 && (
+          {/* Pagination - Hidden for OrgAdmin */}
+          {!isOrgAdmin && !loading && !error && totalPages > 1 && (
             <div className="flex flex-col items-center mt-12 space-y-6">
               <Pagination
                 currentPage={currentPage}

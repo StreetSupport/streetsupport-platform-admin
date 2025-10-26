@@ -39,7 +39,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
       errorToast.validation();
       return;
     }
-debugger
+
     // Get form data using ref
     const formData = formRef.current?.getFormData();
     if (!formData) {

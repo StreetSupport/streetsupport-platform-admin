@@ -8,7 +8,7 @@ const API_BASE_URL = process.env.API_BASE_URL;
 
 const putHandler: AuthenticatedApiHandler<{ id: string; accommodationId: string }> = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodation', HTTP_METHODS.PUT)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodations', HTTP_METHODS.PUT)) {
       return sendForbidden();
     }
 
@@ -16,7 +16,7 @@ const putHandler: AuthenticatedApiHandler<{ id: string; accommodationId: string 
     const { accommodationId } = params;
     const body = await req.json();
 
-    const url = `${API_BASE_URL}/api/accommodation/${accommodationId}`;
+    const url = `${API_BASE_URL}/api/accommodations/${accommodationId}`;
 
     const response = await fetch(url, {
       method: HTTP_METHODS.PUT,
@@ -42,14 +42,14 @@ const putHandler: AuthenticatedApiHandler<{ id: string; accommodationId: string 
 
 const deleteHandler: AuthenticatedApiHandler<{ id: string; accommodationId: string }> = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodation', HTTP_METHODS.DELETE)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodations', HTTP_METHODS.DELETE)) {
       return sendForbidden();
     }
 
     const params = await context.params;
     const { accommodationId } = params;
 
-    const url = `${API_BASE_URL}/api/accommodation/${accommodationId}`;
+    const url = `${API_BASE_URL}/api/accommodations/${accommodationId}`;
 
     const response = await fetch(url, {
       method: HTTP_METHODS.DELETE,

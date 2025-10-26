@@ -87,13 +87,6 @@ export const AddressSchema = z.object({
 //   path: ['OpeningTimes']
 // });
 
-export const NoteSchema = z.object({
-  CreationDate: z.date(),
-  Date: z.date(),
-  StaffName: z.string().min(1, 'Staff name is required'),
-  Reason: z.string().min(1, 'Reason is required'),
-});
-
 // Organisation form validation schema
 export const OrganisationSchema = z.object({
   // General Details
@@ -117,8 +110,7 @@ export const OrganisationSchema = z.object({
   
   // System fields
   IsVerified: z.boolean().default(false),
-  IsPublished: z.boolean().default(false),
-  Notes: z.array(NoteSchema).default([]),
+  IsPublished: z.boolean().default(false)
 });
 
 // Service Provider schema (for API)

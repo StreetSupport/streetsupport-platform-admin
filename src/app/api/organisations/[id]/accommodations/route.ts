@@ -8,13 +8,13 @@ const API_BASE_URL = process.env.API_BASE_URL;
 
 const getHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodation', HTTP_METHODS.GET)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodations', HTTP_METHODS.GET)) {
       return sendForbidden();
     }
 
     const params = await context.params;
     const { id } = params;
-    const url = `${API_BASE_URL}/api/accommodation/provider/${id}`;
+    const url = `${API_BASE_URL}/api/accommodations/provider/${id}`;
 
     const response = await fetch(url, {
       method: HTTP_METHODS.GET,
@@ -39,13 +39,13 @@ const getHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequ
 
 const postHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequest, context, auth) => {
   try {
-    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodation', HTTP_METHODS.POST)) {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/accommodations', HTTP_METHODS.POST)) {
       return sendForbidden();
     }
 
     const body = await req.json();
 
-    const url = `${API_BASE_URL}/api/accommodation`;
+    const url = `${API_BASE_URL}/api/accommodations`;
 
     const response = await fetch(url, {
       method: HTTP_METHODS.POST,

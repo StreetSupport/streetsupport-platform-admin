@@ -8,6 +8,7 @@ import { timeNumberToString } from '@/schemas/organisationSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { OrganisationForm, OrganisationFormRef } from '../OrganisationForm';
+import { AdminDetailsSection } from '../sections/AdminDetailsSection';
 import { decodeText } from '@/utils/htmlDecode';
 
 interface OrganisationTabProps {
@@ -18,7 +19,6 @@ interface OrganisationTabProps {
   viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
-
 const OrganisationTab: React.FC<OrganisationTabProps> = ({
   organisation,
   onOrganisationUpdated,
@@ -28,7 +28,13 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [currentOrganisation, setCurrentOrganisation] = useState<IOrganisation>(organisation);
   const formRef = React.useRef<OrganisationFormRef>(null);
+
+  // Update current organisation when prop changes
+  useEffect(() => {
+    setCurrentOrganisation(organisation);
+  }, [organisation]);
 
   // Prepare initial data for the form - decode HTML entities
   const initialData: Partial<IOrganisationFormData> = {
@@ -136,6 +142,17 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {/* Admin Details Section - Show in both edit and view modes */}
+          <div className="mb-6">
+            <AdminDetailsSection
+              organisation={currentOrganisation}
+              onUpdate={(updatedOrg) => {
+                setCurrentOrganisation(updatedOrg);
+                onOrganisationUpdated();
+              }}
+            />
+          </div>
+
           <OrganisationForm
             ref={formRef}
             initialData={initialData}

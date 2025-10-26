@@ -45,6 +45,24 @@ const OrganisationCard = React.memo(function OrganisationCard({
     });
   };
 
+  // Calculate days since last update
+  const daysSinceUpdate = React.useMemo(() => {
+    if (!organisation.DocumentModifiedDate) return 0;
+    const lastUpdate = new Date(organisation.DocumentModifiedDate);
+    const today = new Date();
+    return Math.floor((today.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+  }, [organisation.DocumentModifiedDate]);
+
+  // Get warning level
+  const getWarningLevel = () => {
+    if (daysSinceUpdate >= 100) return 'expired';
+    if (daysSinceUpdate >= 90) return 'warning';
+    if (daysSinceUpdate >= 75) return 'info';
+    return 'ok';
+  };
+
+  const warningLevel = getWarningLevel();
+
   const handleView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -151,22 +169,25 @@ const OrganisationCard = React.memo(function OrganisationCard({
             {organisation.IsPublished ? 'Disable' : 'Publish'}
           </Button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleVerified}
-            disabled={isTogglingVerify}
-            title={organisation.IsVerified ? 'Unverify organisation' : 'Verify organisation'}
-            className={organisation.IsVerified ? 'text-brand-j border-brand-j hover:bg-brand-j hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}
-          >
-            {isTogglingVerify ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-            ) : organisation.IsVerified ? (
-              <XCircle className="w-4 h-4" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-          </Button>
+          {/* Hide verify button for OrgAdmin-only users */}
+          {!isOrgAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleVerified}
+              disabled={isTogglingVerify}
+              title={organisation.IsVerified ? 'Unverify organisation' : 'Verify organisation'}
+              className={organisation.IsVerified ? 'text-brand-j border-brand-j hover:bg-brand-j hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}
+            >
+              {isTogglingVerify ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+              ) : organisation.IsVerified ? (
+                <XCircle className="w-4 h-4" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
+            </Button>
+          )}
 
           <Button
             variant="outline"
@@ -207,6 +228,31 @@ const OrganisationCard = React.memo(function OrganisationCard({
             </span>
           </div>
         </div>
+
+        {/* Verification Warning Messages */}
+        {warningLevel !== 'ok' && (
+          <div className={`p-3 rounded-md mb-3 ${
+            warningLevel === 'expired' ? 'bg-red-50 border border-brand-g' :
+            warningLevel === 'warning' ? 'bg-yellow-50 border border-brand-j' :
+            'bg-blue-50 border border-blue-300'
+          }`}>
+            <p className={`text-xs font-medium ${
+              warningLevel === 'expired' ? 'text-brand-g' :
+              warningLevel === 'warning' ? 'text-brand-j' :
+              'text-blue-700'
+            }`}>
+              {warningLevel === 'expired' && (
+                <>⚠️ Unverified - No update for {daysSinceUpdate} days</>
+              )}
+              {warningLevel === 'warning' && (
+                <>⚠️ Reminder sent - {100 - daysSinceUpdate} days until unverified</>
+              )}
+              {warningLevel === 'info' && (
+                <>ℹ️ Review due soon - {daysSinceUpdate} days since last update</>
+              )}
+            </p>
+          </div>
+        )}
 
         {/* Short Description */}
         {organisation.ShortDescription && (

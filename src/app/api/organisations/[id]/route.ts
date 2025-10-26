@@ -13,7 +13,6 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     }
 
     const { id } = context.params;
-
     const response = await fetch(`${API_BASE_URL}/api/organisations/${id}`, {
       method: HTTP_METHODS.GET,
       headers: {
@@ -25,11 +24,12 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     const data = await response.json();
 
     if (!response.ok) {
+      console.log("Send request:" + id);
       return sendError(response.status, data.error || 'Failed to fetch organisation');
     }
 
     return proxyResponse(data);
-  } catch (error) {
+  } catch (error) {    
     console.error('Error fetching organisation:', error);
     return sendInternalError();
   }
