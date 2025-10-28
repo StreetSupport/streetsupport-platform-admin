@@ -12,8 +12,7 @@ const getHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequ
       return sendForbidden();
     }
 
-    const params = await context.params;
-    const { id } = params;
+    const { id } = context.params;
     const url = `${API_BASE_URL}/api/accommodations/provider/${id}`;
 
     const response = await fetch(url, {

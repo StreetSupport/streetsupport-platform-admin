@@ -4,8 +4,7 @@ import { IAccommodationFormData } from "@/types";
 
 interface SuitableForSectionProps {
   formData?: IAccommodationFormData['ResidentCriteriaInfo'] | null;
-  onChange: (field: string, value: any) => void;
-  errors: Record<string, string>;
+  onChange: (field: string, value: string | boolean | number) => void;
   viewMode?: boolean;
 }
 
@@ -35,7 +34,7 @@ function CheckboxRow({ label, field, value, onChange, disabled = false }: Checkb
   );
 }
 
-export function SuitableForSection({ formData, onChange, errors, viewMode = false }: SuitableForSectionProps) {
+export function SuitableForSection({ formData, onChange, viewMode = false }: SuitableForSectionProps) {
   const safeFormData = (formData ?? {}) as IAccommodationFormData['ResidentCriteriaInfo'];
   return (
     <div className="space-y-4">

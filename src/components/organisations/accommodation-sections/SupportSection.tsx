@@ -5,12 +5,11 @@ import { IAccommodationFormData, SUPPORT_OFFERED_OPTIONS, DISCRETIONARY_OPTIONS,
 
 interface SupportSectionProps {
   formData?: IAccommodationFormData['SupportProvidedInfo'] | null;
-  onChange: (field: string, value: any) => void;
-  errors: Record<string, string>;
+  onChange: (field: string, value: string | boolean | number | string[]) => void;
   viewMode?: boolean;
 }
 
-export function SupportSection({ formData, onChange, errors, viewMode = false }: SupportSectionProps) {
+export function SupportSection({ formData, onChange, viewMode = false }: SupportSectionProps) {
   const safeFormData = (formData ?? {}) as IAccommodationFormData['SupportProvidedInfo'];
 
   const handleSupportToggle = (supportValue: SupportOfferedType) => {
@@ -26,6 +25,7 @@ export function SupportSection({ formData, onChange, errors, viewMode = false }:
     <div className="space-y-4">
       <FormField label="Has On-Site Manager">
         <select
+          id="has-on-site-manager"
           value={safeFormData.HasOnSiteManager ?? DiscretionaryValue.DontKnowAsk}
           onChange={(e) => onChange('SupportProvidedInfo.HasOnSiteManager', parseInt(e.target.value))}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -61,6 +61,7 @@ export function SupportSection({ formData, onChange, errors, viewMode = false }:
 
       <FormField label="Support Information">
         <textarea
+          id="support-info"
           value={safeFormData.SupportInfo || ''}
           onChange={(e) => onChange('SupportProvidedInfo.SupportInfo', e.target.value)}
           rows={4}

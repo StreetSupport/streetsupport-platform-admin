@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
+import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -24,14 +24,10 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = fals
   const [editingService, setEditingService] = useState<IGroupedService | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<IGroupedService | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
-  // Fetch services for the organisation
-  useEffect(() => {
-    fetchServices();
-  }, [organisation.Key]);
-
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
+    if (!organisation.Key) return;
+    
     setIsLoading(true);
     try {
       const response = await authenticatedFetch(`/api/organisations/${organisation.Key}/services`);
@@ -47,7 +43,12 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = fals
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [organisation.Key]);
+
+  // Fetch services for the organisation
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   const handleAddService = () => {
     setEditingService(null);
@@ -126,16 +127,6 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = fals
 
   return (
     <div className="flex flex-col h-full">
-      {/* Error Display */}
-      {validationErrors.length > 0 && (
-        <div className="px-4 sm:px-6 pt-4">
-          <ErrorDisplay
-            ValidationErrors={validationErrors}
-            ClassName="mb-4"
-          />
-        </div>
-      )}
-
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="space-y-6">
           {/* Header */}

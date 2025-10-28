@@ -527,6 +527,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <div className="space-y-2">
                 <input
                   type="file"
+                  id="resource-file"
                   accept={RESOURCE_FILE_ACCEPT_STRING}
                   onChange={(e) => {
                     const file = e.target.files?.[0];

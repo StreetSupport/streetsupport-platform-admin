@@ -24,7 +24,6 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     const data = await response.json();
 
     if (!response.ok) {
-      console.log("Send request:" + id);
       return sendError(response.status, data.error || 'Failed to fetch organisation');
     }
 

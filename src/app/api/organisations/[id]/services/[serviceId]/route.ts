@@ -12,8 +12,7 @@ const putHandler: AuthenticatedApiHandler<{ id: string; serviceId: string }> = a
       return sendForbidden();
     }
 
-    const params = await context.params;
-    const { serviceId } = params;
+    const { serviceId } = context.params;
     const body = await req.json();
 
     const url = `${API_BASE_URL}/api/services/${serviceId}`;
@@ -46,9 +45,7 @@ const deleteHandler: AuthenticatedApiHandler<{ id: string; serviceId: string }> 
       return sendForbidden();
     }
 
-    const params = await context.params;
-    const { serviceId } = params;
-
+    const { serviceId } = context.params;
     const url = `${API_BASE_URL}/api/services/${serviceId}`;
 
     const response = await fetch(url, {

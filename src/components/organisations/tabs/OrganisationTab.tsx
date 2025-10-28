@@ -43,6 +43,7 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
     ShortDescription: decodeText(organisation.ShortDescription || ''),
     Description: decodeText(organisation.Description || ''),
     AssociatedLocationIds: organisation.AssociatedLocationIds || [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) as any : [],
     IsVerified: organisation.IsVerified || false,
     IsPublished: organisation.IsPublished || false,
@@ -62,7 +63,8 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
         StartTime: timeNumberToString(openingTime.StartTime),
         EndTime: timeNumberToString(openingTime.EndTime)
       }))
-    }))
+    })),
+    Administrators: organisation.Administrators || []
   };
 
   const handleValidationChange = useCallback((errors: ValidationError[]) => {
@@ -98,8 +100,10 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
         ...formData,
         Tags: Array.isArray(formData.Tags) ? formData.Tags.join(',') : formData.Tags,
         // Convert opening times from form format (string) to API format (number)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Addresses: formData.Addresses.map((address: any) => ({
           ...address,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           OpeningTimes: address.OpeningTimes.map((time: any) => ({
             Day: time.Day,
             StartTime: timeStringToNumber(time.StartTime),

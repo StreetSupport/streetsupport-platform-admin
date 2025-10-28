@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useImperativeHandle, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { ValidationError } from '@/components/ui/ErrorDisplay';
-import { IAccommodation, IAccommodationFormData, DiscretionaryValue, AccommodationType } from '@/types/organisations/IAccommodation';
+import { IAccommodation, IAccommodationFormData, DiscretionaryValue } from '@/types/organisations/IAccommodation';
+import { AccommodationType } from '@/types/organisations/IAccommodation';
 import { validateAccommodation } from '@/schemas/accommodationSchema';
 import { GeneralInfoSection } from './accommodation-sections/GeneralInfoSection';
 import { ContactDetailsSection } from './accommodation-sections/ContactDetailsSection';
@@ -23,7 +24,6 @@ interface AccommodationFormProps {
   initialData?: IAccommodation | null;
   providerId: string;
   availableCities: Array<{ _id: string; Name: string; Key: string }>;
-  onFormDataChange?: (formData: IAccommodationFormData, isValid: boolean) => void;
   onValidationChange?: (errors: ValidationError[]) => void;
   viewMode?: boolean;
 }
@@ -65,7 +65,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   initialData,
   providerId,
   availableCities,
-  onFormDataChange,
   onValidationChange,
   viewMode = false
 }, ref) => {
@@ -83,7 +82,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   });
 
   // Initialize form data based on add/edit mode
-  const getInitialFormData = (): IAccommodationFormData => {
+  const getInitialFormData = useCallback((): IAccommodationFormData => {
     if (initialData) {
       return {
         GeneralInfo: initialData.GeneralInfo,
@@ -100,7 +99,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         Name: '',
         Synopsis: '',
         Description: '',
-        AccommodationType: '' as any, // Empty string for placeholder, will be validated on submit
+        AccommodationType: '' as AccommodationType, // Empty string for placeholder, will be validated on submit
         ServiceProviderId: providerId,
         IsOpenAccess: false,
         IsPubliclyVisible: true,
@@ -158,7 +157,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         SupportInfo: ''
       }
     };
-  };
+  }, [initialData, providerId]);
 
   const [formData, setFormData] = useState<IAccommodationFormData>(getInitialFormData);
 
@@ -166,30 +165,26 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   useEffect(() => {
     setFormData(getInitialFormData());
     setValidationErrors([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, providerId]);
-
-  // Notify parent of form data changes
-  useEffect(() => {
-    if (onFormDataChange) {
-      onFormDataChange(formData, validationErrors.length === 0);
-    }
-  }, [formData, validationErrors]);
 
   // Notify parent of validation changes
   useEffect(() => {
     if (onValidationChange) {
       onValidationChange(validationErrors);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validationErrors]);
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | boolean | number | DiscretionaryValue | AccommodationType | string[]) => {
     const keys = field.split('.');
     setFormData(prev => {
       const newData = { ...prev };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let current: any = newData;
       
       for (let i = 0; i < keys.length - 1; i++) {
@@ -223,7 +218,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
       const result = validateAccommodation(formData);
       
       if (!result.success) {
-        const errors = result.errors.map((error: any) => ({
+        const errors = result.errors.map((error: { path: string[] | string; message: string }) => ({
           Path: Array.isArray(error.path) ? error.path.join('.') : error.path,
           Message: error.message
         }));
@@ -262,7 +257,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         <GeneralInfoSection
           formData={formData.GeneralInfo}
           onChange={handleFieldChange}
-          errors={getErrorsForSection('GeneralInfo')}
           viewMode={viewMode}
         />
       </CollapsibleSection>
@@ -277,7 +271,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         <ContactDetailsSection
           formData={formData.ContactInformation}
           onChange={handleFieldChange}
-          errors={getErrorsForSection('ContactInformation')}
           viewMode={viewMode}
         />
       </CollapsibleSection>
@@ -292,7 +285,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         <LocationSection
           formData={formData.Address}
           onChange={handleFieldChange}
-          errors={getErrorsForSection('Address')}
           availableCities={availableCities}
           viewMode={viewMode}
         />
@@ -338,7 +330,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         <SupportSection
           formData={formData.SupportProvidedInfo}
           onChange={handleFieldChange}
-          errors={getErrorsForSection('SupportProvidedInfo')}
           viewMode={viewMode}
         />
       </CollapsibleSection>
@@ -353,7 +344,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         <SuitableForSection
           formData={formData.ResidentCriteriaInfo}
           onChange={handleFieldChange}
-          errors={getErrorsForSection('ResidentCriteriaInfo')}
           viewMode={viewMode}
         />
       </CollapsibleSection>

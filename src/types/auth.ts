@@ -36,7 +36,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/banners', methods: ['*'] },
       { path: '/api/swep-banners', methods: ['*'] },
       { path: '/api/resources', methods: ['*'] },
-      { path: '/api/users', methods: ['*'] }
+      { path: '/api/users', methods: ['*'] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.VOLUNTEER_ADMIN]: {
@@ -50,7 +51,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
-      { path: '/api/users', methods: [HTTP_METHODS.POST] }
+      { path: '/api/users', methods: [HTTP_METHODS.POST] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.ORG_ADMIN]: {
@@ -61,6 +63,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/services', methods: ['*'] },
       { path: '/api/accommodations', methods: ['*'] },
       { path: '/api/users', methods: [HTTP_METHODS.POST] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.SWEP_ADMIN]: {

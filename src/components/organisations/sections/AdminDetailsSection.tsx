@@ -19,8 +19,21 @@ export function AdminDetailsSection({
   const [selectedEmail, setSelectedEmail] = useState<string>(
     organisation.Administrators?.find(admin => admin.IsSelected)?.Email || ''
   );
-  const [isUpdating, setIsUpdating] = useState(false);
+
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isUpdatingAdmin, setIsUpdatingAdmin] = useState(false);
+  const [localAdministrators, setLocalAdministrators] = useState(organisation.Administrators || []);
+
+  // Sync local administrators and selectedEmail when organisation updates
+  React.useEffect(() => {
+    if (organisation.Administrators && organisation.Administrators.length > 0) {
+      setLocalAdministrators(organisation.Administrators);
+      const currentlySelected = organisation.Administrators.find(admin => admin.IsSelected)?.Email || '';
+      if (currentlySelected) {
+        setSelectedEmail(currentlySelected);
+      }
+    }
+  }, [organisation.Administrators]);
 
   // Calculate days since last update
   const daysSinceUpdate = React.useMemo(() => {
@@ -43,7 +56,7 @@ export function AdminDetailsSection({
   const handleAdministratorChange = async (email: string) => {
     if (!email || email === selectedEmail) return;
 
-    setIsUpdating(true);
+    setIsUpdatingAdmin(true);
     try {
       const response = await authenticatedFetch(
         `/api/organisations/${organisation._id}/administrator`,
@@ -59,18 +72,38 @@ export function AdminDetailsSection({
       }
 
       const updatedOrg = await response.json();
+      
+      // Update local administrators state with new selection
+      const updatedAdmins = localAdministrators.map(admin => ({
+        ...admin,
+        IsSelected: admin.Email === email
+      }));
+      setLocalAdministrators(updatedAdmins);
       setSelectedEmail(email);
       
+      // If API response includes updated Administrators, use that instead
+      if (updatedOrg.Administrators && updatedOrg.Administrators.length > 0) {
+        setLocalAdministrators(updatedOrg.Administrators);
+      }
+      
       if (onUpdate) {
-        onUpdate(updatedOrg);
+        // Merge updated administrators into the org object
+        onUpdate({
+          ...updatedOrg,
+          Administrators: updatedOrg.Administrators && updatedOrg.Administrators.length > 0 
+            ? updatedOrg.Administrators 
+            : updatedAdmins
+        });
       }
       
       toast.success('Administrator updated successfully');
     } catch (error) {
       console.error('Error updating administrator:', error);
       errorToast.generic('Failed to update administrator');
+      // Revert selection on error
+      setSelectedEmail(localAdministrators.find(admin => admin.IsSelected)?.Email || '');
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingAdmin(false);
     }
   };
 
@@ -118,22 +151,33 @@ export function AdminDetailsSection({
         <label htmlFor="administrator" className="block text-sm font-semibold text-brand-k mb-2">
           Administrator
         </label>
-        <select
-          id="administrator"
-          value={selectedEmail}
-          onChange={(e) => handleAdministratorChange(e.target.value)}
-          className="w-full px-4 py-2 border border-brand-f/30 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent disabled:bg-brand-q disabled:cursor-not-allowed text-brand-k"
-        >
-          {organisation.Administrators && organisation.Administrators.length > 0 ? (
-            organisation.Administrators.map((admin, index) => (
-              <option key={index} value={admin.Email}>
-                {admin.Email}
-              </option>
-            ))
-          ) : (
-            <option value="">No administrators available</option>
+        <div className="relative">
+          <select
+            id="administrator"
+            value={selectedEmail}
+            onChange={(e) => handleAdministratorChange(e.target.value)}
+            disabled={isUpdatingAdmin}
+            className="w-full px-4 py-2 border border-brand-f/30 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent disabled:bg-brand-q disabled:cursor-not-allowed text-brand-k"
+          >
+            {localAdministrators && localAdministrators.length > 0 ? (
+              localAdministrators.map((admin, index) => (
+                <option key={index} value={admin.Email}>
+                  {admin.Email}
+                </option>
+              ))
+            ) : (
+              <option value="">No administrators available</option>
+            )}
+          </select>
+          {isUpdatingAdmin && (
+            <div className="absolute right-10 top-1/2 -translate-y-1/2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-a"></div>
+            </div>
           )}
-        </select>
+        </div>
+        {isUpdatingAdmin && (
+          <p className="text-xs text-brand-f mt-1">Updating administrator...</p>
+        )}
       </div>
 
       {/* Days Since Last Update */}

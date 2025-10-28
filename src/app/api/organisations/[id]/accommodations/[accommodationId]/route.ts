@@ -12,8 +12,7 @@ const putHandler: AuthenticatedApiHandler<{ id: string; accommodationId: string 
       return sendForbidden();
     }
 
-    const params = await context.params;
-    const { accommodationId } = params;
+    const { accommodationId } = context.params;
     const body = await req.json();
 
     const url = `${API_BASE_URL}/api/accommodations/${accommodationId}`;
@@ -46,9 +45,7 @@ const deleteHandler: AuthenticatedApiHandler<{ id: string; accommodationId: stri
       return sendForbidden();
     }
 
-    const params = await context.params;
-    const { accommodationId } = params;
-
+    const { accommodationId } = context.params;
     const url = `${API_BASE_URL}/api/accommodations/${accommodationId}`;
 
     const response = await fetch(url, {

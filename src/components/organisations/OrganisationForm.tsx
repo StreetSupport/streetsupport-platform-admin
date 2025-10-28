@@ -52,6 +52,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     Twitter: '',
     Bluesky: '',
     Addresses: [],
+    Administrators: [],
     ...initialData
   });
 
@@ -67,6 +68,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     const allErrors = [];
     
     if (!result.success) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const organisationErrors = result.errors.map((error: any) => {
         const originalPath = Array.isArray(error.path) ? error.path.join('.') : error.path;
         return {
@@ -126,6 +128,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
       .trim();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateFormData = (field: keyof IOrganisationFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -174,6 +177,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
       // Facebook: '',
       // Twitter: '',
       Addresses: [],
+      Administrators: [],
       ...initialData
     });
     setValidationErrors([]);
@@ -208,10 +212,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-name" className="block text-sm font-medium text-brand-k mb-2">
               Name <span className="text-brand-g">*</span>
             </label>
             <Input
+              id="org-name"
               value={formData.Name}
               onChange={(e) => updateFormData('Name', e.target.value)}
               placeholder={viewMode ? '' : 'Organisation name'}
@@ -236,10 +241,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-short-description" className="block text-sm font-medium text-brand-k mb-2">
               Short Description <span className="text-brand-g">*</span>
             </label>
             <Textarea
+              id="org-short-description"
               value={formData.ShortDescription}
               onChange={(e) => updateFormData('ShortDescription', e.target.value)}
               placeholder={viewMode ? '' : 'Short description'}
@@ -249,10 +255,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-description" className="block text-sm font-medium text-brand-k mb-2">
               Description <span className="text-brand-g">*</span>
             </label>
             <Textarea
+              id="org-description"
               value={formData.Description}
               onChange={(e) => updateFormData('Description', e.target.value)}
               placeholder={viewMode ? '' : 'Detailed description of the organisation'}
@@ -286,10 +293,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-telephone" className="block text-sm font-medium text-brand-k mb-2">
               Telephone
             </label>
             <Input
+              id="org-telephone"
               value={formData.Telephone}
               onChange={(e) => updateFormData('Telephone', e.target.value)}
               placeholder={viewMode ? '' : 'Telephone number'}
@@ -299,10 +307,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-email" className="block text-sm font-medium text-brand-k mb-2">
               Email
             </label>
             <Input
+              id="org-email"
               value={formData.Email}
               onChange={(e) => updateFormData('Email', e.target.value)}
               placeholder={viewMode ? '' : 'contact@organisation.org'}
@@ -312,10 +321,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-website" className="block text-sm font-medium text-brand-k mb-2">
               Website
             </label>
             <Input
+              id="org-website"
               value={formData.Website}
               onChange={(e) => updateFormData('Website', e.target.value)}
               placeholder={viewMode ? '' : 'https://www.organisation.org'}
@@ -325,10 +335,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-facebook" className="block text-sm font-medium text-brand-k mb-2">
               Facebook
             </label>
             <Input
+              id="org-facebook"
               value={formData.Facebook}
               onChange={(e) => updateFormData('Facebook', e.target.value)}
               placeholder={viewMode ? '' : 'https://facebook.com/organisation'}
@@ -338,10 +349,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-twitter" className="block text-sm font-medium text-brand-k mb-2">
               Twitter
             </label>
             <Input
+              id="org-twitter"
               value={formData.Twitter}
               onChange={(e) => updateFormData('Twitter', e.target.value)}
               placeholder={viewMode ? '' : 'https://twitter.com/organisation'}
@@ -351,10 +363,11 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-k mb-2">
+            <label htmlFor="org-bluesky" className="block text-sm font-medium text-brand-k mb-2">
               Bluesky
             </label>
             <Input
+              id="org-bluesky"
               value={formData.Bluesky}
               onChange={(e) => updateFormData('Bluesky', e.target.value)}
               placeholder={viewMode ? '' : 'https://bsky.app/profile/organisation'}

@@ -40,10 +40,6 @@ export function AddAccommodationModal({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
 
-  const handleFormDataChange = (formData: any, isValid: boolean) => {
-    // You can track form validity here if needed
-  };
-
   const handleValidationChange = (errors: ValidationError[]) => {
     // Transform client-side validation paths to user-friendly names
     const transformed = errors.map((e) => ({
@@ -87,7 +83,7 @@ export function AddAccommodationModal({
 
       if (!response.ok) {
         if (data.errors && Array.isArray(data.errors)) {
-          const transformedErrors = data.errors.map((error: any) => {
+          const transformedErrors = data.errors.map((error: { path?: string | string[]; Path?: string; message?: string; Message?: string }) => {
             const originalPath = Array.isArray(error.path) ? error.path.join('.') : (error.Path || '');
             return {
               Path: transformErrorPath(originalPath),
@@ -164,7 +160,6 @@ export function AddAccommodationModal({
                 initialData={accommodation}
                 providerId={providerId}
                 availableCities={availableCities}
-                onFormDataChange={handleFormDataChange}
                 onValidationChange={handleValidationChange}
                 viewMode={viewMode}
               />

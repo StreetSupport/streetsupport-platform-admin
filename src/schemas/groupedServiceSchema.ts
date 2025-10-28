@@ -193,12 +193,13 @@ export function transformErrorPath(path: string): string {
 }
 
 // Validation function
-export const validateGroupedService = (data: any) => {
+export const validateGroupedService = (data: unknown) => {
   const result = GroupedServiceSchema.safeParse(data);
   
   if (!result.success) {
     return {
       success: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       errors: result.error.issues.map((issue: any) => ({
         path: Array.isArray(issue.path) ? issue.path.join('.') : issue.path,
         message: issue.message

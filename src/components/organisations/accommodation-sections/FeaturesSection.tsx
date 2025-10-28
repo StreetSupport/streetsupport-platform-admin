@@ -5,7 +5,7 @@ import { IAccommodationFormData, DISCRETIONARY_OPTIONS, DiscretionaryValue } fro
 
 interface FeaturesSectionProps {
   formData?: IAccommodationFormData['FeaturesWithDiscretionary'] | null;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: string | boolean | number) => void;
   errors: Record<string, string>;
   viewMode?: boolean;
 }
@@ -21,8 +21,9 @@ interface FeatureRowProps {
 function FeatureRow({ label, field, value, onChange, disabled = false }: FeatureRowProps) {
   return (
     <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-4 sm:items-center py-2 border-b border-gray-200">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label htmlFor={field} className="text-sm font-medium text-gray-700">{label}</label>
       <select
+        id={field}
         value={value ?? DiscretionaryValue.DontKnowAsk}
         onChange={(e) => onChange(field, parseInt(e.target.value))}
         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -146,6 +147,7 @@ export function FeaturesSection({ formData, onChange, errors, viewMode = false }
       </div>
       <FormField label="Additional Features" error={errors['FeaturesWithDiscretionary.AdditionalFeatures']}>
         <textarea
+          id="additional-features"
           value={safeFormData.AdditionalFeatures || ''}
           onChange={(e) => onChange('FeaturesWithDiscretionary.AdditionalFeatures', e.target.value)}
           rows={3}

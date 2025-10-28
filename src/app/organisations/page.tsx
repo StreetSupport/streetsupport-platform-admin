@@ -15,12 +15,13 @@ import { AddOrganisationModal } from '@/components/organisations/AddOrganisation
 import EditOrganisationModal from '@/components/organisations/EditOrganisationModal';
 import { NotesModal } from '@/components/organisations/NotesModal';
 import { DisableOrganisationModal } from '@/components/organisations/DisableOrganisationModal';
-import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
+import toastUtils, { errorToast, loadingToast } from '@/utils/toast';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useSession } from 'next-auth/react';
 import { UserAuthClaims } from '@/types/auth';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
+import { exportOrganisationsToCsv } from '@/utils/csvExport';
 
 export default function OrganisationsPage() {
   // Check authorization FIRST before any other logic
@@ -192,21 +193,24 @@ export default function OrganisationsPage() {
     setShowDisableModal(true);
   };
 
-  const handleTogglePublished = async (organisation: IOrganisation, staffName?: string, reason?: string) => {
+  const handleTogglePublished = async (organisation: IOrganisation, staffName?: string, reason?: string, disablingDate?: Date) => {
     setTogglingPublishId(organisation._id);
     const isCurrentlyPublished = organisation.IsPublished;
     const action = isCurrentlyPublished ? 'disable' : 'publish';
     const toastId = loadingToast.process(action === 'publish' ? 'Publishing organisation' : 'Disabling organisation');
     
     try {
-      const body: any = {};
+      let body: unknown = {};
       
       // If disabling, include note information
       if (isCurrentlyPublished && staffName && reason) {
-        body.note = {
-          StaffName: staffName,
-          Reason: reason
-        };
+        body = {
+          note: {
+            StaffName: staffName,
+            Reason: reason,
+            Date: disablingDate || new Date() // Include disabling date
+          }
+        }
       }
 
       const response = await authenticatedFetch(`/api/organisations/${organisation._id}/toggle-published`, {
@@ -319,12 +323,51 @@ export default function OrganisationsPage() {
     }
   };
 
+  const handleExport = async () => {
+    const toastId = loadingToast.process('Exporting organisations');
+    
+    try {
+      // Build query parameters to fetch ALL organisations with current filters
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', '1');
+      queryParams.append('limit', total.toString()); // Fetch all based on total count
+      
+      if (searchName) queryParams.append('name', searchName);
+      if (locationFilter) queryParams.append('location', locationFilter);
+      if (isVerifiedFilter) queryParams.append('isVerified', isVerifiedFilter);
+      if (isPublishedFilter) queryParams.append('isPublished', isPublishedFilter);
 
-  const confirmDisable = (staffName: string, reason: string) => {
+      // For OrgAdmin, add organisation keys filter
+      if (isOrgAdmin && orgAdminKeys.length > 0) {
+        queryParams.append('keys', orgAdminKeys.join(','));
+      }
+
+      const response = await authenticatedFetch(`/api/organisations?${queryParams.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch organisations for export');
+      }
+
+      const data = await response.json();
+      const allOrganisations = data.data || [];
+      
+      // Export all organisations
+      exportOrganisationsToCsv(allOrganisations);
+      
+      toastUtils.dismiss(toastId);
+      toastUtils.custom(`Exported ${allOrganisations.length} organisation${allOrganisations.length !== 1 ? 's' : ''}`, { type: 'success' });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to export organisations';
+      toastUtils.dismiss(toastId);
+      errorToast.generic(errorMessage);
+    }
+  };
+
+  const confirmDisable = (staffName: string, reason: string, disablingDate: Date) => {
     if (!organisationToDisable) return;
     
     setShowDisableModal(false);
-    handleTogglePublished(organisationToDisable, staffName, reason);
+    handleTogglePublished(organisationToDisable, staffName, reason, disablingDate);
     setOrganisationToDisable(null);
   };
 
@@ -389,6 +432,7 @@ export default function OrganisationsPage() {
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <select
+                    id="location-filter"
                     value={locationFilter}
                     onChange={(e) => handleLocationFilter(e.target.value)}
                     className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -400,6 +444,7 @@ export default function OrganisationsPage() {
                   </select>
 
                   <select
+                    id="verified-filter"
                     value={isVerifiedFilter}
                     onChange={(e) => handleIsVerifiedFilter(e.target.value)}
                     className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -410,6 +455,7 @@ export default function OrganisationsPage() {
                   </select>
 
                   <select
+                    id="published-filter"
                     value={isPublishedFilter}
                     onChange={(e) => handleIsPublishedFilter(e.target.value)}
                     className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -425,10 +471,19 @@ export default function OrganisationsPage() {
 
           {/* Results Summary - Hidden for OrgAdmin */}
           {!isOrgAdmin && (
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <p className="text-base text-brand-f">
                 {loading ? '' : `${total} organisation${total !== 1 ? 's' : ''} found`}
               </p>
+              {!loading && total > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  className="w-full sm:w-auto"
+                >
+                  Export Organisations
+                </Button>
+              )}
             </div>
           )}
 

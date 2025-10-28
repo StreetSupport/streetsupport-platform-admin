@@ -90,7 +90,8 @@ export const AddressSchema = z.object({
 // Organisation form validation schema
 export const OrganisationSchema = z.object({
   // General Details
-  Key: z.string().min(1, 'Key is required').trim(),
+  // It's not user friendly to show validation message in form about Key. It's validated on API.
+  // Key: z.string().min(1, 'Key is required').trim(),
   Name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   AssociatedLocationIds: z.array(z.string()).min(1, 'At least one associated location is required'),
   ShortDescription: z.string().min(1, 'Short description is required'),

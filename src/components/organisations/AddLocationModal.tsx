@@ -27,7 +27,7 @@ export function AddLocationModal({
   onClose, 
   onSave, 
   editingLocation = null,
-  validationErrors = [],
+  validationErrors: _validationErrors = [],
   viewMode = false
 }: AddLocationModalProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -90,6 +90,7 @@ export function AddLocationModal({
     const addressValidation = AddressSchema.safeParse(currentLocation);
     
     if (!addressValidation.success) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       addressValidation.error.issues.forEach((issue: any) => {
         const fieldName = issue.path[0] as string;
         // Skip Key validation errors since it's auto-generated
@@ -111,6 +112,7 @@ export function AddLocationModal({
         for (const openingTime of currentLocation.OpeningTimes) {
           const result = OpeningTimeFormSchema.safeParse(openingTime);
           if (!result.success) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             result.error.issues.forEach((issue: any) => {
               errors.push({ Path: 'Opening Times', Message: issue.message });
             });
@@ -244,70 +246,95 @@ export function AddLocationModal({
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-street" className="block text-sm font-medium text-brand-k mb-2">
                       Street <span className="text-brand-g">*</span>
                     </label>
-                    <Input
-                      value={currentLocation.Street}
-                      onChange={(e) => setCurrentLocation({
-                        ...currentLocation,
-                        Street: e.target.value
-                      })}
-                      placeholder={viewMode ? '' : 'Main street address'}
-                      disabled={viewMode}
-                    />
+                    {viewMode ? (
+                      <p className="text-base text-brand-k bg-brand-q px-4 py-2 rounded-md break-words">
+                        {currentLocation.Street || '-'}
+                      </p>
+                    ) : (
+                      <Input
+                        id="location-street"
+                        value={currentLocation.Street}
+                        onChange={(e) => setCurrentLocation({
+                          ...currentLocation,
+                          Street: e.target.value
+                        })}
+                        placeholder="Main street address"
+                      />
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-street1" className="block text-sm font-medium text-brand-k mb-2">
+                      Street Line 1
+                    </label>
+                    {viewMode ? (
+                      <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
+                        {currentLocation.Street1 || '-'}
+                      </p>
+                    ) : (
+                      <Input
+                        id="location-street1"
+                        value={currentLocation.Street1}
+                        onChange={(e) => setCurrentLocation({
+                          ...currentLocation,
+                          Street1: e.target.value
+                        })}
+                        placeholder="Building name, floor, etc."
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="location-street2" className="block text-sm font-medium text-brand-k mb-2">
                       Street Line 2
                     </label>
-                    <Input
-                      value={currentLocation.Street1}
-                      onChange={(e) => setCurrentLocation({
-                        ...currentLocation,
-                        Street1: e.target.value
-                      })}
-                      placeholder={viewMode ? '' : 'Building name, floor, etc.'}
-                      disabled={viewMode}
-                    />
+                    {viewMode ? (
+                      <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
+                        {currentLocation.Street2 || '-'}
+                      </p>
+                    ) : (
+                      <Input
+                        id="location-street2"
+                        value={currentLocation.Street2}
+                        onChange={(e) => setCurrentLocation({
+                          ...currentLocation,
+                          Street2: e.target.value
+                        })}
+                        placeholder="Additional address info"
+                      />
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-street3" className="block text-sm font-medium text-brand-k mb-2">
                       Street Line 3
                     </label>
-                    <Input
-                      value={currentLocation.Street2}
-                      onChange={(e) => setCurrentLocation({
-                        ...currentLocation,
-                        Street2: e.target.value
-                      })}
-                      placeholder={viewMode ? '' : 'Additional address info'}
-                      disabled={viewMode}
-                    />
+                    {viewMode ? (
+                      <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
+                        {currentLocation.Street3 || '-'}
+                      </p>
+                    ) : (
+                      <Input
+                        id="location-street3"
+                        value={currentLocation.Street3}
+                        onChange={(e) => setCurrentLocation({
+                          ...currentLocation,
+                          Street3: e.target.value
+                        })}
+                        placeholder="Additional address info"
+                      />
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
-                      Street Line 4
-                    </label>
-                    <Input
-                      value={currentLocation.Street3}
-                      onChange={(e) => setCurrentLocation({
-                        ...currentLocation,
-                        Street3: e.target.value
-                      })}
-                      placeholder={viewMode ? '' : 'Additional address info'}
-                      disabled={viewMode}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-city" className="block text-sm font-medium text-brand-k mb-2">
                       City
                     </label>
                     <Input
+                      id="location-city"
                       value={currentLocation.City}
                       onChange={(e) => setCurrentLocation({
                         ...currentLocation,
@@ -319,31 +346,34 @@ export function AddLocationModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-postcode" className="block text-sm font-medium text-brand-k mb-2">
                       Postcode <span className="text-brand-g">*</span>
                     </label>
                     <Input
+                      id="location-postcode"
                       value={currentLocation.Postcode}
                       onChange={(e) => setCurrentLocation({
                         ...currentLocation,
                         Postcode: e.target.value
                       })}
-                      placeholder={viewMode ? '' : 'M1 1AA'}
+                      placeholder={viewMode ? '' : 'Postcode'}
                       disabled={viewMode}
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-brand-k mb-2">
+                    <label htmlFor="location-telephone" className="block text-sm font-medium text-brand-k mb-2">
                       Telephone
                     </label>
                     <Input
+                      id="location-telephone"
                       value={currentLocation.Telephone}
                       onChange={(e) => setCurrentLocation({
                         ...currentLocation,
                         Telephone: e.target.value
                       })}
-                      placeholder={viewMode ? '' : '0161 123 4567'}
+                      placeholder={viewMode ? '' : 'Telephone number'}
+                      type="tel"
                       disabled={viewMode}
                     />
                   </div>
@@ -376,7 +406,6 @@ export function AddLocationModal({
                   <OpeningTimesManager
                     openingTimes={currentLocation.OpeningTimes}
                     onChange={handleOpeningTimesChange}
-                    validationErrors={validationErrors}
                     viewMode={viewMode}
                   />
                 )}

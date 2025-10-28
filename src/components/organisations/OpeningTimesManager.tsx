@@ -6,16 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { IOpeningTimeFormData, DAYS_OF_WEEK } from '@/types/organisations/IOrganisation';
-import { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface OpeningTimesManagerProps {
   openingTimes: IOpeningTimeFormData[];
   onChange: (openingTimes: IOpeningTimeFormData[]) => void;
-  validationErrors?: ValidationError[];
   viewMode?: boolean; // When true, hide add/edit/delete actions
 }
 
-export function OpeningTimesManager({ openingTimes, onChange, validationErrors = [], viewMode = false }: OpeningTimesManagerProps) {
+export function OpeningTimesManager({ openingTimes, onChange, viewMode = false }: OpeningTimesManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<IOpeningTimeFormData>({
@@ -181,11 +179,12 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-brand-k mb-2">
+              <label htmlFor="opening-time" className="block text-sm font-medium text-brand-k mb-2">
                 Opening Time
               </label>
               <Input
                 type="time"
+                id="opening-time"
                 value={formData.StartTime}
                 onChange={(e) => setFormData({
                   ...formData,
@@ -196,11 +195,12 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-brand-k mb-2">
+              <label htmlFor="closing-time" className="block text-sm font-medium text-brand-k mb-2">
                 Closing Time
               </label>
               <Input
                 type="time"
+                id="closing-time"
                 value={formData.EndTime}
                 onChange={(e) => setFormData({
                   ...formData,
@@ -235,7 +235,7 @@ export function OpeningTimesManager({ openingTimes, onChange, validationErrors =
       {openingTimes.length === 0 && !showForm && (
         <div className="text-center py-8 text-brand-f">
           <p className="text-sm">No opening times added yet</p>
-          <p className="text-xs mt-1">Click "Add Opening Time" to get started</p>
+          <p className="text-xs mt-1">Click &quot;Add Opening Time&quot; to get started</p>
         </div>
       )}
     </div>

@@ -14,7 +14,7 @@ import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { IServiceCategory } from '@/types/organisations/IServiceCategory';
 import { IOpeningTimeFormData } from '@/types/organisations/IOrganisation';
-import { IGroupedServiceFormData, validateGroupedService, OpeningTimeFormSchema, transformErrorPath } from '@/schemas/groupedServiceSchema';
+import { IGroupedServiceFormData, validateGroupedService, transformErrorPath } from '@/schemas/groupedServiceSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { decodeText } from '@/utils/htmlDecode';
@@ -136,10 +136,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
     }
-  }, [service, organisation._id]);
+  }, [service, organisation._id, organisation.IsPublished, organisation.IsVerified, organisation.Key, organisation.Name]);
 
   // Fetch service categories
   useEffect(() => {
+    if (!organisation.Key) return;
+    
     const fetchCategories = async () => {
       try {
         const response = await authenticatedFetch('/api/service-categories');
@@ -158,6 +160,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     if (isOpen) {
       fetchCategories();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Update selected category when category ID changes
@@ -170,6 +173,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     }
   }, [formData.CategoryId, categories]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateFormData = (field: keyof IGroupedServiceFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -364,8 +368,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     const result = validateGroupedService(formData);
     
     // Combine all errors
-    const allErrors = [];
+    const allErrors: { Path: string; Message: string }[] = [];
     if (!result.success) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const serviceErrors = (result.errors || []).map((error: any) => {
         const originalPath = Array.isArray(error.path) ? error.path.join('.') : error.path;
         return {
@@ -425,9 +430,37 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         throw new Error(errorData.error || `Failed to ${service ? 'update' : 'create'} service`);
       }
 
-      service ? successToast.update('Service') : successToast.create('Service');
-      onClose(); // Close the modal
+      if (service) {
+        successToast.update('Service');
+      } else {
+        successToast.create('Service');
+      }
+      
+      // Reset form to initial state for next use
+      const initialData: IGroupedServiceFormData = {
+        ProviderId: organisation.Key,
+        ProviderName: organisation.Name,
+        IsPublished: organisation.IsPublished,
+        IsVerified: organisation.IsVerified,
+        CategoryId: '',
+        Location: {
+          IsOutreachLocation: false,
+          Description: '',
+          StreetLine1: '',
+          Postcode: ''
+        },
+        IsOpen247: false,
+        SubCategories: [],
+        IsTelephoneService: false,
+        IsAppointmentOnly: false,
+        Telephone: ''
+      };
+      setFormData(initialData);
+      setOriginalData(JSON.parse(JSON.stringify(initialData)));
+      setValidationErrors([]);
+      
       onServiceSaved(); // Trigger parent refresh
+      onClose(); // Close the modal
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : `Failed to ${service ? 'update' : 'create'} service`;
       errorToast.generic(errorMessage);
@@ -487,6 +520,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         Service Category <span className="text-brand-g">*</span>
                       </label>
                       <select
+                        id="service-category"
                         value={formData.CategoryId}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
@@ -591,7 +625,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                             ...formData.Location,
                             Description: e.target.value
                           })}
-                          placeholder={viewMode ? '' : 'Describe the outreach area or service delivery method'}
+                          placeholder={viewMode ? '' : 'Describe the outreach location'}
                           rows={3}
                           disabled={viewMode}
                         />
@@ -607,6 +641,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               Use Existing Address
                             </label>
                             <select
+                              id="use-existing-address"
                               onChange={(e) => handleAddressSelect(e.target.value)}
                               className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
                             >
@@ -625,11 +660,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-street1" className="block text-sm font-medium text-brand-k mb-2">
                               Street <span className="text-brand-g">*</span>
                             </label>
                             <Input
                               type="text"
+                              id="service-street1"
                               value={formData.Location.StreetLine1 || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -644,11 +680,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-street2" className="block text-sm font-medium text-brand-k mb-2">
                               Street Line 2
                             </label>
                             <Input
                               type="text"
+                              id="service-street2"
                               value={formData.Location.StreetLine2 || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -663,11 +700,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-street3" className="block text-sm font-medium text-brand-k mb-2">
                               Street Line 3
                             </label>
                             <Input
                               type="text"
+                              id="service-street3"
                               value={formData.Location.StreetLine3 || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -682,11 +720,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-street4" className="block text-sm font-medium text-brand-k mb-2">
                               Street Line 4
                             </label>
                             <Input
                               type="text"
+                              id="service-street4"
                               value={formData.Location.StreetLine4 || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -701,11 +740,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-city" className="block text-sm font-medium text-brand-k mb-2">
                               City
                             </label>
                             <Input
                               type="text"
+                              id="service-city"
                               value={formData.Location.City || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -720,11 +760,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
+                            <label htmlFor="service-postcode" className="block text-sm font-medium text-brand-k mb-2">
                               Postcode <span className="text-brand-g">*</span>
                             </label>
                             <Input
                               type="text"
+                              id="service-postcode"
                               value={formData.Location.Postcode || ''}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,

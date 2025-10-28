@@ -56,8 +56,10 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
         ...formData,
         Tags: formData.Tags.join(','),
         // Convert opening times from form format (string) to API format (number)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Addresses: formData.Addresses.map((address: any) => ({
           ...address,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           OpeningTimes: address.OpeningTimes.map((time: any) => ({
             Day: time.Day,
             StartTime: timeStringToNumber(time.StartTime),

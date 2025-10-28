@@ -289,6 +289,7 @@ export default function UsersPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <select
+                  id="role-filter"
                   value={roleFilter}
                   onChange={(e) => handleRoleFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -302,6 +303,7 @@ export default function UsersPage() {
                 </select>
 
                 <select
+                  id="location-filter"
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"

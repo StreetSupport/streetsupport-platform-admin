@@ -7,17 +7,17 @@ import { IAccommodationFormData } from '@/types';
 
 interface GeneralInfoSectionProps {
   formData: IAccommodationFormData['GeneralInfo'];
-  onChange: (field: string, value: any) => void;
-  errors: Record<string, string>;
+  onChange: (field: string, value: string | boolean | number) => void;
   viewMode?: boolean;
 }
 
-export function GeneralInfoSection({ formData, onChange, errors, viewMode = false }: GeneralInfoSectionProps) {
+export function GeneralInfoSection({ formData, onChange, viewMode = false }: GeneralInfoSectionProps) {
   return (
     <div className="space-y-4">
       <FormField label="Accommodation Name" required>
         <input
           type="text"
+          id="accommodation-name"
           value={formData.Name}
           onChange={(e) => onChange('GeneralInfo.Name', e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -38,6 +38,7 @@ export function GeneralInfoSection({ formData, onChange, errors, viewMode = fals
 
       <FormField label="Short Description">
         <textarea
+          id="short-description"
           value={formData.Synopsis || ''}
           onChange={(e) => onChange('GeneralInfo.Synopsis', e.target.value)}
           rows={2}
@@ -49,6 +50,7 @@ export function GeneralInfoSection({ formData, onChange, errors, viewMode = fals
 
       <FormField label="Description">
         <textarea
+          id="description"
           value={formData.Description || ''}
           onChange={(e) => onChange('GeneralInfo.Description', e.target.value)}
           rows={4}

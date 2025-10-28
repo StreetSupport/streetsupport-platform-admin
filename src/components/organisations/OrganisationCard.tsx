@@ -204,12 +204,12 @@ const OrganisationCard = React.memo(function OrganisationCard({
             variant="outline"
             size="sm"
             onClick={handleViewNotes}
-            title={`View notes (${organisation.Notes.length})`}
+            title={`View notes (${organisation?.Notes?.length})`}
             className="text-brand-h border-brand-h hover:bg-brand-h hover:text-white"
             disabled={isLoading}
           >
             <FileText className="w-4 h-4" />
-            {organisation.Notes.length > 0 && (
+            {organisation?.Notes?.length > 0 && (
               <span className="ml-1">{organisation.Notes.length}</span>
             )}
           </Button>

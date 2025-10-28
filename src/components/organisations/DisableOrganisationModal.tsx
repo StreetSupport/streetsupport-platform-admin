@@ -9,7 +9,7 @@ import { X } from 'lucide-react';
 interface DisableOrganisationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (staffName: string, reason: string) => void;
+  onConfirm: (staffName: string, reason: string, disablingDate: Date) => void;
   organisation: IOrganisation | null;
 }
 
@@ -21,19 +21,27 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
 }) => {
   const [staffName, setStaffName] = useState('');
   const [reason, setReason] = useState('');
-  const [errors, setErrors] = useState<{ staffName?: string; reason?: string }>({});
+  const [disablingDate, setDisablingDate] = useState('');
+  const [errors, setErrors] = useState<{ staffName?: string; reason?: string; disablingDate?: string }>({});
+
+  // Get today's date in YYYY-MM-DD format for min attribute
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
 
   useEffect(() => {
     if (isOpen) {
       // Reset form when modal opens
       setStaffName('');
       setReason('');
+      setDisablingDate(getTodayString()); // Default to today
       setErrors({});
     }
   }, [isOpen]);
 
   const validate = (): boolean => {
-    const newErrors: { staffName?: string; reason?: string } = {};
+    const newErrors: { staffName?: string; reason?: string; disablingDate?: string } = {};
 
     if (!staffName.trim()) {
       newErrors.staffName = 'Staff name is required';
@@ -43,6 +51,10 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
       newErrors.reason = 'Reason is required';
     }
 
+    if (!disablingDate) {
+      newErrors.disablingDate = 'Disabling date is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,7 +62,9 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onConfirm(staffName.trim(), reason.trim());
+      // Convert string date to Date object
+      const dateObj = new Date(disablingDate);
+      onConfirm(staffName.trim(), reason.trim(), dateObj);
     }
   };
 
@@ -88,6 +102,26 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
               </p>
 
               <div className="space-y-4">
+                <div>
+                  <label htmlFor="disablingDate" className="block text-sm font-medium text-brand-k mb-2">
+                    Disabling Date <span className="text-brand-g">*</span>
+                  </label>
+                  <Input
+                    id="disablingDate"
+                    type="date"
+                    value={disablingDate}
+                    onChange={(e) => setDisablingDate(e.target.value)}
+                    min={getTodayString()}
+                    className={errors.disablingDate ? 'border-brand-g' : ''}
+                  />
+                  {errors.disablingDate && (
+                    <p className="text-xs text-brand-g mt-1">{errors.disablingDate}</p>
+                  )}
+                  <p className="text-xs text-brand-f mt-1">
+                    Select today to disable immediately, or a future date to schedule disabling
+                  </p>
+                </div>
+
                 <div>
                   <label htmlFor="staffName" className="block text-sm font-medium text-brand-k mb-2">
                     Staff Name <span className="text-brand-g">*</span>

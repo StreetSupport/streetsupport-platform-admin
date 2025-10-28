@@ -178,6 +178,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-super-admin"
                     className="radio-field"
                     name="role"
                     value="super-admin"
@@ -196,6 +197,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-location-admin"
                     className="radio-field"
                     name="role"
                     value="location-admin"
@@ -213,6 +215,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                 <input
                   type="radio"
+                  id="role-org-admin"
                   className="radio-field"
                   name="role"
                   value="org-admin"
@@ -230,6 +233,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-volunteer-admin"
                     className="radio-field"
                     name="role"
                     value="volunteer-admin"
@@ -248,6 +252,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-swep-admin"
                     className="radio-field"
                     name="role"
                     value="swep-admin"
@@ -282,6 +287,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                       >
                         <input
                           type="checkbox"
+                          id={`location-${location.Key}`}
                           className="checkbox-field"
                           checked={selectedLocations.includes(location.Key)}
                           onChange={() => handleLocationToggle(location.Key)}

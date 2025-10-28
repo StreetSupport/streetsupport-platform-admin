@@ -1,4 +1,4 @@
 export interface IAdministrator {
-    IsSelected: Boolean;
+    IsSelected: boolean;
     Email: string;
 }

@@ -181,7 +181,7 @@ export function LocationManager({ locations, onChange, validationErrors = [], vi
       {locations.length === 0 && (
         <div className="text-center py-8 text-brand-f border-2 border-dashed border-brand-q rounded-lg">
           <p className="text-sm">No locations added yet</p>
-          <p className="text-xs mt-1">Click "Add Location" to get started</p>
+          <p className="text-xs mt-1">Click &quot;Add Location&quot; to get started</p>
         </div>
       )}
     </div>

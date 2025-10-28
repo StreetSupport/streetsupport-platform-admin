@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
-import { IAccommodation, ACCOMMODATION_TYPES } from '@/types/organisations/IAccommodation';
+import { IAccommodation } from '@/types/organisations/IAccommodation';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { AddAccommodationModal } from '../AddAccommodationModal';
@@ -24,12 +24,7 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation, vie
   const [accommodationToDelete, setAccommodationToDelete] = useState<IAccommodation | null>(null);
   const [availableCities, setAvailableCities] = useState<Array<{ _id: string; Name: string; Key: string }>>([]);
 
-  useEffect(() => {
-    fetchAccommodations();
-    fetchOrganisationCities();
-  }, [organisation.Key]);
-
-  const fetchOrganisationCities = async () => {
+  const fetchOrganisationCities = useCallback(async () => {
     try {
       // Fetch all cities
       const response = await authenticatedFetch('/api/cities');
@@ -49,9 +44,11 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation, vie
     } catch (error) {
       console.error('Error fetching cities:', error);
     }
-  };
+  }, [organisation.AssociatedLocationIds]);
 
-  const fetchAccommodations = async () => {
+  const fetchAccommodations = useCallback(async () => {
+    if (!organisation.Key) return;
+    
     setIsLoading(true);
     try {
       const response = await authenticatedFetch(`/api/organisations/${organisation.Key}/accommodations`);
@@ -67,7 +64,12 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation, vie
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [organisation.Key]);
+
+  useEffect(() => {
+    fetchAccommodations();
+    fetchOrganisationCities();
+  }, [fetchAccommodations, fetchOrganisationCities]);
 
   const handleAddAccommodation = () => {
     setEditingAccommodation(null);
