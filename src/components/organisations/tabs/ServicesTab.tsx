@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
