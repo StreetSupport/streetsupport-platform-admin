@@ -32,7 +32,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40" />
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
