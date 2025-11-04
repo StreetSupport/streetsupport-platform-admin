@@ -194,9 +194,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         StartTime: '00:00',
         EndTime: '23:59'
       }));
-    } else if (formData.IsAppointmentOnly) {
-      // If unchecking IsOpen247 but IsAppointmentOnly is still checked, keep empty array
-      openingTimes = [];
+    } else {
+      // Keep existing opening times when unchecking
+      openingTimes = formData.OpeningTimes || [];
     }
     
     setFormData(prev => ({
@@ -209,27 +209,10 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   };
 
   const handleIsAppointmentOnlyChange = (checked: boolean) => {
-    let openingTimes: IOpeningTimeFormData[];
-    
-    if (formData.IsOpen247) {
-      // IsOpen247 has priority - keep 7 opening times even if IsAppointmentOnly is checked
-      openingTimes = Array.from({ length: 7 }, (_, day) => ({
-        Day: day,
-        StartTime: '00:00',
-        EndTime: '23:59'
-      }));
-    } else if (checked) {
-      // Only clear opening times if IsOpen247 is not checked
-      openingTimes = [];
-    } else {
-      // Keep existing opening times when unchecking
-      openingTimes = formData.OpeningTimes || [];
-    }
-    
+    // IsAppointmentOnly can now coexist with opening times - don't clear them
     setFormData(prev => ({
       ...prev,
-      IsAppointmentOnly: checked,
-      OpeningTimes: openingTimes
+      IsAppointmentOnly: checked
     }));
     // Clear validation errors
     setValidationErrors(prev => prev.filter(error => !error.Path.startsWith('Opening Times')));
@@ -806,7 +789,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         />
                       </div>
 
-                      {!formData.IsOpen247 && !formData.IsAppointmentOnly && (
+                      {!formData.IsOpen247 && (
                         <OpeningTimesManager
                           openingTimes={formData.OpeningTimes || []}
                           onChange={handleOpeningTimesChange}

@@ -200,7 +200,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = fals
                           Telephone Service
                         </span>
                       )}
-                      {!service.IsOpen247 && !service.IsAppointmentOnly && service.OpeningTimes && service.OpeningTimes.length > 0 && (
+                      {!service.IsOpen247 && service.OpeningTimes && service.OpeningTimes.length > 0 && (
                         <span className="text-xs bg-brand-a text-white px-2 py-1 rounded">
                           {service.OpeningTimes.length} Opening Times
                         </span>

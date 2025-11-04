@@ -104,13 +104,13 @@ export const GroupedServiceSchema = z.object({
   IsAppointmentOnly: z.boolean().optional().default(false),
   Telephone: z.preprocess(preprocessNullableString, z.string().optional())
 }).refine((data) => {
-  // If not open 24/7, not appointment only, and not outreach location, require opening times
-  if (!data.IsOpen247 && !data.IsAppointmentOnly && !data.Location.IsOutreachLocation) {
+  // If not open 24/7 and not outreach location, require opening times
+  if (!data.IsOpen247 && !data.Location.IsOutreachLocation) {
     return data.OpeningTimes && data.OpeningTimes.length > 0;
   }
   return true;
 }, {
-  message: 'Opening times are required when service is not open 24/7, not appointment only, and not an outreach location',
+  message: 'Opening times are required when service is not open 24/7 and not an outreach location',
   path: ['OpeningTimes']
 });
 

@@ -76,16 +76,6 @@ export const AddressSchema = z.object({
   // We don't need to validate opening times in the form, because we validate them directly in the form via OpeningTimeFormSchema and also in the API
   //OpeningTimes: z.array(OpeningTimeSchema).default([]),
 });
-// .refine((data) => {
-//   // If not open 24/7 and not appointment only, must have at least one opening time
-//   if (!data.IsOpen247 && !data.IsAppointmentOnly) {
-//     return data.OpeningTimes.length > 0;
-//   }
-//   return true;
-// }, {
-//   message: 'At least one opening time is required when location is not open 24/7 and not appointment only',
-//   path: ['OpeningTimes']
-// });
 
 // Organisation form validation schema
 export const OrganisationSchema = z.object({

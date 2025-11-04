@@ -103,10 +103,10 @@ export function AddLocationModal({
       });
     }
     
-    // Validate opening times if not 24/7 and not appointment only
-    if (!currentLocation.IsOpen247 && !currentLocation.IsAppointmentOnly) {
+    // Validate opening times if not 24/7
+    if (!currentLocation.IsOpen247) {
       if (currentLocation.OpeningTimes.length === 0) {
-        errors.push({ Path: 'Opening Times', Message: 'At least one opening time is required when location is not open 24/7 and not appointment only' });
+        errors.push({ Path: 'Opening Times', Message: 'At least one opening time is required when location is not open 24/7' });
       } else {
         // Validate each opening time using OpeningTimeFormSchema
         for (const openingTime of currentLocation.OpeningTimes) {
@@ -174,8 +174,8 @@ export function AddLocationModal({
         EndTime: '23:59'
       }));
     } else if (currentLocation.IsAppointmentOnly) {
-      // If unchecking IsOpen247 but IsAppointmentOnly is still checked, keep empty array
-      openingTimes = [];
+      // Keep existing opening times when unchecking
+      openingTimes = currentLocation.OpeningTimes;
     }
     
     setCurrentLocation({
@@ -186,27 +186,10 @@ export function AddLocationModal({
   };
 
   const handleAppointmentOnlyChange = (checked: boolean) => {
-    let openingTimes: IOpeningTimeFormData[];
-    
-    if (currentLocation.IsOpen247) {
-      // IsOpen247 has priority - keep 7 opening times even if IsAppointmentOnly is checked
-      openingTimes = Array.from({ length: 7 }, (_, day) => ({
-        Day: day,
-        StartTime: '00:00',
-        EndTime: '23:59'
-      }));
-    } else if (checked) {
-      // Only clear opening times if IsOpen247 is not checked
-      openingTimes = [];
-    } else {
-      // Keep existing opening times when unchecking
-      openingTimes = currentLocation.OpeningTimes;
-    }
-    
+    // IsAppointmentOnly can now coexist with opening times - don't clear them
     setCurrentLocation({
       ...currentLocation,
-      IsAppointmentOnly: checked,
-      OpeningTimes: openingTimes
+      IsAppointmentOnly: checked
     });
   };
 
@@ -402,20 +385,12 @@ export function AddLocationModal({
                   />
                 </div>
 
-                {!currentLocation.IsOpen247 && !currentLocation.IsAppointmentOnly && (
+                {!currentLocation.IsOpen247 && (
                   <OpeningTimesManager
                     openingTimes={currentLocation.OpeningTimes}
                     onChange={handleOpeningTimesChange}
                     viewMode={viewMode}
                   />
-                )}
-
-                {currentLocation.IsAppointmentOnly && (
-                  <div className="p-3 bg-brand-j bg-opacity-10 rounded-lg">
-                    <p className="text-sm text-brand-k">
-                      This location operates by appointment only. No regular opening hours apply.
-                    </p>
-                  </div>
                 )}
               </div>
             </div>

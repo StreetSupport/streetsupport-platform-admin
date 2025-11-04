@@ -120,7 +120,7 @@ export function LocationManager({ locations, onChange, validationErrors = [], vi
                       Appointment Only
                     </span>
                   )}
-                  {!location.IsOpen247 && !location.IsAppointmentOnly && location.OpeningTimes.length > 0 && (
+                  {!location.IsOpen247 && location.OpeningTimes.length > 0 && (
                     <span className="text-xs bg-brand-a text-white px-2 py-1 rounded">
                       {location.OpeningTimes.length} Opening Times
                     </span>
