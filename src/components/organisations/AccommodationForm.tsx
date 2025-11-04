@@ -101,6 +101,7 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         Description: '',
         AccommodationType: '' as AccommodationType, // Empty string for placeholder, will be validated on submit
         ServiceProviderId: providerId,
+        ServiceProviderName: '',
         IsOpenAccess: false,
         IsPubliclyVisible: true,
         IsPublished: false

@@ -43,9 +43,11 @@ const GeneralInfoSchema = z.object({
   Description: z.preprocess(preprocessNullableString, z.string().optional()),
   AccommodationType: z.nativeEnum(AccommodationType),
   ServiceProviderId: z.string().min(1, 'Service provider ID is required'),
+  ServiceProviderName: z.string().optional(),
   IsOpenAccess: z.boolean(),
   IsPubliclyVisible: z.boolean().optional(),
   IsPublished: z.boolean().optional(),
+  IsVerified: z.boolean().optional(),
 });
 
 const PricingAndRequirementsInfoSchema = z.object({
