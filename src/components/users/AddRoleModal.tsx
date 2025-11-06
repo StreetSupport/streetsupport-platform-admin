@@ -2,17 +2,13 @@
 import { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSession } from 'next-auth/react';
 import { errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { UserAuthClaims } from '@/types/auth';
 import { ROLE_PREFIXES, ROLES } from '@/constants/roles';
-
-interface Location {
-  _id: string;
-  Key: string;
-  Name: string;
-}
+import { ICity } from '@/types';
 
 interface AddRoleModalProps {
   isOpen: boolean;
@@ -27,8 +23,9 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   const { data: session } = useSession();
   const [selectedRole, setSelectedRole] = useState<RoleType>('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<ICity[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
   const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN);
@@ -143,31 +140,36 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
     onClose();
   };
 
+  const confirmCancel = () => {
+    setShowConfirmModal(false);
+    handleClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-50"
-        onClick={handleClose}
-      />
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-50" />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-brand-q px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h3 className="heading-5">Add Role / Select Role</h3>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-brand-q rounded-full transition-colors"
-              aria-label="Close modal"
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConfirmModal(true)}
+              className="p-2"
+              title="Close"
             >
-              <X className="w-5 h-5 text-brand-k" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
+          {/* Content - scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             <div className="space-y-3">
               <label className="field-label">Role (select)</label>
               
@@ -176,6 +178,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-super-admin"
                     className="radio-field"
                     name="role"
                     value="super-admin"
@@ -194,6 +197,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-location-admin"
                     className="radio-field"
                     name="role"
                     value="location-admin"
@@ -211,6 +215,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                 <input
                   type="radio"
+                  id="role-org-admin"
                   className="radio-field"
                   name="role"
                   value="org-admin"
@@ -228,6 +233,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-volunteer-admin"
                     className="radio-field"
                     name="role"
                     value="volunteer-admin"
@@ -246,6 +252,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
                   <input
                     type="radio"
+                    id="role-swep-admin"
                     className="radio-field"
                     name="role"
                     value="swep-admin"
@@ -264,7 +271,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
             {(selectedRole === 'location-admin' || selectedRole === 'swep-admin') && (
               <div className="space-y-3">
                 <label className="field-label">
-                  Select City{locations.length > 1 ? 's' : ''}
+                  Select Location{locations.length > 1 ? 's' : ''}
                 </label>
                 
                 {loadingLocations ? (
@@ -280,6 +287,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                       >
                         <input
                           type="checkbox"
+                          id={`location-${location.Key}`}
                           className="checkbox-field"
                           checked={selectedLocations.includes(location.Key)}
                           onChange={() => handleLocationToggle(location.Key)}
@@ -298,8 +306,8 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
 
           {/* Organisation Administrator Warning - Always show when selected */}
           {selectedRole === 'org-admin' && (
-            <div className="px-6 pb-4">
-              <div className="bg-brand-j bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
+            <div className="px-4 sm:px-6 pb-4">
+              <div className="bg-brand-i bg-opacity-10 border border-brand-j rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-brand-j flex-shrink-0 mt-0.5" />
                 <p className="text-small text-brand-k">
                   Organisation Administrator can be created only from Organisation page.
@@ -308,9 +316,9 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
             </div>
           )}
 
-          {/* Footer */}
-          <div className="sticky bottom-0 bg-white border-t border-brand-q px-6 py-4 flex items-center justify-end gap-4">
-            <Button variant="outline" onClick={handleClose}>
+          {/* Footer - fixed at bottom */}
+          <div className="border-t border-brand-q p-4 sm:p-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowConfirmModal(true)}>
               Cancel
             </Button>
             <Button 
@@ -323,6 +331,17 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={confirmCancel}
+        title="Close without saving?"
+        message="You may lose unsaved changes."
+        confirmLabel="Close Without Saving"
+        cancelLabel="Continue Editing"
+        variant="warning"
+      />
     </>
   );
 }

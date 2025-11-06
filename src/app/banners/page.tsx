@@ -120,8 +120,9 @@ export default function BannersListPage() {
         setLocations(result.data);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load locations';
-      console.error('Failed to fetch locations:', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch locations';
+      setError(errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 
@@ -247,6 +248,7 @@ export default function BannersListPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <select
+                  id="location-filter"
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -258,6 +260,7 @@ export default function BannersListPage() {
                 </select>
 
                 <select
+                  id="template-filter"
                   value={templateFilter}
                   onChange={(e) => handleTemplateFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -269,6 +272,7 @@ export default function BannersListPage() {
                 </select>
                 
                 <select
+                  id="status-filter"
                   value={statusFilter}
                   onChange={(e) => handleStatusFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-32"

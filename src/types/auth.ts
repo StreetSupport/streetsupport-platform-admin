@@ -29,35 +29,41 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
     apiEndpoints: [
       { path: '/api/cities', methods: ['*'] },
-      { path: '/api/service-providers', methods: ['*'] },
+      { path: '/api/organisations', methods: ['*'] },
       { path: '/api/services', methods: ['*'] },
+      { path: '/api/accommodations', methods: ['*'] },
       { path: '/api/faqs', methods: ['*'] },
       { path: '/api/banners', methods: ['*'] },
       { path: '/api/swep-banners', methods: ['*'] },
       { path: '/api/resources', methods: ['*'] },
-      { path: '/api/users', methods: ['*'] }
+      { path: '/api/users', methods: ['*'] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.VOLUNTEER_ADMIN]: {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/resources'],
     apiEndpoints: [
       { path: '/api/cities', methods: [HTTP_METHODS.GET] },
-      { path: '/api/service-providers', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/organisations', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/services', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/accommodations', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/faqs', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
-      { path: '/api/users', methods: [HTTP_METHODS.POST] }
+      { path: '/api/users', methods: [HTTP_METHODS.POST] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.ORG_ADMIN]: {
     pages: ['/organisations'],
     apiEndpoints: [
       { path: '/api/cities', methods: [HTTP_METHODS.GET] },
-      { path: '/api/service-providers', methods: ['*'] },
+      { path: '/api/organisations', methods: ['*'] },
       { path: '/api/services', methods: ['*'] },
+      { path: '/api/accommodations', methods: ['*'] },
       { path: '/api/users', methods: [HTTP_METHODS.POST] },
+      { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
   },
   [ROLES.SWEP_ADMIN]: {

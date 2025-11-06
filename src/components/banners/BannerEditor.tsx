@@ -527,6 +527,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <div className="space-y-2">
                 <input
                   type="file"
+                  id="resource-file"
                   accept={RESOURCE_FILE_ACCEPT_STRING}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -1108,11 +1109,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={confirmCancel}
-        title="Cancel Changes"
-        message="Are you sure you want to cancel? All unsaved changes will be lost."
+        title="Close without saving?"
+        message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Yes, Cancel"
-        cancelLabel="No, Keep Editing"
+        confirmLabel="Close Without Saving"
+        cancelLabel="Continue Editing"
       />
     </div>
   );

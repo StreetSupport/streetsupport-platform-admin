@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getHomePageForUser } from "@/lib/roleHomePages";
+import { authenticatedFetch } from "@/utils/authenticatedFetch";
 
 function toTitleCase(slug: string) {
   return slug
@@ -75,7 +76,7 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
         if (isNewRoute || !looksLikeObjectId) {
           return;
         }
-        const res = await fetch(`/api/banners/${id}`);
+        const res = await authenticatedFetch(`/api/banners/${id}`);
         if (!res.ok) return;
         const json = await res.json();
         const banner = json?.data ?? json; // handle {data: banner} or banner

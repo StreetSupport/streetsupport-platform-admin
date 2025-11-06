@@ -24,7 +24,7 @@ export default function SwepManagement() {
       setLoading(true);
       setError(null);
       // TODO: handle error response. Take example from users
-      // const response = await fetch('/api/cities', {
+      // const response = await authenticatedFetch('/api/cities', {
       //   headers: {
       //     'Authorization': `Bearer ${session?.accessToken}`,
       //     'Content-Type': 'application/json',

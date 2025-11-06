@@ -16,6 +16,7 @@ import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toas
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { ROLES, getRoleOptions } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { ICity } from '@/types';
 
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
@@ -39,7 +40,7 @@ export default function UsersPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
-  const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
+  const [locations, setLocations] = useState<ICity[]>([]);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showDeactivateConfirmModal, setShowDeactivateConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<IUser | null>(null);
@@ -74,8 +75,15 @@ export default function UsersPage() {
         const data = await response.json();
         setLocations(data.data || []);
       }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch locations');
+      }
     } catch (err) {
-      console.error('Failed to fetch locations:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch locations';
+      setError(errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 
@@ -103,7 +111,7 @@ export default function UsersPage() {
       setTotal(result.pagination?.total || 0);
       setTotalPages(result.pagination?.pages || 1);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load users';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users';
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {
@@ -281,6 +289,7 @@ export default function UsersPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <select
+                  id="role-filter"
                   value={roleFilter}
                   onChange={(e) => handleRoleFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
@@ -294,6 +303,7 @@ export default function UsersPage() {
                 </select>
 
                 <select
+                  id="location-filter"
                   value={locationFilter}
                   onChange={(e) => handleLocationFilter(e.target.value)}
                   className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
