@@ -23,22 +23,6 @@ export function SupportSection({ formData, onChange, viewMode = false }: Support
 
   return (
     <div className="space-y-4">
-      <FormField label="Has On-Site Manager">
-        <select
-          id="has-on-site-manager"
-          value={safeFormData.HasOnSiteManager ?? DiscretionaryValue.DontKnowAsk}
-          onChange={(e) => onChange('SupportProvidedInfo.HasOnSiteManager', parseInt(e.target.value))}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          disabled={viewMode}
-        >
-          {DISCRETIONARY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-
       <FormField label="Support Offered">
         <div className="space-y-2 bg-gray-50 p-4 rounded-md">
           {SUPPORT_OFFERED_OPTIONS.map((option) => (

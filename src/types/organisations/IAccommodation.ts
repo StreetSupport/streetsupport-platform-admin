@@ -130,7 +130,6 @@ export interface IAccommodation {
     AcceptsBenefitsClaimants?: boolean;
   };
   SupportProvidedInfo: {
-    HasOnSiteManager?: DiscretionaryValue;
     SupportOffered?: SupportOfferedType[];
     SupportInfo?: string;
   };

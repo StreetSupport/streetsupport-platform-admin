@@ -150,24 +150,27 @@ const OrganisationCard = React.memo(function OrganisationCard({
         </div>
 
         {/* Action Buttons - Second Row */}
+        {/* Hide publish button for OrgAdmin-only users */}
         <div className="flex items-center gap-2 mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleTogglePublished}
-            disabled={isTogglingPublish}
-            title={organisation.IsPublished ? 'Disable organisation' : 'Publish organisation'}
-            className={`flex-1 ${organisation.IsPublished ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}`}
-          >
-            {isTogglingPublish ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-            ) : organisation.IsPublished ? (
-              <XCircle className="w-4 h-4 mr-2" />
-            ) : (
-              <CheckCircle className="w-4 h-4 mr-2" />
-            )}
-            {organisation.IsPublished ? 'Disable' : 'Publish'}
-          </Button>
+          {!isOrgAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTogglePublished}
+              disabled={isTogglingPublish}
+              title={organisation.IsPublished ? 'Disable organisation' : 'Publish organisation'}
+              className={`flex-1 ${organisation.IsPublished ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}`}
+            >
+              {isTogglingPublish ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+              ) : organisation.IsPublished ? (
+                <XCircle className="w-4 h-4 mr-2" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              {organisation.IsPublished ? 'Disable' : 'Publish'}
+            </Button>
+          )}
           
           {/* Hide verify button for OrgAdmin-only users */}
           {!isOrgAdmin && (

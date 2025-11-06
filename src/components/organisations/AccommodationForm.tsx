@@ -153,7 +153,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
         AcceptsBenefitsClaimants: false
       },
       SupportProvidedInfo: {
-        HasOnSiteManager: DiscretionaryValue.DontKnowAsk,
         SupportOffered: [],
         SupportInfo: ''
       }
