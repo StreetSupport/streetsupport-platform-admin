@@ -720,7 +720,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         {/* Basic Content */}
         <div className="space-y-4">
           <h3 className="heading-5 border-b border-brand-q pb-2 pt-4">Basic Information</h3>
-          <FormField label="Banner Type *">
+          <FormField label={<>Banner Type <span className="text-brand-g">*</span></>}>
             <Select
               value={formData.TemplateType}
               onChange={(e) => updateFormData('TemplateType', e.target.value)}
@@ -728,7 +728,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             />
           </FormField>
 
-          <FormField label="Title *" error={errors.Title}>
+          <FormField label={<>Title <span className="text-brand-g">*</span></>} error={errors.Title}>
             <Input
               value={formData.Title}
               onChange={(e) => updateFormData('Title', e.target.value)}
@@ -803,7 +803,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             maxSize={5 * 1024 * 1024}
           />
 
-            
           {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. */}
           {/* <MediaUpload
             label="Accent Graphic"
@@ -1084,9 +1083,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
         {/* Submit Button */}
         <div className="card-footer">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : 'Save Banner'}
           </Button>
@@ -1112,7 +1111,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Close Without Saving"
+        confirmLabel="Discard changes"
         cancelLabel="Continue Editing"
       />
     </div>

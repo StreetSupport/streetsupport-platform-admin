@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from './Button';
 
@@ -47,7 +48,15 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     };
   }, [isOpen, isLoading, onClose, cancelLabel]);
 
-  if (!isOpen) return null;
+  // Use state to track if component is mounted (client-side only)
+  const [mounted, setMounted] = React.useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const getIconColor = () => {
     switch (variant) {
@@ -75,7 +84,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     }
   };
 
-  return (
+  const modalContent = (
     <div 
       className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={(e) => {
@@ -160,6 +169,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       </div>
     </div>
   );
+
+  // Render modal using portal to document.body to avoid DOM hierarchy issues
+  return createPortal(modalContent, document.body);
 };
 
 // Hook for easier usage
