@@ -1,10 +1,9 @@
 'use client';
 
 import { useAuthorization } from '@/hooks/useAuthorization';
-import SwepManagement from '@/components/swep-banners/SwepManagement';
 import { ROLES } from '@/constants/roles';
 
-export default function SwepsPage() {
+export default function SwepViewPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
     allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.SWEP_ADMIN],
@@ -27,18 +26,14 @@ export default function SwepsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-q">
-      {/* Header */}
-      <div className="nav-container">
-        <div className="page-container">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="heading-4">SWEP</h1>
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">SWEP Banner View</h1>
+        <p className="mt-2 text-gray-600">View SWEP banner details</p>
       </div>
 
-      <div className="page-container section-spacing padding-top-zero">
-        <SwepManagement />
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+        <p className="text-gray-500">View page will be implemented in future updates</p>
       </div>
     </div>
   );

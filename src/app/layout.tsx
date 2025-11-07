@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import './globals.css';
+import '@/styles/rich-text-editor.css';
 
 import Footer from '@/components/partials/Footer';
 import NextAuthProvider from '@/components/auth/NextAuthProvider';

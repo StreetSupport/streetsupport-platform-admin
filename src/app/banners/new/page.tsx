@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
-import { withAuthorization } from '@/components/auth/withAuthorization';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { validateBannerForm } from '@/schemas/bannerSchema';
 import toastUtils, { successToast, errorToast, loadingToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -14,7 +14,14 @@ import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 
-function NewBannerPage() {
+export default function NewBannerPage() {
+  // Check authorization FIRST before any other logic
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/banners',
+    autoRedirect: true
+  });
+
   const router = useRouter();
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
@@ -145,6 +152,20 @@ function NewBannerPage() {
     }
   };
 
+  // Show loading while checking authorization
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized (redirect handled by hook)
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-brand-q">
         <BannerPageHeader pageType="new" />
@@ -170,8 +191,3 @@ function NewBannerPage() {
     </div>
   );
 }
-
-export default withAuthorization(NewBannerPage, {
-  allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
-  requiredPage: '/banners'
-});

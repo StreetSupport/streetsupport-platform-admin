@@ -1,11 +1,6 @@
 import { z } from 'zod';
 import { isValidPostcodeFormat } from '@/utils/postcodeValidation';
-
-// Preprocessing helper to convert null/undefined to empty string
-const preprocessNullableString = (val: unknown) => {
-  if (val === null || val === undefined) return '';
-  return val;
-};
+import { preprocessNullableString } from './validationHelpers';
 
 // Location Schema for services with conditional validation based on IsOutreachLocation
 export const ServiceLocationSchema = z.object({

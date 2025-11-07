@@ -46,18 +46,18 @@ export function getUserLocationSlugs(
     return null;
   }
 
-  // CityAdmin with location-specific claims
-  if (hasRole(userAuthClaims.roles, ROLES.CITY_ADMIN)) {
+  // CityAdmin or SwepAdmin with location-specific claims
+  if (hasRole(userAuthClaims.roles, ROLES.CITY_ADMIN) || hasRole(userAuthClaims.roles, ROLES.SWEP_ADMIN)) {
     const userCities = userAuthClaims.specificClaims
-      .filter((claim: string) => claim.startsWith(ROLE_PREFIXES.CITY_ADMIN_FOR))
-      .map((claim: string) => claim.replace(ROLE_PREFIXES.CITY_ADMIN_FOR, ''));
+      .filter((claim: string) => claim.startsWith(ROLE_PREFIXES.CITY_ADMIN_FOR) || claim.startsWith(ROLE_PREFIXES.SWEP_ADMIN_FOR))
+      .map((claim: string) => claim.replace(ROLE_PREFIXES.CITY_ADMIN_FOR, '').replace(ROLE_PREFIXES.SWEP_ADMIN_FOR, ''));
     
-    // If CityAdmin has specific city claims, return them for filtering
+    // If CityAdmin or SwepAdmin has specific city claims, return them for filtering
     if (userCities.length > 0) {
       return userCities;
     }
     
-    // If CityAdmin has no specific claims, no filtering needed
+    // If CityAdmin or SwepAdmin has no specific claims, no filtering needed
     return null;
   }
   

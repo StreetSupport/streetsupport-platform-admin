@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ValidationResult, createValidationResult } from './validationHelpers';
+import { ValidationResult, createValidationResult, preprocessNullableString, preprocessNullableObject } from './validationHelpers';
 import { LocationCoordinatesSchema } from './organisationSchema';
 import { AccommodationType, SupportOfferedType, DiscretionaryValue } from '@/types/organisations/IAccommodation';
 import { isValidPostcodeFormat } from '@/utils/postcodeValidation';
@@ -20,18 +20,6 @@ export function transformErrorPath(path: string): string {
   
   return pathMap[path] || path;
 }
-
-// Preprocessing helper to convert null/undefined to empty string
-const preprocessNullableString = (val: unknown) => {
-  if (val === null || val === undefined) return '';
-  return val;
-};
-
-// Preprocessing helper to convert null/undefined to empty string
-const preprocessNullableObject = (val: unknown) => {
-  if (val === null || val === undefined) return {};
-  return val;
-};
 
 // Enum for discretionary values: Use nativeEnum for proper type checking
 const DiscretionaryValueSchema = z.nativeEnum(DiscretionaryValue);

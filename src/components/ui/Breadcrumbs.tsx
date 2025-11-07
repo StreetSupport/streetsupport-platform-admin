@@ -8,6 +8,11 @@ import { getHomePageForUser } from "@/lib/roleHomePages";
 import { authenticatedFetch } from "@/utils/authenticatedFetch";
 
 function toTitleCase(slug: string) {
+  // Special case for SWEP
+  if (slug === "swep-banners") {
+    return "SWEP";
+  }
+  
   return slug
     .split("-")
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
@@ -57,6 +62,7 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
   }, [segments, homePageUrl]);
 
   // Enrich breadcrumbs for banner routes: /banners/[id] and /banners/[id]/edit
+  // Note: SWEP banners use location slug instead of ID, so they use default breadcrumbs
   useEffect(() => {
     const isBannerRoute = segments[0] === "banners" && segments.length >= 2;
     const id = isBannerRoute ? segments[1] : null;
@@ -94,6 +100,20 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
 
   const computedItems: Crumb[] = useMemo(() => {
     if (itemsProp && itemsProp.length > 0) return itemsProp;
+
+    // Special handling for SWEP banner routes - exclude 'Edit' from breadcrumbs
+    if (segments[0] === "swep-banners" && segments.length >= 2) {
+      const locationSlug = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/swep-banners", label: "SWEP" },
+        { href: isEdit ? `/swep-banners/${locationSlug}` : undefined, label: toTitleCase(locationSlug), current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for SWEP banners
+      return items;
+    }
 
     // If not a banner route or no fetched title, fall back to base items
     if (!(segments[0] === "banners" && segments.length >= 2) || !bannerTitle) {

@@ -44,3 +44,48 @@ export function getFieldErrors(
     .filter(error => error.path === fieldPath || error.path.startsWith(`${fieldPath}.`))
     .map(error => error.message);
 }
+
+// ============================================================================
+// Preprocessing Helpers for Zod Schemas
+// ============================================================================
+
+/**
+ * Converts null/undefined to empty string
+ * Used for optional string fields that should default to empty string
+ */
+export const preprocessNullableString = (val: unknown): string => {
+  if (val === null || val === undefined) return '';
+  return val as string;
+};
+
+/**
+ * Converts null/undefined to empty object
+ * Used for optional object fields that should default to empty object
+ */
+export const preprocessNullableObject = (val: unknown): object => {
+  if (val === null || val === undefined) return {};
+  return val as object;
+};
+
+// ============================================================================
+// Time Conversion Helpers
+// ============================================================================
+
+/**
+ * Convert time string (HH:MM) to number (HHMM)
+ * Example: "09:30" -> 930
+ */
+export function timeStringToNumber(timeStr: string): number {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 100 + minutes;
+}
+
+/**
+ * Convert number (HHMM) to time string (HH:MM)
+ * Example: 930 -> "09:30"
+ */
+export function timeNumberToString(timeNum: number): string {
+  const hours = Math.floor(timeNum / 100);
+  const minutes = timeNum % 100;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}

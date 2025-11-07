@@ -49,7 +49,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/accommodations', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/faqs', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
-      { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/users', methods: [HTTP_METHODS.POST] },
       { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
@@ -68,7 +68,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   },
   [ROLES.SWEP_ADMIN]: {
     pages: ['/swep-banners'],
-    apiEndpoints: [{ path: '/api/swep-banners', methods: ['*'] }]
+    apiEndpoints: [
+      { path: '/api/cities', methods: [HTTP_METHODS.GET] },
+      { path: '/api/swep-banners', methods: ['*'] }
+    ]
   }
 };
 

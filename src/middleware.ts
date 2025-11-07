@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Set this to false to disable the maintenance mode
-const MAINTENANCE_MODE = true
+// Set this to false to ditruesable the maintenance mode
+const MAINTENANCE_MODE = true;
 
 export function middleware(request: NextRequest) {
   // Skip maintenance for non-banner routes when not in maintenance mode
@@ -10,9 +10,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Block all banner-related routes
+  // Block all banner-related routes and swep-banners routes
   if (request.nextUrl.pathname.startsWith('/banners') || 
-      request.nextUrl.pathname.startsWith('/api/banners')) {
+      request.nextUrl.pathname.startsWith('/api/banners') ||
+      request.nextUrl.pathname.startsWith('/swep-banners') ||
+      request.nextUrl.pathname.startsWith('/api/swep-banners')) {
     
     // For API routes, return a 503 JSON response
     if (request.nextUrl.pathname.startsWith('/api/')) {
@@ -23,7 +25,7 @@ export function middleware(request: NextRequest) {
           timestamp: new Date().toISOString()
         }),
         { 
-          status: 503, 
+          status: 503,
           headers: { 
             'Content-Type': 'application/json',
             'Retry-After': '3600' // 1 hour
@@ -45,5 +47,7 @@ export const config = {
   matcher: [
     '/banners/:path*',
     '/api/banners/:path*',
+    '/swep-banners/:path*',
+    '/api/swep-banners/:path*'
   ],
 }
