@@ -105,13 +105,13 @@ export default function SwepManagement() {
   ) => {
     try {
       const body: {
-        isActive: boolean;
-        swepActiveFrom: Date | null;
-        swepActiveUntil: Date | null;
+        IsActive: boolean;
+        SwepActiveFrom: Date | null;
+        SwepActiveUntil: Date | null;
       } = {
-        isActive,
-        swepActiveFrom: swepActiveFrom || null,
-        swepActiveUntil: swepActiveUntil || null
+        IsActive: isActive,
+        SwepActiveFrom: swepActiveFrom || null,
+        SwepActiveUntil: swepActiveUntil || null
       };
 
       const response = await authenticatedFetch(`/api/swep-banners/${locationSlug}`, {
