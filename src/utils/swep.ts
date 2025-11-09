@@ -38,26 +38,6 @@ export function formatSwepActivePeriod(swepData: ISwepBanner): string {
     } else {
       return `SWEP is currently active from ${fromString} until ${untilString}`;
     }
-  } else if (swepData.SwepActiveFrom) {
-    const activeFrom = new Date(swepData.SwepActiveFrom);
-    activeFrom.setHours(0, 0, 0, 0);
-    const fromString = activeFrom.toLocaleDateString('en-GB', formatOptions);
-    
-    if (now < activeFrom) {
-      return `SWEP is scheduled to start on ${fromString}`;
-    } else {
-      return `SWEP is currently active from ${fromString}`;
-    }
-  } else if (swepData.SwepActiveUntil) {
-    const activeUntil = new Date(swepData.SwepActiveUntil);
-    activeUntil.setHours(23, 59, 59, 999);
-    const untilString = activeUntil.toLocaleDateString('en-GB', formatOptions);
-    
-    if (now > activeUntil) {
-      return `SWEP was active until ${untilString}`;
-    } else {
-      return `SWEP is currently active until ${untilString}`;
-    }
   } else {
     return 'Active period not specified';
   }
