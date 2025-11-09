@@ -44,6 +44,8 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       return sendError(response.status, data.error || 'Failed to fetch cities');
     }
 
+    data.data.sort((a: any, b: any) => a.Name.localeCompare(b.Name));
+
     return proxyResponse(data);
   } catch (error) {
     console.error('Locations API error:', error);
