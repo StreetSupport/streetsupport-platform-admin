@@ -5,12 +5,12 @@ import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
  * e.g. "SWEP is currently active from 15 January at 20:00 until 18 January at 11:00"
  */
 export function formatSwepActivePeriod(swepData: ISwepBanner): string {
-  if (!swepData.swepActiveFrom || !swepData.swepActiveUntil) {
+  if (!swepData.SwepActiveFrom || !swepData.SwepActiveUntil) {
     return 'Active period not specified';
   }
 
-  const activeFrom = new Date(swepData.swepActiveFrom);
-  const activeUntil = new Date(swepData.swepActiveUntil);
+  const activeFrom = new Date(swepData.SwepActiveFrom);
+  const activeUntil = new Date(swepData.SwepActiveUntil);
   
   const formatOptions: Intl.DateTimeFormatOptions = {
     day: 'numeric',
