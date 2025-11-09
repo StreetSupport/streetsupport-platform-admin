@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation, IOrganisationFormData } from '@/types/organisations/IOrganisation';
-import { timeNumberToString } from '@/schemas/organisationSchema';
+import { timeNumberToString } from '@/schemas/validationHelpers';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { OrganisationForm, OrganisationFormRef } from '../OrganisationForm';
