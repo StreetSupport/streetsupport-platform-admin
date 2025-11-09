@@ -18,7 +18,6 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
   const [swepActiveUntil, setSwepActiveUntil] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
 
   // Get today's date in YYYY-MM-DD format for min attribute
   const getTodayString = () => {
@@ -28,17 +27,16 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
 
   // Determine current activation state
   const now = new Date();
-  const isCurrentlyActive = swep.isActive || (
-    swep.swepActiveFrom && swep.swepActiveUntil &&
-    now >= new Date(swep.swepActiveFrom) && now <= new Date(swep.swepActiveUntil)
+  const isCurrentlyActive = swep.IsActive || (
+    swep.SwepActiveFrom && swep.SwepActiveUntil &&
+    now >= new Date(swep.SwepActiveFrom) && now <= new Date(swep.SwepActiveUntil)
   );
 
   // Handle deactivation confirmation
   const handleDeactivateConfirm = async () => {
     try {
       setIsSubmitting(true);
-      await onActivate(swep.locationSlug, false, undefined, undefined);
-      setShowDeactivateConfirm(false);
+      await onActivate(swep.LocationSlug, false, undefined, undefined);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to deactivate SWEP banner');
@@ -51,13 +49,10 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
     return (
       <ConfirmModal
         isOpen={true}
-        onClose={() => {
-          setShowDeactivateConfirm(false);
-          onClose();
-        }}
+        onClose={onClose}
         onConfirm={handleDeactivateConfirm}
         title="Deactivate SWEP Banner"
-        message={`${swep.locationName} - ${swep.title}.\n\nAre you sure you want to deactivate this SWEP banner? The banner will no longer be visible to users seeking help.`}
+        message={`${swep.LocationName} - ${swep.Title}.\n\nAre you sure you want to deactivate this SWEP banner? The banner will no longer be visible to users seeking help.`}
         variant="warning"
         confirmLabel="Deactivate"
         cancelLabel="Cancel"
@@ -109,11 +104,11 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
       
       if (activationType === 'immediate') {
         // Immediate activation: isActive = true, clear date range
-        await onActivate(swep.locationSlug, true, undefined, undefined);
+        await onActivate(swep.LocationSlug, true, undefined, undefined);
       } else {
         // Scheduled activation: isActive = false, set date range
         await onActivate(
-          swep.locationSlug,
+          swep.LocationSlug,
           false,
           new Date(swepActiveFrom),
           new Date(swepActiveUntil)
@@ -156,7 +151,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
           {/* Content */}
           <div className="p-4 sm:p-6">
             <p className="text-sm text-brand-l mb-4">
-              {swep.locationName} - {swep.title}
+              {swep.LocationName} - {swep.Title}
             </p>
 
             {isCurrentlyActive ? null : (

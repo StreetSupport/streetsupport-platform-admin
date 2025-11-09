@@ -22,17 +22,6 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
     });
   };
 
-  const formatDateTime = (date: Date | string): string => {
-    const d = new Date(date);
-    return d.toLocaleString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const handleActivate = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -42,11 +31,11 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
   return (
     <div className={`card card-compact ${isLoading ? 'loading-card' : ''}`}>
       {/* Image Preview */}
-      {swep.image && (
+      {swep.Image && (
         <div className="w-full h-48 bg-brand-q overflow-hidden">
           <img 
-            src={swep.image} 
-            alt={swep.title}
+            src={swep.Image} 
+            alt={swep.Title}
             className="w-full h-full object-cover"
           />
         </div>
@@ -55,7 +44,7 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
       <div className="p-4">
         {/* Action Buttons - First Row */}
         <div className="flex items-center gap-2 mb-2">
-          <Link href={`/swep-banners/${swep.locationSlug}`} className="flex-1">
+          <Link href={`/swep-banners/${swep.LocationSlug}`} className="flex-1">
             <Button
               variant="primary"
               size="sm"
@@ -67,7 +56,7 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
             </Button>
           </Link>
           
-          <Link href={`/swep-banners/${swep.locationSlug}/edit`}>
+          <Link href={`/swep-banners/${swep.LocationSlug}/edit`}>
             <Button
               variant="secondary"
               size="sm"
@@ -86,10 +75,10 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
             size="sm"
             onClick={handleActivate}
             disabled={isLoading}
-            title={swep.isActive ? 'Deactivate SWEP banner' : 'Activate SWEP banner'}
-            className={`flex-1 ${swep.isActive ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}`}
+            title={swep.IsActive ? 'Deactivate SWEP banner' : 'Activate SWEP banner'}
+            className={`flex-1 ${swep.IsActive ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}`}
           >
-            {swep.isActive ? (
+            {swep.IsActive ? (
               <>
                 <XCircle className="w-4 h-4 mr-2" />
                 Deactivate
@@ -105,37 +94,37 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
 
         {/* Header */}
         <div className="mb-3">
-          <h3 className="heading-5 mb-2 break-words">{swep.title}</h3>
+          <h3 className="heading-5 mb-2 break-words">{swep.Title}</h3>
           {/* Status Badges */}
           <div className="flex flex-wrap gap-2">
             <span className="service-tag template-type">
               <MapPin className="w-3 h-3 mr-1" />
-              {swep.locationName}
+              {swep.LocationName}
             </span>
-            <span className={`service-tag ${swep.isActive ? 'verified' : 'inactive'}`}>
-              {swep.isActive ? 'Active' : 'Inactive'}
+            <span className={`service-tag ${swep.IsActive ? 'verified' : 'inactive'}`}>
+              {swep.IsActive ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>
 
         {/* Short Message */}
         <p className="text-sm text-brand-l mb-3 line-clamp-2">
-          {swep.shortMessage}
+          {swep.ShortMessage}
         </p>
 
         {/* Date Range Display - Only show if scheduled */}
-        {!swep.isActive && swep.swepActiveFrom && swep.swepActiveUntil && (
+        {!swep.IsActive && swep.SwepActiveFrom && swep.SwepActiveUntil && (
           <div className="mb-4 p-3 bg-brand-q rounded-lg">
             <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
               <Calendar className="w-3 h-3" />
               <span>Scheduled Activation</span>
             </div>
             <div className="text-sm font-medium text-brand-k">
-              {formatDate(swep.swepActiveFrom)}
+              {formatDate(swep.SwepActiveFrom)}
             </div>
             <div className="text-xs text-brand-f">until</div>
             <div className="text-sm font-medium text-brand-k">
-              {formatDate(swep.swepActiveUntil)}
+              {formatDate(swep.SwepActiveUntil)}
             </div>
           </div>
         )}
@@ -143,9 +132,9 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
         {/* Emergency Contact */}
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="text-xs text-brand-f mb-1">Emergency Contact</div>
-          <div className="text-sm font-medium text-brand-k">{swep.emergencyContact.phone}</div>
-          <div className="text-xs text-brand-l">{swep.emergencyContact.email}</div>
-          <div className="text-xs text-brand-f mt-1">{swep.emergencyContact.hours}</div>
+          <div className="text-sm font-medium text-brand-k">{swep.EmergencyContact.Phone}</div>
+          <div className="text-xs text-brand-l">{swep.EmergencyContact.Email}</div>
+          <div className="text-xs text-brand-f mt-1">{swep.EmergencyContact.Hours}</div>
         </div>
 
         {/* Created/Modified Dates */}

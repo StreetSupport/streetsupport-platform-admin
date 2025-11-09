@@ -53,9 +53,6 @@ export function BannerPageHeader({
                     <Eye className="w-4 h-4 mr-2" />
                   )}
                   {banner.IsActive ? 'Deactivate' : 'Activate'}
-                   <span className={`ml-2 px-2 py-1 rounded-full text-white text-xs ${banner.IsActive ? 'bg-brand-b' : 'bg-brand-f'}`}>
-                    {banner.IsActive ? 'Active' : 'Inactive'}
-                  </span>
                 </Button>
 
                 <Link href={`/banners/${id}/edit`}>

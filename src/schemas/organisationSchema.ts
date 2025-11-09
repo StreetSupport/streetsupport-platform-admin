@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ValidationResult, createValidationResult, preprocessNullableString, timeStringToNumber, timeNumberToString } from './validationHelpers';
+import { ValidationResult, createValidationResult, preprocessNullableString, timeStringToNumber } from './validationHelpers';
 import { isValidPostcodeFormat } from '../utils/postcodeValidation';
 import { OrganisationTag } from '@/types/organisations/IOrganisation';
 

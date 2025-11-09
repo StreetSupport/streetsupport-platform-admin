@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
-import { UserAuthClaims } from '@/types/auth';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +14,6 @@ import toast from 'react-hot-toast';
 import '@/styles/pagination.css';
 
 export default function SwepManagement() {
-  const { data: session } = useSession();
   const [swepBanners, setSwepBanners] = useState<ISwepBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,15 +30,13 @@ export default function SwepManagement() {
   
   const limit = 9;
 
-  // Get user auth claims for location filtering
-  const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
-
   useEffect(() => {
     fetchLocations();
   }, []);
 
   useEffect(() => {
     fetchSwepBanners();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, isActiveFilter, locationFilter]);
 
   const fetchLocations = async () => {
@@ -109,7 +104,11 @@ export default function SwepManagement() {
     swepActiveUntil?: Date
   ) => {
     try {
-      const body: any = {
+      const body: {
+        isActive: boolean;
+        swepActiveFrom: Date | null;
+        swepActiveUntil: Date | null;
+      } = {
         isActive,
         swepActiveFrom: swepActiveFrom || null,
         swepActiveUntil: swepActiveUntil || null

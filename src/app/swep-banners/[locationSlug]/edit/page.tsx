@@ -36,24 +36,27 @@ export default function SwepEditPage() {
   const [validationErrors, setValidationErrors] = useState<Array<{ Path: string; Message: string }>>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<ISwepBannerFormData>({
-    locationSlug: '',
-    title: '',
-    body: '',
-    shortMessage: '',
-    isActive: false,
-    emergencyContact: {
-      phone: '',
-      email: '',
-      hours: ''
-    }
+    LocationSlug: '',
+    Title: '',
+    Body: '',
+    ShortMessage: '',
+    IsActive: false,
+    EmergencyContact: {
+      Phone: '',
+      Email: '',
+      Hours: ''
+    },
+    Image: ''
   });
 
   useEffect(() => {
     fetchSwep();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationSlug]);
 
   const fetchSwep = async () => {
@@ -73,17 +76,19 @@ export default function SwepEditPage() {
       
       // Initialize form with existing data
       const initialData: ISwepBannerFormData = {
-        locationSlug: swepData.locationSlug,
-        title: swepData.title,
-        body: swepData.body,
-        shortMessage: swepData.shortMessage,
-        swepActiveFrom: swepData.swepActiveFrom ? new Date(swepData.swepActiveFrom) : undefined,
-        swepActiveUntil: swepData.swepActiveUntil ? new Date(swepData.swepActiveUntil) : undefined,
-        isActive: swepData.isActive,
-        emergencyContact: swepData.emergencyContact || { phone: '', email: '', hours: '' }
+        LocationSlug: swepData.LocationSlug,
+        Title: swepData.Title,
+        Body: swepData.Body,
+        ShortMessage: swepData.ShortMessage,
+        SwepActiveFrom: swepData.SwepActiveFrom ? new Date(swepData.SwepActiveFrom) : undefined,
+        SwepActiveUntil: swepData.SwepActiveUntil ? new Date(swepData.SwepActiveUntil) : undefined,
+        IsActive: swepData.IsActive,
+        EmergencyContact: swepData.EmergencyContact || { Phone: '', Email: '', Hours: '' },
+        Image: ''
       };
       setFormData(initialData);
       setOriginalData(initialData);
+      setImageRemoved(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load SWEP banner';
       setError(errorMessage);
@@ -120,21 +125,24 @@ export default function SwepEditPage() {
       const formDataToSend = new FormData();
       
       // Add text fields
-      formDataToSend.append('locationSlug', formData.locationSlug);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('body', formData.body);
-      formDataToSend.append('shortMessage', formData.shortMessage);
-      formDataToSend.append('emergencyContact', JSON.stringify(formData.emergencyContact));
+      formDataToSend.append('LocationSlug', formData.LocationSlug);
+      formDataToSend.append('Title', formData.Title);
+      formDataToSend.append('Body', formData.Body);
+      formDataToSend.append('ShortMessage', formData.ShortMessage);
+      formDataToSend.append('EmergencyContact', JSON.stringify(formData.EmergencyContact));
       
       // Handle image field using Banner approach (newfile_ / existing_ prefixes)
       if (imageFile) {
         // New image file uploaded
         formDataToSend.append('newfile_image', imageFile);
-      } else if (swep?.image) {
+      } else if (imageRemoved) {
+        // User explicitly removed the image - send empty Image property to signal removal
+        formDataToSend.append('Image', '');
+      } else if (swep?.Image) {
         // No new file, preserve existing image URL
-        formDataToSend.append('existing_image', JSON.stringify({ url: swep.image }));
+        formDataToSend.append('existing_image', JSON.stringify({ url: swep.Image }));
       }
-      // If neither imageFile nor swep.image exists, image field won't be sent (removed)
+      // If neither imageFile nor swep.Image exists, Image will be empty (removed)
 
       const response = await authenticatedFetch(`/api/swep-banners/${locationSlug}`, {
         method: 'PUT',
@@ -162,7 +170,7 @@ export default function SwepEditPage() {
 
   const handleCancel = () => {
     // Check if there are unsaved changes
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData) || imageFile !== null;
+    const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData) || imageFile !== null || imageRemoved;
     
     if (hasChanges) {
       setShowConfirmModal(true);
@@ -220,7 +228,7 @@ export default function SwepEditPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Edit SWEP Banner</h1>
-        <p className="mt-2 text-gray-600 text-lg font-medium">{swep?.locationName || locationSlug}</p>
+        <p className="mt-2 text-gray-600 text-lg font-medium">{swep?.LocationName || locationSlug}</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6">
@@ -229,23 +237,38 @@ export default function SwepEditPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Banner Image</h3>
           
           {/* Current Image Preview */}
-          {(imagePreview || swep?.image) && (
+          {(imagePreview || (swep?.Image && !imageRemoved)) && (
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">Current Image:</p>
               <div className="relative w-full aspect-[16/9] border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
                 <img
-                  src={imagePreview || swep?.image}
+                  src={imagePreview || swep?.Image}
                   alt="SWEP Banner"
                   className="w-full h-full object-cover"
                 />
               </div>
+              {/* Remove Existing Image Button */}
+              {!imageFile && swep?.Image && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setImageRemoved(true);
+                    setImagePreview(null);
+                  }}
+                  className="mt-2"
+                >
+                  Remove Existing Image
+                </Button>
+              )}
             </div>
           )}
           
           {/* Image Upload Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {swep?.image ? 'Change Image' : 'Upload Image'}
+              {swep?.Image ? 'Change Image' : 'Upload Image'}
             </label>
             <input
               ref={fileInputRef}
@@ -281,6 +304,7 @@ export default function SwepEditPage() {
                 onClick={() => {
                   setImageFile(null);
                   setImagePreview(null);
+                  setImageRemoved(false);
                   // Reset file input to allow re-uploading the same file
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
@@ -288,8 +312,13 @@ export default function SwepEditPage() {
                 }}
                 className="mt-2"
               >
-                Remove Image
+                Remove New Upload
               </Button>
+            )}
+            {imageRemoved && !imageFile && (
+              <div className="mt-2 text-sm text-orange-600 font-medium">
+                ⚠️ Image will be removed when you save changes
+              </div>
             )}
           </div>
         </div>
@@ -301,8 +330,8 @@ export default function SwepEditPage() {
           </label>
           <Input
             type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            value={formData.Title}
+            onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
           />
         </div>
 
@@ -313,16 +342,16 @@ export default function SwepEditPage() {
           </label>
           <Input
             type="text"
-            value={formData.shortMessage}
-            onChange={(e) => setFormData({ ...formData, shortMessage: e.target.value })}
+            value={formData.ShortMessage}
+            onChange={(e) => setFormData({ ...formData, ShortMessage: e.target.value })}
           />
         </div>
 
         {/* Body (Rich Text Editor) */}
         <RichTextEditor
           label="Body Content"
-          value={formData.body}
-          onChange={(value) => setFormData({ ...formData, body: value })}
+          value={formData.Body}
+          onChange={(value) => setFormData({ ...formData, Body: value })}
           placeholder="Enter the SWEP banner body content..."
           required
           minHeight="300px"
@@ -340,10 +369,10 @@ export default function SwepEditPage() {
               </label>
               <Input
                 type="tel"
-                value={formData.emergencyContact?.phone || ''}
+                value={formData.EmergencyContact?.Phone || ''}
                 onChange={(e) => setFormData({
                   ...formData,
-                  emergencyContact: { ...formData.emergencyContact, phone: e.target.value }
+                  EmergencyContact: { ...formData.EmergencyContact, Phone: e.target.value }
                 })}
               />
             </div>
@@ -354,10 +383,10 @@ export default function SwepEditPage() {
               </label>
               <Input
                 type="email"
-                value={formData.emergencyContact?.email || ''}
+                value={formData.EmergencyContact?.Email || ''}
                 onChange={(e) => setFormData({
                   ...formData,
-                  emergencyContact: { ...formData.emergencyContact, email: e.target.value }
+                  EmergencyContact: { ...formData.EmergencyContact, Email: e.target.value }
                 })}
               />
             </div>
@@ -368,10 +397,10 @@ export default function SwepEditPage() {
               </label>
               <Input
                 type="text"
-                value={formData.emergencyContact?.hours || ''}
+                value={formData.EmergencyContact?.Hours || ''}
                 onChange={(e) => setFormData({
                   ...formData,
-                  emergencyContact: { ...formData.emergencyContact, hours: e.target.value }
+                  EmergencyContact: { ...formData.EmergencyContact, Hours: e.target.value }
                 })}
               />
             </div>

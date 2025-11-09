@@ -1,5 +1,5 @@
 export interface IEmergencyContact {
-  phone?: string;
-  email?: string;
-  hours?: string;
+  Phone?: string;
+  Email?: string;
+  Hours?: string;
 }

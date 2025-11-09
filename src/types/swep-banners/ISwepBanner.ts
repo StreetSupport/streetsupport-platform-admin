@@ -8,31 +8,31 @@ export interface ISwepBanner {
   CreatedBy: string;
 
   // Core fields
-  locationSlug: string;
-  locationName: string;
-  title: string;
-  body: string; // HTML content
-  image: string; // Blob storage URL - required in database
-  shortMessage: string;
+  LocationSlug: string;
+  LocationName: string;
+  Title: string;
+  Body: string; // HTML content
+  Image?: string; // Blob storage URL - required in database
+  ShortMessage: string;
   
   // Date fields
-  swepActiveFrom?: Date;
-  swepActiveUntil?: Date;
-  isActive: boolean;
+  SwepActiveFrom?: Date;
+  SwepActiveUntil?: Date;
+  IsActive: boolean;
   
   // Emergency contact
-  emergencyContact: IEmergencyContact;
+  EmergencyContact: IEmergencyContact;
 }
 
 export interface ISwepBannerFormData {
-  locationSlug: string;
-  locationName?: string; // Optional since it's not editable
-  title: string;
-  body: string;
-  image?: string | File; // Optional - not needed when editing text only
-  shortMessage: string;
-  swepActiveFrom?: Date | string;
-  swepActiveUntil?: Date | string;
-  isActive: boolean;
-  emergencyContact?: IEmergencyContact;
+  LocationSlug: string;
+  LocationName?: string; // Optional since it's not editable
+  Title: string;
+  Body: string;
+  Image: string | File; // Optional - not needed when editing text only
+  ShortMessage: string;
+  SwepActiveFrom?: Date | string;
+  SwepActiveUntil?: Date | string;
+  IsActive: boolean;
+  EmergencyContact?: IEmergencyContact;
 }

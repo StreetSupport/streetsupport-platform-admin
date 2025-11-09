@@ -1,7 +1,7 @@
 'use client';
 
 import { FormField } from '@/components/ui/FormField';
-import { IAccommodationFormData, SUPPORT_OFFERED_OPTIONS, DISCRETIONARY_OPTIONS, DiscretionaryValue, SupportOfferedType } from '@/types/organisations/IAccommodation';
+import { IAccommodationFormData, SUPPORT_OFFERED_OPTIONS, SupportOfferedType } from '@/types/organisations/IAccommodation';
 
 interface SupportSectionProps {
   formData?: IAccommodationFormData['SupportProvidedInfo'] | null;
