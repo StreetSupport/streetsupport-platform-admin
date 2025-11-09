@@ -112,8 +112,8 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
           {swep.ShortMessage}
         </p>
 
-        {/* Date Range Display - Only show if scheduled */}
-        {!swep.IsActive && swep.SwepActiveFrom && swep.SwepActiveUntil && (
+        {/* Date Range Display - Only show if scheduled or SwepActiveUntil is in future */}
+        {swep.SwepActiveFrom && swep.SwepActiveUntil && new Date(swep.SwepActiveUntil) > new Date() && (
           <div className="mb-4 p-3 bg-brand-q rounded-lg">
             <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
               <Calendar className="w-3 h-3" />

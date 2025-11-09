@@ -2,28 +2,39 @@ import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 
 /**
  * Format SWEP active period for display
- * e.g. "SWEP is currently active from 15 January at 20:00 until 18 January at 11:00"
+ * e.g. "SWEP is currently active from 15 January until 18 January"
+ * or "SWEP is currently active from 15 January"
+ * or "SWEP is currently active until 18 January"
  */
 export function formatSwepActivePeriod(swepData: ISwepBanner): string {
-  if (!swepData.SwepActiveFrom || !swepData.SwepActiveUntil) {
-    return 'Active period not specified';
-  }
-
-  const activeFrom = new Date(swepData.SwepActiveFrom);
-  const activeUntil = new Date(swepData.SwepActiveUntil);
-  
+  // Show only dates without hours and minutes
   const formatOptions: Intl.DateTimeFormatOptions = {
     day: 'numeric',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
+    month: 'long'
   };
   
-  const fromString = activeFrom.toLocaleDateString('en-GB', formatOptions).replace(',', ' at');
-  const untilString = activeUntil.toLocaleDateString('en-GB', formatOptions).replace(',', ' at');
-  
-  return `SWEP is currently active from ${fromString} until ${untilString}`;
+  // Handle different combinations of dates
+  if (swepData.SwepActiveFrom && swepData.SwepActiveUntil) {
+    // Both dates present
+    const activeFrom = new Date(swepData.SwepActiveFrom);
+    const activeUntil = new Date(swepData.SwepActiveUntil);
+    const fromString = activeFrom.toLocaleDateString('en-GB', formatOptions);
+    const untilString = activeUntil.toLocaleDateString('en-GB', formatOptions);
+    return `SWEP is currently active from ${fromString} until ${untilString}`;
+  } else if (swepData.SwepActiveFrom) {
+    // Only start date present
+    const activeFrom = new Date(swepData.SwepActiveFrom);
+    const fromString = activeFrom.toLocaleDateString('en-GB', formatOptions);
+    return `SWEP is currently active from ${fromString}`;
+  } else if (swepData.SwepActiveUntil) {
+    // Only end date present
+    const activeUntil = new Date(swepData.SwepActiveUntil);
+    const untilString = activeUntil.toLocaleDateString('en-GB', formatOptions);
+    return `SWEP is currently active until ${untilString}`;
+  } else {
+    // No dates specified
+    return 'Active period not specified';
+  }
 }
 
 /**

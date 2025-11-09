@@ -25,13 +25,6 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
     return today.toISOString().split('T')[0];
   };
 
-  // Determine current activation state
-  const now = new Date();
-  const isCurrentlyActive = swep.IsActive || (
-    swep.SwepActiveFrom && swep.SwepActiveUntil &&
-    now >= new Date(swep.SwepActiveFrom) && now <= new Date(swep.SwepActiveUntil)
-  );
-
   // Handle deactivation confirmation
   const handleDeactivateConfirm = async () => {
     try {
@@ -45,7 +38,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
   };
 
   // Show deactivate confirm modal if banner is active
-  if (isOpen && isCurrentlyActive) {
+  if (isOpen && swep.IsActive) {
     return (
       <ConfirmModal
         isOpen={true}
@@ -144,7 +137,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h2 className="heading-4">
-              {isCurrentlyActive ? 'Deactivate' : 'Activate'} SWEP Banner
+              {swep.IsActive ? 'Deactivate' : 'Activate'} SWEP Banner
             </h2>
           </div>
 
@@ -154,7 +147,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
               {swep.LocationName} - {swep.Title}
             </p>
 
-            {isCurrentlyActive ? null : (
+            {swep.IsActive ? null : (
             // Activation form
             <form onSubmit={handleSubmit}>
               {/* Activation Type Selection */}
