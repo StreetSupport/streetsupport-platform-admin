@@ -26,7 +26,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     apiEndpoints: [{ path: '*', methods: ['*'] }]
   },
   [ROLES.CITY_ADMIN]: {
-    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users', '/resources'],
+    pages: ['/cities', '/organisations', '/advice', '/banners', '/swep-banners', '/users'],
     apiEndpoints: [
       { path: '/api/cities', methods: ['*'] },
       { path: '/api/organisations', methods: ['*'] },
@@ -35,7 +35,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/faqs', methods: ['*'] },
       { path: '/api/banners', methods: ['*'] },
       { path: '/api/swep-banners', methods: ['*'] },
-      { path: '/api/resources', methods: ['*'] },
+      // { path: '/api/resources', methods: ['*'] },
       { path: '/api/users', methods: ['*'] },
       { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]
@@ -50,7 +50,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       { path: '/api/faqs', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
       { path: '/api/swep-banners', methods: [HTTP_METHODS.GET, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
-      { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/resources', methods: [HTTP_METHODS.GET, HTTP_METHODS.PUT] },
       { path: '/api/users', methods: [HTTP_METHODS.POST] },
       { path: '/api/service-categories', methods: [HTTP_METHODS.GET] },
     ]

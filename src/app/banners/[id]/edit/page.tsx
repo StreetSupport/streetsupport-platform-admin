@@ -290,7 +290,7 @@ if (!bannerData || !initialFormData) {
             <Link href="/banners">
               <Button variant="primary">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Banners
+                Back to search results
               </Button>
             </Link>
           </div>

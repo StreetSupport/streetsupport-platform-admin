@@ -169,14 +169,7 @@ export default function SwepEditPage() {
   };
 
   const handleCancel = () => {
-    // Check if there are unsaved changes
-    const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData) || imageFile !== null || imageRemoved;
-    
-    if (hasChanges) {
-      setShowConfirmModal(true);
-    } else {
-      router.push('/swep-banners');
-    }
+    setShowConfirmModal(true);
   };
 
   const confirmCancel = () => {
@@ -233,7 +226,7 @@ export default function SwepEditPage() {
 
       <form onSubmit={handleSubmit} noValidate className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6">
         {/* Image Upload Section */}
-        <div className="border-b pb-6 mb-6">
+        <div className="border-b border-brand-q pb-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Banner Image</h3>
           
           {/* Current Image Preview */}
@@ -355,11 +348,10 @@ export default function SwepEditPage() {
           placeholder="Enter the SWEP banner body content..."
           required
           minHeight="300px"
-          helpText="Use the toolbar to format text. Content is automatically sanitized for security."
         />
 
         {/* Emergency Contact Section */}
-        <div className="border-t pt-6">
+        <div className="border-t border-brand-q pt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Emergency Contact</h3>
           
           <div className="space-y-4">
@@ -413,7 +405,7 @@ export default function SwepEditPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pt-6 border-t">
+        <div className="flex gap-4 pt-6 border-t border-brand-q">
           <Button
             type="button"
             variant="outline"

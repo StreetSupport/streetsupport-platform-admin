@@ -22,11 +22,11 @@ export function Button({
       case 'secondary':
         return 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500';
       case 'outline':
-        return 'bg-transparent border focus:ring-blue-500';
+        return 'bg-transparent border focus:ring-brand-a';
       case 'ghost':
         return 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500';
       default:
-        return 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500';
+        return 'bg-brand-a text-white hover:bg-brand-b focus:ring-brand-a';
     }
   };
 

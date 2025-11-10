@@ -353,6 +353,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const confirmCancel = () => {
     setShowConfirmModal(false);
+    
     if (originalData && Object.keys(originalData).length > 0) {
       // Edit mode: restore the original data
       setFormData({ ...originalData } as IBannerFormData);

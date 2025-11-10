@@ -30,7 +30,7 @@ export function BannerPageHeader({
     <div className="page-container border-b border-brand-q">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
         <div>
-          <BackLink href="/banners" text="Back to Banners" />
+          <BackLink href="/banners" text="Back to search results" />
           <h1 className="heading-4">{title}</h1>
         </div>
 
