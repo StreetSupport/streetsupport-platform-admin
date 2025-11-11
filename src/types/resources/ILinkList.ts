@@ -9,7 +9,6 @@ export enum LinkListType {
 
 export interface ILinkList {
   Name: string;
-  Description: string;
   Type: LinkListType;
   Priority: number;
   Links: ILink[];

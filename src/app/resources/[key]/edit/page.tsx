@@ -185,7 +185,6 @@ export default function ResourceEditPage() {
         ...formData.LinkList,
         {
           Name: '',
-          Description: '',
           Type: LinkListType.LINK,
           Priority: 1,
           Links: [{ Title: '', Link: '' }]
@@ -368,7 +367,7 @@ export default function ResourceEditPage() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-semibold mb-2">
-                          Name <span className="text-brand-g">*</span>
+                          Name
                         </label>
                         <Input
                           type="text"
@@ -390,18 +389,6 @@ export default function ResourceEditPage() {
                           <option value={LinkListType.PDF_LINK}>PDF Link</option>
                         </select>
                       </div>
-
-                      {linkList.Type === LinkListType.PDF_LINK && (
-                        <div>
-                          <label className="block text-sm font-semibold mb-2">Description</label>
-                          <Textarea
-                            value={linkList.Description}
-                            onChange={(e) => updateLinkList(listIndex, 'Description', e.target.value)}
-                            placeholder="Description for PDF link list"
-                            rows={2}
-                          />
-                        </div>
-                      )}
 
                       <div>
                         <label className="block text-sm font-semibold mb-2">
@@ -440,6 +427,25 @@ export default function ResourceEditPage() {
                                   onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Title', e.target.value)}
                                   placeholder="Link name/title"
                                 />
+                                
+                                {/* Conditional fields for pdf-link type */}
+                                {linkList.Type === 'pdf-link' && (
+                                  <>
+                                    <Input
+                                      type="text"
+                                      value={item.Header || ''}
+                                      onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Header', e.target.value)}
+                                      placeholder="Header (optional)"
+                                    />
+                                    <textarea
+                                      className="w-full p-2 border rounded"
+                                      rows={3}
+                                      value={item.Description || ''}
+                                      onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Description', e.target.value)}
+                                      placeholder="Description (optional)"
+                                    />
+                                  </>
+                                )}
                                 
                                 {isFile(item.Link) ? (
                                   <div className="text-sm text-gray-600">

@@ -10,13 +10,14 @@ export const LinkSchema = z.object({
   Link: z.union([
     z.string().min(1, 'Link URL is required').url('Please enter a valid URL'),
     z.instanceof(File, { message: 'Invalid file upload' })
-  ])
+  ]),
+  Description: z.string().optional(), // For pdf-link type
+  Header: z.string().optional() // For pdf-link type
 });
 
 // LinkList Schema with File support
 export const LinkListSchema = z.object({
-  Name: z.string().min(1, 'Link list name is required'),
-  Description: z.string().optional().default(''),
+  Name: z.string().min(1, 'Link list name is required').optional(),
   Type: z.nativeEnum(LinkListType, {
     message: 'Invalid link list type'
   }),
@@ -55,7 +56,6 @@ export function transformErrorPath(path: string): string {
       }
       
       const fieldName = remaining === 'Name' ? 'Name' 
-        : remaining === 'Description' ? 'Description'
         : remaining === 'Type' ? 'Type'
         : remaining === 'Priority' ? 'Priority'
         : remaining;

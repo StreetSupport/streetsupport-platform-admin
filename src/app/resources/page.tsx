@@ -10,7 +10,7 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Search } from 'lucide-react';
+import { Search, ExternalLink } from 'lucide-react';
 
 export default function ResourcesPage() {
   // Check authorization FIRST
@@ -86,6 +86,11 @@ export default function ResourcesPage() {
       'user-guides': '/assets/img/resource-icons/user-guides-icon.png',
     };
     return iconMap[key] || '/assets/img/resource-icons/alternative-giving-icon.png';
+  };
+
+  // Get public website URL
+  const getPublicResourceUrl = (key: string) => {
+    return `${process.env.NEXT_PUBLIC_ADMIN_URL}/resources/${key}`;
   };
 
   // Organize resources by section
@@ -197,18 +202,23 @@ export default function ResourcesPage() {
                       <h3 className="heading-5">{resource.Name}</h3>
                     </div>
                     <p className="text-small mb-6 flex-grow">{resource.ShortDescription}</p>
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Link 
+                          href={`/resources/${resource.Key}/edit`} 
+                          className="btn-base btn-primary btn-md flex-1"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                       <Link 
-                        href={`/resources/${resource.Key}`} 
-                        className="btn-base btn-secondary btn-md flex-1"
+                        href={getPublicResourceUrl(resource.Key)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-base btn-tertiary btn-md w-full flex items-center justify-center gap-2"
                       >
-                        View
-                      </Link>
-                      <Link 
-                        href={`/resources/${resource.Key}/edit`} 
-                        className="btn-base btn-primary btn-md flex-1"
-                      >
-                        Edit
+                        <ExternalLink className="w-4 h-4" />
+                        View on Website
                       </Link>
                     </div>
                   </article>
@@ -237,18 +247,29 @@ export default function ResourcesPage() {
                       <h3 className="heading-5">{resource.Name}</h3>
                     </div>
                     <p className="text-small mb-6 flex-grow">{resource.ShortDescription}</p>
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Link 
+                          href={`/resources/${resource.Key}`} 
+                          className="btn-base btn-secondary btn-md flex-1"
+                        >
+                          View
+                        </Link>
+                        <Link 
+                          href={`/resources/${resource.Key}/edit`} 
+                          className="btn-base btn-primary btn-md flex-1"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                       <Link 
-                        href={`/resources/${resource.Key}`} 
-                        className="btn-base btn-secondary btn-md flex-1"
+                        href={getPublicResourceUrl(resource.Key)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-base btn-tertiary btn-md w-full flex items-center justify-center gap-2"
                       >
-                        View
-                      </Link>
-                      <Link 
-                        href={`/resources/${resource.Key}/edit`} 
-                        className="btn-base btn-primary btn-md flex-1"
-                      >
-                        Edit
+                        <ExternalLink className="w-4 h-4" />
+                        View on Website
                       </Link>
                     </div>
                   </article>
