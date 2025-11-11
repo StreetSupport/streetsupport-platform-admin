@@ -4,7 +4,6 @@ import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { IResource } from '@/types/resources/IResource';
 import { ILinkList, LinkListType } from '@/types/resources/ILinkList';
 import { ILink } from '@/types/resources/ILink';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -200,7 +199,7 @@ export default function ResourceEditPage() {
     });
   };
 
-  const updateLinkList = (index: number, field: keyof ILinkList, value: any) => {
+  const updateLinkList = (index: number, field: keyof ILinkList, value: string | number | LinkListType) => {
     const newLinkList = [...formData.LinkList];
     newLinkList[index] = { ...newLinkList[index], [field]: value };
     setFormData({ ...formData, LinkList: newLinkList });
@@ -346,7 +345,7 @@ export default function ResourceEditPage() {
               </div>
 
               {formData.LinkList.length === 0 && (
-                <p className="text-gray-600 text-center py-4">No link lists added yet. Click "Add Link List" to create one.</p>
+                <p className="text-gray-600 text-center py-4">No link lists added yet. Click &ldquo;Add Link List&rdquo; to create one.</p>
               )}
 
               <div className="space-y-6">

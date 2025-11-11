@@ -49,8 +49,8 @@ export default function ResourcesPage() {
       const data = await response.json();
       const list = Array.isArray(data)
         ? data
-        : Array.isArray((data as any).data)
-          ? (data as any).data
+        : Array.isArray((data as { data?: unknown[] }).data)
+          ? (data as { data: unknown[] }).data
           : [];
 
       if (!Array.isArray(list)) {

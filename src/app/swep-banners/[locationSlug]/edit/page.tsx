@@ -32,7 +32,6 @@ export default function SwepEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [swep, setSwep] = useState<ISwepBanner | null>(null);
-  const [originalData, setOriginalData] = useState<ISwepBannerFormData | null>(null);
   const [validationErrors, setValidationErrors] = useState<Array<{ Path: string; Message: string }>>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -87,7 +86,6 @@ export default function SwepEditPage() {
         Image: ''
       };
       setFormData(initialData);
-      setOriginalData(initialData);
       setImageRemoved(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load SWEP banner';
