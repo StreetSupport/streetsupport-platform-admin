@@ -14,7 +14,9 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/banners') || 
       request.nextUrl.pathname.startsWith('/api/banners') ||
       request.nextUrl.pathname.startsWith('/swep-banners') ||
-      request.nextUrl.pathname.startsWith('/api/swep-banners')) {
+      request.nextUrl.pathname.startsWith('/api/swep-banners') ||
+      request.nextUrl.pathname.startsWith('/resources') ||
+      request.nextUrl.pathname.startsWith('/api/resources')) {
     
     // For API routes, return a 503 JSON response
     if (request.nextUrl.pathname.startsWith('/api/')) {
@@ -48,6 +50,8 @@ export const config = {
     '/banners/:path*',
     '/api/banners/:path*',
     '/swep-banners/:path*',
-    '/api/swep-banners/:path*'
+    '/api/swep-banners/:path*',
+    '/resources/:path*',
+    '/api/resources/:path*',
   ],
 }

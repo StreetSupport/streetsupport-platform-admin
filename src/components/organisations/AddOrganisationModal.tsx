@@ -119,7 +119,9 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              // TODO: handle cancelling action
+              // onClick={() => setShowConfirmModal(true)}
+              onClick={() => confirmCancel()}
               className="p-2"
               title="Close"
             >
@@ -148,7 +150,9 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowConfirmModal(true)}
+                // TODO: handle cancelling action
+                // onClick={() => setShowConfirmModal(true)}
+                onClick={() => confirmCancel()}
                 disabled={saving}
                 className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
               >

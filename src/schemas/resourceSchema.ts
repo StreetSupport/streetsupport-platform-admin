@@ -2,17 +2,13 @@ import { z } from 'zod';
 import { LinkListType } from '../types/resources/ILinkList';
 import { createValidationResult } from './validationHelpers';
 
-// URL validation regex
-const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+// No need for custom regex - using Zod's built-in URL validator
 
-// KeyValue Schema for link list items
-export const KeyValueSchema = z.object({
-  Key: z.string().min(1, 'Link name is required'),
-  Value: z.union([
-    z.string().min(1, 'Link URL is required').refine(
-      (val) => urlRegex.test(val),
-      { message: 'Please enter a valid URL' }
-    ),
+// Link Schema for link list items
+export const LinkSchema = z.object({
+  Title: z.string().min(1, 'Link name is required'),
+  Link: z.union([
+    z.string().min(1, 'Link URL is required').url('Please enter a valid URL'),
     z.instanceof(File, { message: 'Invalid file upload' })
   ])
 });
@@ -25,7 +21,7 @@ export const LinkListSchema = z.object({
     message: 'Invalid link list type'
   }),
   Priority: z.number().min(1, 'Priority must be at least 1').max(10, 'Priority must be at most 10'),
-  Links: z.array(KeyValueSchema).min(1, 'At least one link is required')
+  Links: z.array(LinkSchema).min(1, 'At least one link is required')
 });
 
 // Main Resource Schema for admin validation
@@ -52,7 +48,7 @@ export function transformErrorPath(path: string): string {
         const listParts = remaining.split('.');
         if (listParts.length >= 2 && !isNaN(Number(listParts[1]))) {
           const field = listParts.slice(2).join('.');
-          const fieldName = field === 'Key' ? 'Link Name' : field === 'Value' ? 'Link URL/File' : field;
+          const fieldName = field === 'Title' ? 'Link Name' : field === 'Link' ? 'Link URL/File' : field;
           return `${fieldName}`;
         }
         return `Link List #${listIndex + 1} → ${remaining}`;

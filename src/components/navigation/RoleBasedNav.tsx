@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/banners', label: 'Banners', page: '/banners' },
   { href: '/swep-banners', label: 'SWEP', page: '/swep-banners' },
   { href: '/users', label: 'Users', page: '/users' },
+  { href: '/resources', label: 'Resources', page: '/resources' },
 ];
 
 interface RoleBasedNavProps {

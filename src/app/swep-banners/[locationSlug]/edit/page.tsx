@@ -169,7 +169,9 @@ export default function SwepEditPage() {
   };
 
   const handleCancel = () => {
-    setShowConfirmModal(true);
+    // TODO: handle cancelling action
+    // setShowConfirmModal(true);
+    confirmCancel();
   };
 
   const confirmCancel = () => {

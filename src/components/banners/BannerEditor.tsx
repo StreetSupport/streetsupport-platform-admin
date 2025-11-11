@@ -348,7 +348,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   // Cancel functionality - revert to original data (edit) or defaults (create)
   const handleCancel = () => {
-    setShowConfirmModal(true);
+    // TODO: handle cancelling action
+    // setShowConfirmModal(true);
+    confirmCancel();
   };
 
   const confirmCancel = () => {

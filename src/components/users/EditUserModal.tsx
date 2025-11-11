@@ -242,7 +242,9 @@ export default function EditUserModal({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowConfirmModal(true)}
+                // TODO: handle cancelling action
+                // onClick={() => setShowConfirmModal(true)}
+                onClick={() => confirmCancel()}
                 className="p-2"
                 title="Close"
               >
@@ -352,7 +354,9 @@ export default function EditUserModal({
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setShowConfirmModal(true)}
+                // TODO: handle cancelling action
+                // onClick={() => setShowConfirmModal(true)}
+                onClick={() => confirmCancel()}
                 disabled={isSubmitting}
               >
                 Cancel

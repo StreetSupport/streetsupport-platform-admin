@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { IResource } from '@/types/resources/IResource';
 import { ILinkList, LinkListType } from '@/types/resources/ILinkList';
-import { IKeyValue } from '@/types/resources/IKeyValue';
+import { ILink } from '@/types/resources/ILink';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { validateResourceForm, transformErrorPath } from '@/schemas/resourceSchema';
@@ -137,9 +137,9 @@ export default function ResourceEditPage() {
       // Add file uploads from LinkList
       formData.LinkList.forEach((linkList, listIndex) => {
         linkList.Links.forEach((item, itemIndex) => {
-          if (isFile(item.Value)) {
+          if (isFile(item.Link)) {
             const fieldName = `newfile_LinkList_${listIndex}_Links_${itemIndex}`;
-            formDataToSend.append(fieldName, item.Value);
+            formDataToSend.append(fieldName, item.Link);
           }
         });
       });
@@ -165,7 +165,9 @@ export default function ResourceEditPage() {
   };
 
   const handleCancel = () => {
-    setShowCancelModal(true);
+    // TODO: handle cancelling action
+    // setShowCancelModal(true);
+    confirmCancel();
   };
 
   const confirmCancel = () => {
@@ -186,7 +188,7 @@ export default function ResourceEditPage() {
           Description: '',
           Type: LinkListType.LINK,
           Priority: 1,
-          Links: [{ Key: '', Value: '' }]
+          Links: [{ Title: '', Link: '' }]
         }
       ]
     });
@@ -207,7 +209,7 @@ export default function ResourceEditPage() {
 
   const addLinkItem = (listIndex: number) => {
     const newLinkList = [...formData.LinkList];
-    newLinkList[listIndex].Links.push({ Key: '', Value: '' });
+    newLinkList[listIndex].Links.push({ Title: '', Link: '' });
     setFormData({ ...formData, LinkList: newLinkList });
   };
 
@@ -217,7 +219,7 @@ export default function ResourceEditPage() {
     setFormData({ ...formData, LinkList: newLinkList });
   };
 
-  const updateLinkItem = (listIndex: number, itemIndex: number, field: keyof IKeyValue, value: string | File) => {
+  const updateLinkItem = (listIndex: number, itemIndex: number, field: keyof ILink, value: string | File) => {
     const newLinkList = [...formData.LinkList];
     newLinkList[listIndex].Links[itemIndex] = {
       ...newLinkList[listIndex].Links[itemIndex],
@@ -228,7 +230,7 @@ export default function ResourceEditPage() {
 
   const handleFileChange = (listIndex: number, itemIndex: number, file: File | null) => {
     if (file) {
-      updateLinkItem(listIndex, itemIndex, 'Value', file);
+      updateLinkItem(listIndex, itemIndex, 'Link', file);
     }
   };
 
@@ -434,19 +436,19 @@ export default function ResourceEditPage() {
                               <div className="flex-1 space-y-2">
                                 <Input
                                   type="text"
-                                  value={item.Key}
-                                  onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Key', e.target.value)}
+                                  value={item.Title}
+                                  onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Title', e.target.value)}
                                   placeholder="Link name/title"
                                 />
                                 
-                                {isFile(item.Value) ? (
+                                {isFile(item.Link) ? (
                                   <div className="text-sm text-gray-600">
-                                    File selected: {item.Value.name}
+                                    File selected: {item.Link.name}
                                     <Button
                                       type="button"
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => updateLinkItem(listIndex, itemIndex, 'Value', '')}
+                                      onClick={() => updateLinkItem(listIndex, itemIndex, 'Link', '')}
                                       className="ml-2"
                                     >
                                       Clear
@@ -456,8 +458,8 @@ export default function ResourceEditPage() {
                                   <div className="space-y-2">
                                     <Input
                                       type="text"
-                                      value={typeof item.Value === 'string' ? item.Value : ''}
-                                      onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Value', e.target.value)}
+                                      value={typeof item.Link === 'string' ? item.Link : ''}
+                                      onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Link', e.target.value)}
                                       placeholder="URL or leave empty to upload file"
                                     />
                                     <Input

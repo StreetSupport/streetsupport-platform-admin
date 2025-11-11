@@ -200,7 +200,9 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              // TODO: handle cancelling action
+              // onClick={() => setShowConfirmModal(true)}
+              onClick={() => confirmCancel()}
               className="p-2"
               title="Close"
             >
@@ -275,7 +277,11 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
           {/* Footer - fixed at bottom */}
           <div className="border-t border-brand-q p-4 sm:p-6">
             <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowConfirmModal(true)}>
+              <Button variant="outline" 
+                // TODO: handle cancelling action
+                // onClick={() => setShowConfirmModal(true)}
+                onClick={() => confirmCancel()}
+              >
                 Cancel
               </Button>
               <Button variant="primary" onClick={handleCreate}>

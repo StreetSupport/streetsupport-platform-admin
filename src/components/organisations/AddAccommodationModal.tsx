@@ -120,8 +120,10 @@ export function AddAccommodationModal({
     onClose();
   };
 
-  const handleCancelClick = () => {
-    setShowConfirmModal(true);
+  const handleCancel = () => {
+    // TODO: handle cancelling action
+    // setShowConfirmModal(true);
+    confirmCancel();
   };
 
   const confirmCancel = () => {
@@ -134,7 +136,7 @@ export function AddAccommodationModal({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" onClick={handleCancelClick} />
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" onClick={handleCancel} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
@@ -145,7 +147,7 @@ export function AddAccommodationModal({
               {viewMode ? 'View Accommodation' : (isEditMode ? 'Edit Accommodation' : 'Add Accommodation')}
             </h3>
             <button
-              onClick={viewMode ? onClose : handleCancelClick}
+              onClick={viewMode ? onClose : handleCancel}
               className="text-brand-f hover:text-brand-k transition-colors"
             >
               <X className="w-6 h-6" />
@@ -179,7 +181,7 @@ export function AddAccommodationModal({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleCancelClick}
+                    onClick={handleCancel}
                     disabled={isSubmitting}
                     className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
                   >

@@ -44,8 +44,10 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
       if (viewMode) {
         setActiveTab(tab);
       } else {
-        setShowTabSwitchConfirm(true);
-        setPendingTab(tab);
+        // TODO: handle cancelling action
+        // setShowTabSwitchConfirm(true);
+        // setPendingTab(tab);
+        setActiveTab(tab);
       }
     }
   };
@@ -92,7 +94,9 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => viewMode ? handleClose() : setShowConfirmModal(true)}
+              // TODO: handle cancelling action
+              // onClick={() => viewMode ? handleClose() : setShowConfirmModal(true)}
+              onClick={() => confirmCancel()}
               className="p-2"
               title="Close"
             >

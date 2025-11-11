@@ -452,7 +452,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     }
   };
 
-  const handleConfirmCancel = () => {
+  const confirmCancel = () => {
     setValidationErrors([]);
     setShowConfirmModal(false);
     if (originalData) {
@@ -482,7 +482,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
+              // TODO: handle cancelling action
+              // onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
+              onClick={() => confirmCancel()}
               className="p-2"
               title="Close"
             >
@@ -819,7 +821,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setShowConfirmModal(true)}
+                    // TODO: handle cancelling action
+                    // onClick={() => setShowConfirmModal(true)}
+                    onClick={() => confirmCancel()}
                     disabled={isLoading}
                     className="flex-1 sm:flex-none"
                   >
@@ -844,7 +848,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       <ConfirmModal
         isOpen={showCancelConfirm}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleConfirmCancel}
+        onConfirm={confirmCancel}
         title="Close without saving?"
         message="You may lose unsaved changes."
         confirmLabel="Close Without Saving"

@@ -1,4 +1,4 @@
-import { IKeyValue } from "./IKeyValue";
+import { ILink } from "./ILink";
 
 // Accommodation Type Enum
 export enum LinkListType {
@@ -12,5 +12,5 @@ export interface ILinkList {
   Description: string;
   Type: LinkListType;
   Priority: number;
-  Links: IKeyValue[];
+  Links: ILink[];
 }

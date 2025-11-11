@@ -1,26 +1,48 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import RoleBasedNav from '@/components/navigation/RoleBasedNav';
-import { hasPageAccess } from '@/lib/userService';
+
 import UserProfileModal from '@/components/users/UserProfileModal';
 
 export default function Nav() {
+    // Uncomment if you decide to have nested menu items approach
+  // import { useRef } from 'react';
+  // import { hasPageAccess } from '@/lib/userService';
+  // const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  // const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+  // const resourcesCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // // Check if user has access to resources
+  // const hasResourcesAccess = session?.user?.authClaims 
+  //   ? hasPageAccess(session.user.authClaims, '/resources')
+  //   : false;
+
+  // function handleResourcesMouseEnter() {
+  //   if (resourcesCloseTimeoutRef.current) {
+  //     clearTimeout(resourcesCloseTimeoutRef.current);
+  //   }
+  //   setIsResourcesOpen(true);
+  // }
+
+  // function handleResourcesMouseLeave() {
+  //   resourcesCloseTimeoutRef.current = setTimeout(() => {
+  //     setIsResourcesOpen(false);
+  //   }, 300);
+  // }
+
+  // function handleAboutClick() {
+  //   setIsResourcesOpen(false);
+  //   setMobileResourcesOpen(false);
+  //   setMenuOpen(false);
+  // }
+
   const { data: session } = useSession();
-
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
-  const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const resourcesCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Check if user has access to resources
-  const hasResourcesAccess = session?.user?.authClaims 
-    ? hasPageAccess(session.user.authClaims, '/resources')
-    : false;
 
   // Get user info
   const userEmail = session?.user?.email || '';
@@ -37,25 +59,6 @@ export default function Nav() {
   };
   
   const userInitials = getUserInitials(userEmail);
-
-  function handleResourcesMouseEnter() {
-    if (resourcesCloseTimeoutRef.current) {
-      clearTimeout(resourcesCloseTimeoutRef.current);
-    }
-    setIsResourcesOpen(true);
-  }
-
-  function handleResourcesMouseLeave() {
-    resourcesCloseTimeoutRef.current = setTimeout(() => {
-      setIsResourcesOpen(false);
-    }, 300);
-  }
-
-  function handleAboutClick() {
-    setIsResourcesOpen(false);
-    setMobileResourcesOpen(false);
-    setMenuOpen(false);
-  }
 
   function handleMenuClose() {
     setMenuOpen(false);
@@ -91,8 +94,8 @@ export default function Nav() {
 
           <div className="hidden lg:flex space-x-6 items-center justify-end flex-1">
             <RoleBasedNav />
-
-            {hasResourcesAccess && (
+            {/* Uncomment if you decide to have nested menu items approach */}
+            {/* {hasResourcesAccess && (
               <div
                 className="relative"
                 onMouseEnter={handleResourcesMouseEnter}
@@ -159,7 +162,7 @@ export default function Nav() {
                 </div>
               )}
               </div>
-            )}
+            )} */}
           </div>
           
           <div className="hidden lg:flex items-center ml-6 lg:ml-8 gap-4">
@@ -190,8 +193,8 @@ export default function Nav() {
       <div className={`mobile-menu-container ${menuOpen ? 'mobile-menu-open' : 'mobile-menu-closed'}`}>
         <div className="mobile-menu px-4 pb-4 space-y-2">
           <RoleBasedNav isMobile={true} onItemClick={handleMenuClose} />
-
-          {hasResourcesAccess && (
+          {/* Uncomment if you decide to have nested menu items approach */}
+          {/* {hasResourcesAccess && (
             <>
               <button
                 onClick={() => setMobileResourcesOpen(prev => !prev)}
@@ -247,7 +250,7 @@ export default function Nav() {
                 </ul>
               )}
             </>
-          )}
+          )} */}
 
           <div className="border-t border-brand-q mt-2 pt-2 ml-0 !ml-0">
             {session?.user && (
