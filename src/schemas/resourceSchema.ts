@@ -8,16 +8,16 @@ import { createValidationResult } from './validationHelpers';
 export const LinkSchema = z.object({
   Title: z.string().min(1, 'Link name is required'),
   Link: z.union([
-    z.string().min(1, 'Link URL is required').url('Please enter a valid URL'),
+    z.string(),
     z.instanceof(File, { message: 'Invalid file upload' })
   ]),
-  Description: z.string().optional(), // For pdf-link type
-  Header: z.string().optional() // For pdf-link type
+  Description: z.string().optional(), // For file-link type
+  Header: z.string().optional() // For file-link type
 });
 
 // LinkList Schema with File support
 export const LinkListSchema = z.object({
-  Name: z.string().min(1, 'Link list name is required').optional(),
+  Name: z.string().optional(),
   Type: z.nativeEnum(LinkListType, {
     message: 'Invalid link list type'
   }),

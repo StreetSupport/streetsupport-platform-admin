@@ -372,7 +372,7 @@ export default function ResourceEditPage() {
                           type="text"
                           value={linkList.Name}
                           onChange={(e) => updateLinkList(listIndex, 'Name', e.target.value)}
-                          placeholder="e.g., Downloads"
+                          placeholder="List name"
                         />
                       </div>
 
@@ -385,7 +385,7 @@ export default function ResourceEditPage() {
                         >
                           <option value={LinkListType.LINK}>Link</option>
                           <option value={LinkListType.CARD_LINK}>Card Link</option>
-                          <option value={LinkListType.PDF_LINK}>PDF Link</option>
+                          <option value={LinkListType.FILE_LINK}>File Link</option>
                         </select>
                       </div>
 
@@ -427,21 +427,21 @@ export default function ResourceEditPage() {
                                   placeholder="Link name/title"
                                 />
                                 
-                                {/* Conditional fields for pdf-link type */}
-                                {linkList.Type === 'pdf-link' && (
+                                {/* Conditional fields for file-link type */}
+                                {linkList.Type === 'file-link' && (
                                   <>
                                     <Input
                                       type="text"
                                       value={item.Header || ''}
                                       onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Header', e.target.value)}
-                                      placeholder="Header (optional)"
+                                      placeholder="Title of file description"
                                     />
                                     <textarea
                                       className="w-full p-2 border rounded"
                                       rows={3}
                                       value={item.Description || ''}
                                       onChange={(e) => updateLinkItem(listIndex, itemIndex, 'Description', e.target.value)}
-                                      placeholder="Description (optional)"
+                                      placeholder="File description"
                                     />
                                   </>
                                 )}
