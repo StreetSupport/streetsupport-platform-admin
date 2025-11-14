@@ -276,7 +276,7 @@ export default function ResourceEditPage() {
     <div className="max-w-4xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h3 className="heading-3">Edit Resource</h3>
+        <h3 className="heading-4">Edit Resource</h3>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">

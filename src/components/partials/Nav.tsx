@@ -7,42 +7,17 @@ import { useSession, signOut } from 'next-auth/react';
 import RoleBasedNav from '@/components/navigation/RoleBasedNav';
 
 import UserProfileModal from '@/components/users/UserProfileModal';
+import { useRef } from 'react';
+import { hasPageAccess } from '@/lib/userService';
 
 export default function Nav() {
-    // Uncomment if you decide to have nested menu items approach
-  // import { useRef } from 'react';
-  // import { hasPageAccess } from '@/lib/userService';
-  // const [isResourcesOpen, setIsResourcesOpen] = useState(false);
-  // const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
-  // const resourcesCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // // Check if user has access to resources
-  // const hasResourcesAccess = session?.user?.authClaims 
-  //   ? hasPageAccess(session.user.authClaims, '/resources')
-  //   : false;
-
-  // function handleResourcesMouseEnter() {
-  //   if (resourcesCloseTimeoutRef.current) {
-  //     clearTimeout(resourcesCloseTimeoutRef.current);
-  //   }
-  //   setIsResourcesOpen(true);
-  // }
-
-  // function handleResourcesMouseLeave() {
-  //   resourcesCloseTimeoutRef.current = setTimeout(() => {
-  //     setIsResourcesOpen(false);
-  //   }, 300);
-  // }
-
-  // function handleAboutClick() {
-  //   setIsResourcesOpen(false);
-  //   setMobileResourcesOpen(false);
-  //   setMenuOpen(false);
-  // }
-
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const [isContentOpen, setIsContentOpen] = useState(false);
+  const [mobileContentOpen, setMobileContentOpen] = useState(false);
+  const contentCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user info
   const userEmail = session?.user?.email || '';
@@ -61,6 +36,30 @@ export default function Nav() {
   const userInitials = getUserInitials(userEmail);
 
   function handleMenuClose() {
+    setMenuOpen(false);
+  }
+
+  const hasContentAccess = session?.user?.authClaims 
+  // TODO: We should adjust this logic when advice, banners and supported by pages can be managed separately
+    ? hasPageAccess(session.user.authClaims, '/advice') && hasPageAccess(session.user.authClaims, '/banners') && hasPageAccess(session.user.authClaims, '/supported-by')
+    : false;
+
+  function handleContentMouseEnter() {
+    if (contentCloseTimeoutRef.current) {
+      clearTimeout(contentCloseTimeoutRef.current);
+    }
+    setIsContentOpen(true);
+  }
+
+  function handleContentMouseLeave() {
+    contentCloseTimeoutRef.current = setTimeout(() => {
+      setIsContentOpen(false);
+    }, 300);
+  }
+
+  function handleContentClick() {
+    setIsContentOpen(false);
+    setMobileContentOpen(false);
     setMenuOpen(false);
   }
 
@@ -94,67 +93,56 @@ export default function Nav() {
 
           <div className="hidden lg:flex space-x-6 items-center justify-end flex-1">
             <RoleBasedNav />
-            {/* Uncomment if you decide to have nested menu items approach */}
-            {/* {hasResourcesAccess && (
+            {hasContentAccess && (
               <div
                 className="relative"
-                onMouseEnter={handleResourcesMouseEnter}
-                onMouseLeave={handleResourcesMouseLeave}
+                onMouseEnter={handleContentMouseEnter}
+                onMouseLeave={handleContentMouseLeave}
               >
               <button 
                 className="nav-link focus:outline-none focus:ring-2 focus:ring-brand-a rounded flex items-center gap-1"
-                onMouseEnter={handleResourcesMouseEnter}
-                onMouseLeave={handleResourcesMouseLeave}
-                onClick={() => window.location.href = '/resources'}
+                onMouseEnter={handleContentMouseEnter}
+                onMouseLeave={handleContentMouseLeave}
               >
-                Resources
-                <svg className={`w-4 h-4 transition-transform duration-200 ${isResourcesOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                Content
+                <svg className={`w-4 h-4 transition-transform duration-200 ${isContentOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {isResourcesOpen && (
+              {isContentOpen && (
                 <div 
                   className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-48 z-50"
-                  onMouseEnter={handleResourcesMouseEnter}
-                  onMouseLeave={handleResourcesMouseLeave}
+                  onMouseEnter={handleContentMouseEnter}
+                  onMouseLeave={handleContentMouseLeave}
                 >
                   <div className="bg-white border border-brand-f rounded-md shadow-lg">
                   <ul className="py-2">
                     <li>
                       <Link
-                        href="/resources"
+                        href="/advice"
                         className="block px-2 py-1 text-sm !text-black hover:bg-brand-i hover:text-brand-k transition-colors duration-200 rounded"
-                        onClick={handleAboutClick}
+                        onClick={handleContentClick}
                       >
-                        All Resources
+                        Advice
                       </Link>
                     </li>
                     <li>
                       <Link
-                        href="/resources/resources2"
+                        href="/banners"
                         className="block px-2 py-1 text-sm !text-black hover:bg-brand-i hover:text-brand-k transition-colors duration-200 rounded"
-                        onClick={handleAboutClick}
+                        onClick={handleContentClick}
                       >
-                        Resources 2
+                        Banners
                       </Link>
                     </li>
                     <li>
                       <Link
-                        href="/resources/resources3"
+                        href="/supported-by"
                         className="block px-2 py-1 text-sm !text-black hover:bg-brand-i hover:text-brand-k transition-colors duration-200 rounded"
-                        onClick={handleAboutClick}
+                        onClick={handleContentClick}
                       >
-                        Resources 3
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/resources/resources4"
-                        className="block px-2 py-1 text-sm !text-black hover:bg-brand-i hover:text-brand-k transition-colors duration-200 rounded"
-                        onClick={handleAboutClick}
-                      >
-                        Resources 4
+                        Supported By
                       </Link>
                     </li>
                   </ul>
@@ -162,7 +150,7 @@ export default function Nav() {
                 </div>
               )}
               </div>
-            )} */}
+            )}
           </div>
           
           <div className="hidden lg:flex items-center ml-6 lg:ml-8 gap-4">
@@ -193,64 +181,54 @@ export default function Nav() {
       <div className={`mobile-menu-container ${menuOpen ? 'mobile-menu-open' : 'mobile-menu-closed'}`}>
         <div className="mobile-menu px-4 pb-4 space-y-2">
           <RoleBasedNav isMobile={true} onItemClick={handleMenuClose} />
-          {/* Uncomment if you decide to have nested menu items approach */}
-          {/* {hasResourcesAccess && (
+          {hasContentAccess && (
             <>
               <button
-                onClick={() => setMobileResourcesOpen(prev => !prev)}
+                onClick={() => setMobileContentOpen(prev => !prev)}
                 className="w-full text-left mobile-nav-link font-semibold mt-2 focus:outline-none focus:ring-2 focus:ring-brand-a rounded flex items-center justify-between"
-                aria-expanded={mobileResourcesOpen}
+                aria-expanded={mobileContentOpen}
                 aria-controls="mobile-about-menu"
                 aria-haspopup="menu"
               >
-                Resources
-                <svg className={`w-5 h-5 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                Content
+                <svg className={`w-5 h-5 transition-transform duration-200 ${mobileContentOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {mobileResourcesOpen && (
+              {mobileContentOpen && (
                 <ul id="mobile-about-menu" role="menu" className="mobile-about-menu mt-1 space-y-1 ml-4">
                   <li>
                     <Link
-                      href="/resources"
-                      className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200 font-semibold border-b border-brand-q pb-3 mb-2"
-                      onClick={handleAboutClick}
+                      href="/advice"
+                      className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200"
+                      onClick={handleContentClick}
                     >
-                      All Resources
+                      Advice
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/resources/resources2"
+                      href="/banners"
                       className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200"
-                      onClick={handleAboutClick}
+                      onClick={handleContentClick}
                     >
-                      Resources 2
+                      Banners
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/resources/resources3"
+                      href="/supported-by"
                       className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200"
-                      onClick={handleAboutClick}
+                      onClick={handleContentClick}
                     >
-                      Resources 3
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/resources/resources4"
-                      className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200"
-                      onClick={handleAboutClick}
-                    >
-                      Resources 4
+                      Supported By
                     </Link>
                   </li>
                 </ul>
               )}
             </>
-          )} */}
+          )}
 
           <div className="border-t border-brand-q mt-2 pt-2 ml-0 !ml-0">
             {session?.user && (

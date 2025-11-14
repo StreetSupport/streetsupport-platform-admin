@@ -220,8 +220,7 @@ export default function SwepEditPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Edit SWEP Banner</h1>
-        <p className="mt-2 text-gray-600 text-lg font-medium">{swep?.LocationName || locationSlug}</p>
+        <h1 className="heading-4">Edit SWEP Banner</h1>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6">

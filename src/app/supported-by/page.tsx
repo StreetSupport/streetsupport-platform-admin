@@ -3,11 +3,11 @@
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 
-export default function AdvicePage() {
+export default function SupportedByPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
     allowedRoles: [ROLES.VOLUNTEER_ADMIN, ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN],
-    requiredPage: '/advice',
+    requiredPage: '/supported-by',
     autoRedirect: true
   });
 
@@ -27,7 +27,7 @@ export default function AdvicePage() {
 
   return (
     <div>
-      <h1>Advice</h1>
+      <h1>Supported By</h1>
     </div>
   );
 }

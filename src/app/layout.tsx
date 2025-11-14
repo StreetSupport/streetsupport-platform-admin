@@ -8,6 +8,7 @@ import ProtectedLayout from '@/components/auth/ProtectedLayout';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import Nav from '@/components/partials/Nav';
 import { Toaster } from 'react-hot-toast';
+import { BreadcrumbProvider } from '@/contexts/BreadcrumbContext';
 
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
@@ -43,7 +44,8 @@ export default function RootLayout({
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className={`h-full`}>
         <NextAuthProvider>
-          <ProtectedLayout>
+          <BreadcrumbProvider>
+            <ProtectedLayout>
             <div className="flex flex-col min-h-screen">
               {/* <Header /> */}
               <Nav/>
@@ -55,7 +57,9 @@ export default function RootLayout({
               </div>
               <Footer />
             </div>
-            <Toaster
+            </ProtectedLayout>
+          </BreadcrumbProvider>
+          <Toaster
               position="top-right"
               toastOptions={{
                 duration: 4000,
@@ -98,7 +102,6 @@ export default function RootLayout({
                 },
               }}
             />
-          </ProtectedLayout>
         </NextAuthProvider>
       </body>
     </html>

@@ -3,16 +3,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 export default function BannerViewPage() {
   // Check authorization FIRST
@@ -32,6 +30,7 @@ export default function BannerViewPage() {
   const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { setBannerTitle } = useBreadcrumb();
 
   const fetchBanner = useCallback(async () => {
     if (!id || !isAuthorized) return;
@@ -51,6 +50,10 @@ export default function BannerViewPage() {
 
       const data = await response.json();
       setBanner(data.data);
+      // Set banner title for breadcrumbs
+      if (data.data?.Title) {
+        setBannerTitle(data.data.Title);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
       setError(errorMessage);
@@ -64,7 +67,12 @@ export default function BannerViewPage() {
     if (isAuthorized) {
       fetchBanner();
     }
-  }, [isAuthorized, fetchBanner]);
+    
+    // Cleanup: Clear banner title when component unmounts
+    return () => {
+      setBannerTitle(null);
+    };
+  }, [isAuthorized, fetchBanner, setBannerTitle]);
 
   const handleDelete = async () => {
     if (!banner) return;
@@ -213,12 +221,6 @@ export default function BannerViewPage() {
               <p className="text-base text-brand-f mb-6">
                 {error || 'The banner you are looking for does not exist or has been deleted.'}
               </p>
-              <Link href="/banners">
-                <Button variant="primary">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to search results
-                </Button>
-              </Link>
             </div>
           </div>
       </div>

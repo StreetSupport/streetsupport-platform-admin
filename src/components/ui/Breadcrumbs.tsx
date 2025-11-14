@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { getHomePageForUser } from "@/lib/roleHomePages";
-import { authenticatedFetch } from "@/utils/authenticatedFetch";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 
 function toTitleCase(slug: string) {
   // Special case for SWEP
@@ -21,16 +21,19 @@ function toTitleCase(slug: string) {
 
 export type Crumb = { href?: string; label: string; current?: boolean };
 
-export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
+export default function Breadcrumbs({ 
+  items: itemsProp
+}: { 
+  items?: Crumb[]; 
+}) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { bannerTitle } = useBreadcrumb();
   
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
     [pathname]
   );
-
-  const [bannerTitle, setBannerTitle] = useState<string | null>(null);
 
   // Determine home page URL based on user roles
   const homePageUrl = useMemo(() => {
@@ -61,42 +64,7 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
     return items;
   }, [segments, homePageUrl]);
 
-  // Enrich breadcrumbs for banner routes: /banners/[id] and /banners/[id]/edit
-  // Note: SWEP banners use location slug instead of ID, so they use default breadcrumbs
-  useEffect(() => {
-    const isBannerRoute = segments[0] === "banners" && segments.length >= 2;
-    const id = isBannerRoute ? segments[1] : null;
-    if (!isBannerRoute || !id) {
-      setBannerTitle(null);
-      return;
-    }
-
-    // TODO: update this logic to avoid this request
-    let aborted = false;
-    // Fetch banner title and support both response shapes
-    (async () => {
-      try {
-        // Skip fetching when creating a new banner or when id isn't a MongoDB ObjectId
-        const isNewRoute = id === "new";
-        const looksLikeObjectId = /^[a-fA-F0-9]{24}$/.test(id);
-        if (isNewRoute || !looksLikeObjectId) {
-          return;
-        }
-        const res = await authenticatedFetch(`/api/banners/${id}`);
-        if (!res.ok) return;
-        const json = await res.json();
-        const banner = json?.data ?? json; // handle {data: banner} or banner
-        const title = banner?.Title as string | undefined;
-        if (!aborted && title) setBannerTitle(title);
-      } catch {
-        // ignore failures and keep default ID-based crumb
-      }
-    })();
-
-    return () => {
-      aborted = true;
-    };
-  }, [segments]);
+  // Use bannerTitle from context (set by banner pages to avoid duplicate API call)
 
   const computedItems: Crumb[] = useMemo(() => {
     if (itemsProp && itemsProp.length > 0) return itemsProp;
@@ -115,6 +83,20 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
       return items;
     }
 
+    // Special handling for resources routes - exclude 'Edit' from breadcrumbs
+    if (segments[0] === "resources" && segments.length >= 2) {
+      const resourceKey = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/resources", label: "Resources" },
+        { href: isEdit ? `/resources/${resourceKey}` : undefined, label: toTitleCase(resourceKey), current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for resources
+      return items;
+    }
+
     // If not a banner route or no fetched title, fall back to base items
     if (!(segments[0] === "banners" && segments.length >= 2) || !bannerTitle) {
       return baseItems;
@@ -128,7 +110,6 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
       { href: "/banners", label: "Banners" },
       { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
     ];
-    if (isEdit) items.push({ label: "Edit", current: true });
     return items;
   }, [itemsProp, baseItems, bannerTitle, segments, homePageUrl]);
 

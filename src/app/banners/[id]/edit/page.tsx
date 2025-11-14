@@ -10,11 +10,9 @@ import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toas
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { IBanner, IMediaAsset } from '@/types';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -80,6 +78,7 @@ export default function EditBannerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
+  const { setBannerTitle } = useBreadcrumb();
 
   // Fetch banner data only if authorized
   useEffect(() => {
@@ -104,6 +103,8 @@ export default function EditBannerPage() {
           const formData = transformBannerToFormData(banner);
           setInitialFormData(formData);
           setBannerData(formData);
+          // Set banner title for breadcrumbs
+          setBannerTitle(banner.Title);
         } else {
           throw new Error(result.message || 'Banner not found');
         }
@@ -119,7 +120,12 @@ export default function EditBannerPage() {
     if (bannerId) {
       fetchBanner();
     }
-  }, [isAuthorized, bannerId, router]);
+    
+    // Cleanup: Clear banner title when component unmounts
+    return () => {
+      setBannerTitle(null);
+    };
+  }, [isAuthorized, bannerId, router, setBannerTitle]);
 
   const handleSave = async (data: IBannerFormData) => {
   const toastId = loadingToast.update('banner');
@@ -287,12 +293,6 @@ if (!bannerData || !initialFormData) {
             <p className="text-base text-brand-f mb-6">
               {error || 'The banner you are looking for does not exist or has been deleted.'}
             </p>
-            <Link href="/banners">
-              <Button variant="primary">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to search results
-              </Button>
-            </Link>
           </div>
         </div>
     </div>
@@ -304,6 +304,10 @@ return (
       <BannerPageHeader pageType="edit" />
 
       <div className="page-container section-spacing padding-top-zero">
+        {/* Header */}
+        <div className="mb-8">
+          <h3 className="heading-4">Edit Banner</h3>
+        </div>
         {/* Full-width Preview at Top */}
         <div className="mb-8">
           {bannerData && (
