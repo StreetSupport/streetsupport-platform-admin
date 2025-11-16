@@ -17,8 +17,8 @@ export function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/api/swep-banners') ||
       request.nextUrl.pathname.startsWith('/advice') ||
       request.nextUrl.pathname.startsWith('/api/faqs') ||
-      request.nextUrl.pathname.startsWith('/support-by') ||
-      request.nextUrl.pathname.startsWith('/api/support-by')) {
+      request.nextUrl.pathname.startsWith('/location-logos') ||
+      request.nextUrl.pathname.startsWith('/api/location-logos')) {
     
     // For API routes, return a 503 JSON response
     if (request.nextUrl.pathname.startsWith('/api/')) {
@@ -55,7 +55,7 @@ export const config = {
     '/api/swep-banners/:path*',
     '/advice/:path*',
     '/api/faqs/:path*',
-    '/support-by/:path*',
-    '/api/support-by/:path*',
+    '/location-logos/:path*',
+    '/api/location-logos/:path*',
   ],
 }
