@@ -44,6 +44,11 @@ export default function AdviceViewPage() {
     if (isAuthorized && id) {
       fetchAdvice();
     }
+    
+    // Cleanup: Clear advice title when component unmounts
+    return () => {
+      setAdviceTitle(null);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthorized, id]);
 
@@ -112,9 +117,7 @@ export default function AdviceViewPage() {
     return d.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
 

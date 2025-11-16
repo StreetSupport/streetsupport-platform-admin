@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 interface ValidationError {
   Path: string;
@@ -38,6 +39,7 @@ export default function NewAdvicePage() {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
+  const { setAdviceTitle } = useBreadcrumb();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -56,7 +58,14 @@ export default function NewAdvicePage() {
 
   useEffect(() => {
     fetchLocations();
-  }, []);
+    // Clear any stale advice title from breadcrumbs
+    setAdviceTitle(null);
+    
+    // Cleanup on unmount
+    return () => {
+      setAdviceTitle(null);
+    };
+  }, [setAdviceTitle]);
 
   const fetchLocations = async () => {
     try {

@@ -41,7 +41,7 @@ export default function Nav() {
 
   const hasContentAccess = session?.user?.authClaims 
   // TODO: We should adjust this logic when advice, banners and supported by pages can be managed separately
-    ? hasPageAccess(session.user.authClaims, '/advice') && hasPageAccess(session.user.authClaims, '/banners') && hasPageAccess(session.user.authClaims, '/supported-by')
+    ? hasPageAccess(session.user.authClaims, '/advice') && hasPageAccess(session.user.authClaims, '/banners') && hasPageAccess(session.user.authClaims, '/location-logos')
     : false;
 
   function handleContentMouseEnter() {
@@ -138,11 +138,11 @@ export default function Nav() {
                     </li>
                     <li>
                       <Link
-                        href="/supported-by"
+                        href="/location-logos"
                         className="block px-2 py-1 text-sm !text-black hover:bg-brand-i hover:text-brand-k transition-colors duration-200 rounded"
                         onClick={handleContentClick}
                       >
-                        Supported By
+                        Location Logos
                       </Link>
                     </li>
                   </ul>
@@ -218,11 +218,11 @@ export default function Nav() {
                   </li>
                   <li>
                     <Link
-                      href="/supported-by"
+                      href="/location-logos"
                       className="block py-2 px-3 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200"
                       onClick={handleContentClick}
                     >
-                      Supported By
+                      Location Logos
                     </Link>
                   </li>
                 </ul>

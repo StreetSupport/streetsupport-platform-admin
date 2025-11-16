@@ -38,7 +38,7 @@ export default function AdvicePage() {
           <Link href="/advice/new">
             <Button variant="primary">
               <Plus className="w-4 h-4 mr-2" />
-              Add New
+              Add Advice
             </Button>
           </Link>
         }

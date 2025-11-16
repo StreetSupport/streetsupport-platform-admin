@@ -14,6 +14,7 @@ import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function NewBannerPage() {
   // Check authorization FIRST before any other logic
@@ -165,11 +166,12 @@ export default function NewBannerPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
+        <PageHeader title="Create New Banner" />
         <BannerPageHeader pageType="new" />
 
         <div className="page-container section-spacing padding-top-zero">
           {/* Full-width Preview at Top */}
-          <div className="mb-8">
+          <div className="mb-8 py-8">
             {bannerData && (
               <BannerPreview data={bannerData} />
             )}

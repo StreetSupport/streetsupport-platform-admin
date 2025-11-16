@@ -28,7 +28,7 @@ export default function Breadcrumbs({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { bannerTitle, adviceTitle } = useBreadcrumb();
+  const { bannerTitle, adviceTitle, logoTitle } = useBreadcrumb();
   
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
@@ -109,6 +109,21 @@ export default function Breadcrumbs({
         { href: isEdit ? `/advice/${id}` : undefined, label: adviceTitle, current: true },
       ];
       // Note: We don't add "Edit" breadcrumb for advice (consistent with SWEP and Resources)
+      return items;
+    }
+
+    // Special handling for location-logos routes - show display name instead of ID
+    // Exclude 'Edit' from breadcrumbs (consistent with other routes)
+    if (segments[0] === "location-logos" && segments.length >= 2 && logoTitle) {
+      const id = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/location-logos", label: "Location Logos" },
+        { href: isEdit ? `/location-logos/${id}` : undefined, label: logoTitle, current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for location logos (consistent with other routes)
       return items;
     }
 

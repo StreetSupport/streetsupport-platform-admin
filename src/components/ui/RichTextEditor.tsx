@@ -19,6 +19,9 @@ import {
   UNDO_COMMAND,
   REDO_COMMAND,
   LexicalEditor,
+  $createParagraphNode,
+  $isElementNode,
+  $isDecoratorNode,
 } from 'lexical';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { 
@@ -239,7 +242,23 @@ function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
-        nodes.forEach((node) => root.append(node));
+        
+        // Only append valid nodes (ElementNode or DecoratorNode)
+        nodes.forEach((node) => {
+          if ($isElementNode(node) || $isDecoratorNode(node)) {
+            root.append(node);
+          } else {
+            // Wrap text nodes in a paragraph
+            const paragraph = $createParagraphNode();
+            paragraph.append(node);
+            root.append(paragraph);
+          }
+        });
+        
+        // If no nodes were added, add an empty paragraph
+        if (root.getChildrenSize() === 0) {
+          root.append($createParagraphNode());
+        }
       });
       setIsInitialized(true);
     }

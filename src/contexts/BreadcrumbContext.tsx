@@ -7,6 +7,8 @@ interface BreadcrumbContextType {
   setBannerTitle: (title: string | null) => void;
   adviceTitle: string | null;
   setAdviceTitle: (title: string | null) => void;
+  logoTitle: string | null;
+  setLogoTitle: (title: string | null) => void;
 }
 
 const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undefined);
@@ -14,9 +16,10 @@ const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undef
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   const [bannerTitle, setBannerTitle] = useState<string | null>(null);
   const [adviceTitle, setAdviceTitle] = useState<string | null>(null);
+  const [logoTitle, setLogoTitle] = useState<string | null>(null);
 
   return (
-    <BreadcrumbContext.Provider value={{ bannerTitle, setBannerTitle, adviceTitle, setAdviceTitle }}>
+    <BreadcrumbContext.Provider value={{ bannerTitle, setBannerTitle, adviceTitle, setAdviceTitle, logoTitle, setLogoTitle }}>
       {children}
     </BreadcrumbContext.Provider>
   );

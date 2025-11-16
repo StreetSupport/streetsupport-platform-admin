@@ -65,6 +65,11 @@ export default function AdviceEditPage() {
     if (isAuthorized && id) {
       fetchAdvice();
     }
+    
+    // Cleanup: Clear advice title when component unmounts
+    return () => {
+      setAdviceTitle(null);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthorized, id]);
 

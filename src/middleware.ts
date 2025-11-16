@@ -12,7 +12,13 @@ export function middleware(request: NextRequest) {
 
   // Block all banner-related routes and swep-banners routes
   if (request.nextUrl.pathname.startsWith('/banners') || 
-      request.nextUrl.pathname.startsWith('/api/banners')) {
+      request.nextUrl.pathname.startsWith('/api/banners') ||
+      request.nextUrl.pathname.startsWith('/swep-banners') ||
+      request.nextUrl.pathname.startsWith('/api/swep-banners') ||
+      request.nextUrl.pathname.startsWith('/advice') ||
+      request.nextUrl.pathname.startsWith('/api/faqs') ||
+      request.nextUrl.pathname.startsWith('/support-by') ||
+      request.nextUrl.pathname.startsWith('/api/support-by')) {
     
     // For API routes, return a 503 JSON response
     if (request.nextUrl.pathname.startsWith('/api/')) {
@@ -45,5 +51,11 @@ export const config = {
   matcher: [
     '/banners/:path*',
     '/api/banners/:path*',
+    '/swep-banners/:path*',
+    '/api/swep-banners/:path*',
+    '/advice/:path*',
+    '/api/faqs/:path*',
+    '/support-by/:path*',
+    '/api/support-by/:path*',
   ],
 }

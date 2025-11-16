@@ -53,8 +53,8 @@ const AdviceCard = React.memo(function AdviceCard({
   return (
     <div className={`card card-compact ${isLoading ? 'loading-card' : ''}`}>
       <div className="p-4">
-        {/* Action Buttons - First Row */}
-        <div className="flex items-center gap-2 mb-2">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 mb-4">
           <Link href={`/advice/${advice._id}`} className="flex-1">
             <Button
               variant="primary"
@@ -77,20 +77,16 @@ const AdviceCard = React.memo(function AdviceCard({
               <Edit className="w-4 h-4" />
             </Button>
           </Link>
-        </div>
-
-        {/* Action Buttons - Second Row */}
-        <div className="flex items-center gap-2 mb-4">
+          
           <Button
             variant="outline"
             size="sm"
             onClick={handleDeleteClick}
             disabled={isLoading}
             title="Delete advice"
-            className="flex-1 text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+            className="text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
           >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
 
