@@ -1,37 +1,45 @@
 "use client";
 
-import React from "react";
+import React from 'react';
 
 interface LoadingSpinnerProps {
-  size?: number; // tailwind size in pixels
+  /**
+   * Optional loading message to display below spinner
+   */
+  message?: string;
+  
+  /**
+   * Additional CSS classes for the wrapper
+   */
   className?: string;
-  label?: string;
 }
 
-// Simple, reusable loading spinner using Tailwind CSS
-// Usage: <LoadingSpinner /> or <LoadingSpinner size={24} label="Loading banners..." />
+/**
+ * Reusable loading spinner component for consistent loading UI across the application.
+ * Displays a centered spinner with optional message.
+ * 
+ * @example
+ * // Default usage
+ * <LoadingSpinner />
+ * 
+ * @example
+ * // With message
+ * <LoadingSpinner message="Loading banner..." />
+ */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  size = 20,
-  className = "",
-  label,
+  message,
+  className = '',
 }) => {
-  const borderSize = Math.max(2, Math.round(size / 10));
+  const spinnerClass = 'animate-spin rounded-full border-b-2 border-brand-a h-12 w-12';
 
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`} role="status" aria-live="polite">
-      <span
-        className="inline-block animate-spin rounded-full border-current border-t-transparent text-gray-500"
-        style={{
-          width: size,
-          height: size,
-          borderWidth: borderSize,
-        }}
-        aria-hidden="true"
-      />
-      {label ? (
-        <span className="text-sm text-gray-600">{label}</span>
-      ) : null}
-      <span className="sr-only">Loading</span>
+    <div className={`flex items-center justify-center py-12 ${className}`}>
+        <div className="text-center">
+            <div className={spinnerClass}></div>
+            {message && (
+            <p className="text-brand-k mt-4">{message}</p>
+            )}
+        </div>
     </div>
   );
 };

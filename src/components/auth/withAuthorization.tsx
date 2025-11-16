@@ -12,6 +12,7 @@
 
 import { ComponentType } from 'react';
 import { useAuthorization, UseAuthorizationOptions } from '@/hooks/useAuthorization';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 /**
  * HOC that adds authorization checking to a component
@@ -41,11 +42,7 @@ export function withAuthorization<P extends object>(
 
     // Show loading while checking authorization
     if (isChecking) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-        </div>
-      );
+      return <LoadingSpinner />;
     }
 
     // Don't render anything if not authorized (redirect handled by hook)

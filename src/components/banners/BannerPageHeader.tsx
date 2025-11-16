@@ -23,12 +23,9 @@ export function BannerPageHeader({
   isDeleting,
 }: BannerPageHeaderProps) {
   const id = banner?._id;
-  const title = pageType === 'new' ? 'Create New Banner' : banner?.Title || 'Banner';
 
   return (
-    <div className="page-container border-b border-brand-q">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2">
             {pageType === 'view' && banner && (
               <>
                 <Button
@@ -73,8 +70,6 @@ export function BannerPageHeader({
                 </Button>
               </>
             )}
-          </div>
         </div>
-      </div>
   );
 }

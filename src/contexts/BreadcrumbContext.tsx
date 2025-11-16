@@ -5,15 +5,18 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 interface BreadcrumbContextType {
   bannerTitle: string | null;
   setBannerTitle: (title: string | null) => void;
+  adviceTitle: string | null;
+  setAdviceTitle: (title: string | null) => void;
 }
 
 const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undefined);
 
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   const [bannerTitle, setBannerTitle] = useState<string | null>(null);
+  const [adviceTitle, setAdviceTitle] = useState<string | null>(null);
 
   return (
-    <BreadcrumbContext.Provider value={{ bannerTitle, setBannerTitle }}>
+    <BreadcrumbContext.Provider value={{ bannerTitle, setBannerTitle, adviceTitle, setAdviceTitle }}>
       {children}
     </BreadcrumbContext.Provider>
   );

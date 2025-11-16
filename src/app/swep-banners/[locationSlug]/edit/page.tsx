@@ -7,14 +7,17 @@ import { ROLES } from '@/constants/roles';
 import { ISwepBanner, ISwepBannerFormData } from '@/types/swep-banners/ISwepBanner';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast, loadingToast } from '@/utils/toast';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { Input } from '@/components/ui/Input';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { validateSwepBanner, transformErrorPath } from '@/schemas/swepBannerSchema';
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function SwepEditPage() {
   // Check authorization FIRST before any other logic
@@ -177,13 +180,9 @@ export default function SwepEditPage() {
     router.push('/swep-banners');
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
@@ -191,39 +190,25 @@ export default function SwepEditPage() {
     return null;
   }
 
-  // Loading State
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-        </div>
-      </div>
-    );
-  }
-
   // Error State
   if (error && !loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center py-12">
-          <h2 className="heading-5 mb-4 text-brand-g">Error Loading SWEP Banner</h2>
-          <p className="text-base text-brand-f mb-6">{error}</p>
-          <Button variant="primary" onClick={fetchSwep}>
-            Try Again
-          </Button>
-        </div>
+        <ErrorState
+          title="Error Loading SWEP Banner"
+          message={error}
+          onRetry={fetchSwep}
+        />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="heading-4">Edit SWEP Banner</h1>
-      </div>
+    <div className="min-h-screen bg-brand-q">
+      <PageHeader title="Edit SWEP Banner" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
 
-      <form onSubmit={handleSubmit} noValidate className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6 mb-8">
         {/* Image Upload Section */}
         <div className="border-b border-brand-q pb-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Banner Image</h3>
@@ -404,13 +389,12 @@ export default function SwepEditPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pt-6 border-t border-brand-q">
+        <div className="flex gap-3 justify-end pt-6 border-t border-brand-q">
           <Button
             type="button"
             variant="outline"
             onClick={handleCancel}
             disabled={saving}
-            className="flex-1"
           >
             Cancel
           </Button>
@@ -418,12 +402,12 @@ export default function SwepEditPage() {
             type="submit"
             variant="primary"
             disabled={saving}
-            className="flex-1"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </form>
+      </div>
 
       {/* Confirmation Modal */}
       <ConfirmModal

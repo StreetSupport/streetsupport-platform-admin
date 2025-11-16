@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
-import { Search } from 'lucide-react';
+import { FiltersSection } from '@/components/ui/FiltersSection';
+import { ResultsSummary } from '@/components/ui/ResultsSummary';
 import SwepCard from './SwepCard';
 import ActivateSwepModal from './ActivateSwepModal';
 import { errorToast, successToast } from '@/utils/toast';
 import toast from 'react-hot-toast';
 import '@/styles/pagination.css';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function SwepManagement() {
   const [swepBanners, setSwepBanners] = useState<ISwepBanner[]>([]);
@@ -86,11 +88,6 @@ export default function SwepManagement() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchTerm(searchInput);
-    setCurrentPage(1);
-  };
   
   const handleActivateClick = (swep: ISwepBanner) => {
     setSelectedSwep(swep);
@@ -149,106 +146,71 @@ export default function SwepManagement() {
   return (
     <>
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-brand-q p-6 mb-6 mt-[5px]">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search by title, message..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch(e);
-                    }
-                  }}
-                  className="pl-10"
-                />
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleSearch}
-                className="whitespace-nowrap"
-              >
-                Search
-              </Button>
-            </div>
-          </div>
-
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <select
-              value={locationFilter}
-              onChange={(e) => {
-                setLocationFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-            >
-              <option value="">All Locations</option>
-              {locations.map((location) => (
-                <option key={location.Key} value={location.Key}>
-                  {location.Name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={isActiveFilter}
-              onChange={(e) => {
-                setIsActiveFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-            >
-              <option value="">All Status</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <FiltersSection
+        searchPlaceholder="Search by title, message..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onSearchSubmit={() => {
+          setSearchTerm(searchInput);
+          setCurrentPage(1);
+        }}
+        filters={[
+          {
+            id: 'location-filter',
+            value: locationFilter,
+            onChange: (value) => {
+              setLocationFilter(value);
+              setCurrentPage(1);
+            },
+            placeholder: 'All Locations',
+            options: locations.map((location) => ({
+              label: location.Name,
+              value: location.Key
+            }))
+          },
+          {
+            id: 'status-filter',
+            value: isActiveFilter,
+            onChange: (value) => {
+              setIsActiveFilter(value);
+              setCurrentPage(1);
+            },
+            placeholder: 'All Status',
+            options: [
+              { label: 'Active', value: 'true' },
+              { label: 'Inactive', value: 'false' }
+            ]
+          }
+        ]}
+      />
 
       {/* Results Summary */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <p className="text-base text-brand-f">
-          {loading ? '' : `${total} SWEP banner${total !== 1 ? 's' : ''} found`}
-        </p>
-      </div>
+      <ResultsSummary Loading={loading} Total={total} ItemName="SWEP banner" />
 
       {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-        </div>
-      )}
+      {loading && <LoadingSpinner />}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="text-center py-12">
-          <h2 className="heading-5 mb-4 text-brand-g">Error Loading SWEP Banners</h2>
-          <p className="text-base text-brand-f mb-6">{error}</p>
-          <Button variant="primary" onClick={fetchSwepBanners}>
-            Try Again
-          </Button>
-        </div>
+        <ErrorState
+          title="Error Loading SWEP Banners"
+          message={error}
+          onRetry={fetchSwepBanners}
+        />
       )}
 
       {/* Empty State */}
       {!loading && !error && swepBanners.length === 0 && (
-        <div className="text-center py-12">
-          <h2 className="heading-5 mb-4">No SWEP Banners Found</h2>
-          <div className="text-base text-brand-f mb-6 space-y-2">
-            {searchTerm || isActiveFilter || locationFilter ? (
+        <EmptyState
+          title="No SWEP Banners Found"
+          message={
+            searchTerm || isActiveFilter || locationFilter ? (
               <p>No SWEP banners match your current filters. Try adjusting your search criteria.</p>
             ) : (
               <p>No SWEP banners available.</p>
-            )}
-          </div>
-        </div>
+            )
+          }
+        />
       )}
 
       {/* SWEP Banners Grid */}

@@ -39,19 +39,18 @@ export const SwepBannerFormSchema = z.object({
 // Helper function to transform error paths to user-friendly names
 export function transformErrorPath(path: string): string {
   // Handle emergency contact nested errors
-  if (path.startsWith('emergencyContact.')) {
-    const fieldName = path.replace('emergencyContact.', '');
+  if (path.startsWith('EmergencyContact.')) {
+    const fieldName = path.replace('EmergencyContact.', '');
     const fieldMap: Record<string, string> = {
-      'email': 'Email'
+      'Email': 'Email'
     };
     return fieldMap[fieldName] || path;
   }
   
   // Handle camelCase field names
   const fieldMap: Record<string, string> = {
-    'title': 'Title',
-    'body': 'Body Content',
-    'shortMessage': 'Short Message'
+    'Body': 'Body Content',
+    'ShortMessage': 'Short Message'
   };
   
   return fieldMap[path] || path;

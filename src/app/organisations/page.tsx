@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import '@/styles/pagination.css';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { Plus, Search } from 'lucide-react';
+import { FiltersSection } from '@/components/ui/FiltersSection';
+import { Plus } from 'lucide-react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import OrganisationCard from '@/components/organisations/OrganisationCard';
 import AddUserToOrganisationModal from '@/components/organisations/AddUserToOrganisationModal';
@@ -22,6 +25,8 @@ import { useSession } from 'next-auth/react';
 import { UserAuthClaims } from '@/types/auth';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { exportOrganisationsToCsv } from '@/utils/csvExport';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ResultsSummary } from '@/components/ui/ResultsSummary';
 
 export default function OrganisationsPage() {
   // Check authorization FIRST before any other logic
@@ -157,11 +162,6 @@ export default function OrganisationsPage() {
     setCurrentPage(1);
   };
   
-  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchClick();
-    }
-  };
 
   const handleIsVerifiedFilter = (value: string) => {
     setIsVerifiedFilter(value);
@@ -371,13 +371,9 @@ export default function OrganisationsPage() {
     setOrganisationToDisable(null);
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
@@ -387,94 +383,65 @@ export default function OrganisationsPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
-        {/* Header - Always show but with conditional content */}
-        <div className="nav-container">
-          <div className="page-container">
-            <div className={`flex items-center justify-between h-16 ${isOrgAdmin ? 'mb-6' : ''}`}>
-              <h1 className="heading-4">{isOrgAdmin ? 'My Organisation' : 'Organisations'}</h1>
-              {!isOrgAdmin && (
-                <Button variant="primary" onClick={() => setIsAddOrganisationModalOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Organisation
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+        <PageHeader 
+          title={isOrgAdmin ? 'My Organisation' : 'Organisations'}
+          actions={
+            !isOrgAdmin ? (
+              <Button variant="primary" onClick={() => setIsAddOrganisationModalOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Organisation
+              </Button>
+            ) : undefined
+          }
+        />
 
         <div className="page-container section-spacing padding-top-zero">
           {/* Filters - Hidden for OrgAdmin */}
           {!isOrgAdmin && (
-            <div className="bg-white rounded-lg border border-brand-q p-6 mb-6 mt-[5px]">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
-                      <Input
-                        type="text"
-                        placeholder="Search by name"
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        onKeyPress={handleSearchKeyPress}
-                        className="pl-10"
-                      />
-                    </div>
-                    <Button
-                      variant="primary"
-                      onClick={handleSearchClick}
-                      className="whitespace-nowrap"
-                    >
-                      Search
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <select
-                    id="location-filter"
-                    value={locationFilter}
-                    onChange={(e) => handleLocationFilter(e.target.value)}
-                    className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-                  >
-                    <option value="" className="text-brand-k">All Locations</option>
-                    {locations.map(city => (
-                      <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
-                    ))}
-                  </select>
-
-                  <select
-                    id="verified-filter"
-                    value={isVerifiedFilter}
-                    onChange={(e) => handleIsVerifiedFilter(e.target.value)}
-                    className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-                  >
-                    <option value="">Verified: Either</option>
-                    <option value="true">Verified: Yes</option>
-                    <option value="false">Verified: No</option>
-                  </select>
-
-                  <select
-                    id="published-filter"
-                    value={isPublishedFilter}
-                    onChange={(e) => handleIsPublishedFilter(e.target.value)}
-                    className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-                  >
-                    <option value="">Published: Either</option>
-                    <option value="true">Published: Yes</option>
-                    <option value="false">Published: No</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            <FiltersSection
+              searchPlaceholder="Search by name"
+              searchValue={nameInput}
+              onSearchChange={setNameInput}
+              onSearchSubmit={handleSearchClick}
+              filters={[
+                {
+                  id: 'location-filter',
+                  value: locationFilter,
+                  onChange: handleLocationFilter,
+                  placeholder: 'All Locations',
+                  options: locations.map(city => ({
+                    label: city.Name,
+                    value: city.Key
+                  }))
+                },
+                {
+                  id: 'verified-filter',
+                  value: isVerifiedFilter,
+                  onChange: handleIsVerifiedFilter,
+                  placeholder: 'Verified: Either',
+                  options: [
+                    { label: 'Verified: Yes', value: 'true' },
+                    { label: 'Verified: No', value: 'false' }
+                  ]
+                },
+                {
+                  id: 'published-filter',
+                  value: isPublishedFilter,
+                  onChange: handleIsPublishedFilter,
+                  placeholder: 'Published: Either',
+                  options: [
+                    { label: 'Published: Yes', value: 'true' },
+                    { label: 'Published: No', value: 'false' }
+                  ]
+                }
+              ]}
+            />
           )}
 
-          {/* Results Summary - Hidden for OrgAdmin */}
+          {/* Results Summary with Export Button - Hidden for OrgAdmin */}
           {!isOrgAdmin && (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <p className="text-base text-brand-f">
-                {loading ? '' : `${total} organisation${total !== 1 ? 's' : ''} found`}
-              </p>
+              <ResultsSummary Loading={loading} Total={total} ItemName="organisation" NoWrapper />
               {!loading && total > 0 && (
                 <Button
                   variant="outline"
@@ -487,36 +454,33 @@ export default function OrganisationsPage() {
             </div>
           )}
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-            </div>
-          )}
-
           {/* Error State */}
           {error && !loading && (
-            <div className="text-center py-12">
-              <h2 className="heading-5 mb-4 text-brand-g">Error Loading Organisations</h2>
-              <p className="text-base text-brand-f mb-6">{error}</p>
-              <Button variant="primary" onClick={fetchOrganisations}>
-                Try Again
-              </Button>
-            </div>
+            <ErrorState
+              title="Error Loading Organisations"
+              message={error}
+              onRetry={fetchOrganisations}
+            />
           )}
 
           {/* Empty State */}
           {!loading && !error && organisations.length === 0 && (
-            <div className="text-center py-12">
-              <h2 className="heading-5 mb-4">No Organisations Found</h2>
-              <div className="text-base text-brand-f mb-6 space-y-2">
-                {searchName || isVerifiedFilter || isPublishedFilter || locationFilter ? (
+            <EmptyState
+              title="No Organisations Found"
+              message={
+                searchName || isVerifiedFilter || isPublishedFilter || locationFilter ? (
                   <p>No organisations match your current filters. Try adjusting your search criteria.</p>
                 ) : (
-                  <p>No organisations available.</p>
-                )}
-              </div>
-            </div>
+                  <p>Get started by adding your first organisation.</p>
+                )
+              }
+              action={{
+                label: 'Add Organisation',
+                icon: <Plus className="w-4 h-4 mr-2" />,
+                onClick: () => setIsAddOrganisationModalOpen(true),
+                variant: 'primary'
+              }}
+            />
           )}
 
           {/* Organisations Grid */}

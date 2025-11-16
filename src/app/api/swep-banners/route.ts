@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { getUserLocationSlugs } from '@/utils/locationUtils';
+import { getUserSwepLocationSlugs } from '@/utils/locationUtils';
 import { UserAuthClaims } from '@/types/auth';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
@@ -23,7 +23,7 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
 
     // Add location filtering for CityAdmin users when dropdown is empty (showing all their locations)
     const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
-    const locationSlugs = getUserLocationSlugs(userAuthClaims, true);
+    const locationSlugs = getUserSwepLocationSlugs(userAuthClaims);
     const selectedLocation = searchParams.get('location');
     
     // If CityAdmin or SwepAdmin with specific locations AND no location selected in dropdown

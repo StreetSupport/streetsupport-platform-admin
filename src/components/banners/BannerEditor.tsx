@@ -1085,7 +1085,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         {/* Submit Button */}
-        <div className="card-footer">
+        <div className="flex gap-3 justify-end pt-6 border-t border-brand-q mt-6">
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>

@@ -1,8 +1,10 @@
 'use client';
 
 import { useAuthorization } from '@/hooks/useAuthorization';
-import SwepManagement from '@/components/swep-banners/SwepManagement';
 import { ROLES } from '@/constants/roles';
+import { PageHeader } from '@/components/ui/PageHeader';
+import SwepManagement from '@/components/swep-banners/SwepManagement';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function SwepsPage() {
   // Check authorization FIRST before any other logic
@@ -14,11 +16,7 @@ export default function SwepsPage() {
 
   // Show loading while checking authorization
   if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
@@ -28,14 +26,7 @@ export default function SwepsPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
-      {/* Header */}
-      <div className="nav-container">
-        <div className="page-container">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="heading-4">SWEP</h1>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="SWEP" />
 
       <div className="page-container section-spacing padding-top-zero">
         <SwepManagement />

@@ -8,9 +8,12 @@ import Image from 'next/image';
 import { IResource } from '@/types/resources/IResource';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Search, ExternalLink } from 'lucide-react';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { FiltersSection } from '@/components/ui/FiltersSection';
+import { ExternalLink } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function ResourcesPage() {
   // Check authorization FIRST
@@ -68,10 +71,6 @@ export default function ResourcesPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchTerm(searchInput.trim());
-  };
 
   // Get resource icon path
   const getResourceIcon = (key: string) => {
@@ -104,11 +103,7 @@ export default function ResourcesPage() {
 
   // Show loading while checking authorization
   if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 brand-a"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized
@@ -118,65 +113,28 @@ export default function ResourcesPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
-      {/* Header */}
-      <div className="nav-container">
-        <div className="page-container">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="heading-4">Resources</h1>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Resources" />
 
       <div className="max-w-7xl mx-auto px-6 pt-[6px] pb-12">
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-brand-q p-6 mb-6">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch(e);
-                    }
-                  }}
-                  className="pl-10"
-                />
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleSearch}
-                className="whitespace-nowrap"
-              >
-                Search
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <FiltersSection
+        searchPlaceholder="Search..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onSearchSubmit={() => setSearchTerm(searchInput)}
+      />
 
       {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-a"></div>
-        </div>
-      )}
+      {loading && <LoadingSpinner />}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="text-center py-12">
-          <h2 className="heading-5 mb-4 text-brand-g">Error Loading Resources</h2>
-          <p className="text-base text-brand-f mb-6">{error}</p>
-          <Button variant="primary" onClick={fetchResources}>
-            Try Again
-          </Button>
-        </div>
+        <ErrorState
+          title="Error Loading Resources"
+          message={error}
+          onRetry={fetchResources}
+        />
       )}
 
       {/* Resources Content */}
@@ -280,16 +238,16 @@ export default function ResourcesPage() {
 
           {/* Empty State */}
           {!loading && !error && resources.length === 0 && (
-            <div className="text-center py-12">
-              <h2 className="heading-5 mb-4">No Resources Found</h2>
-              <div className="text-base text-brand-f mb-6 space-y-2">
-                {searchTerm ? (
-                  <p>No resources match your search criteria. Try different keywords.</p>
+            <EmptyState
+              title="No Resources Found"
+              message={
+                searchTerm ? (
+                  <p>No resources match your search criteria. Try adjusting your search criteria.</p>
                 ) : (
                   <p>No resources available.</p>
-                )}
-              </div>
-            </div>
+                )
+              }
+            />
           )}
         </>
       )}

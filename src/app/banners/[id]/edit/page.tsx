@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
@@ -9,10 +9,13 @@ import { validateBannerForm } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { IBanner, IMediaAsset } from '@/types';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -80,42 +83,43 @@ export default function EditBannerPage() {
   const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
   const { setBannerTitle } = useBreadcrumb();
 
+  // Fetch banner data function
+  const fetchBanner = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await authenticatedFetch(`/api/banners/${bannerId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch banner');
+      }
+      
+      const result = await response.json();
+      if (result.success && result.data) {
+        const banner = result.data as IBanner;
+        
+        // Transform banner data for form
+        const formData = transformBannerToFormData(banner);
+        setInitialFormData(formData);
+        setBannerData(formData);
+        // Set banner title for breadcrumbs
+        setBannerTitle(banner.Title);
+      } else {
+        throw new Error(result.message || 'Banner not found');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load banner';
+      setError(errorMessage);
+      errorToast.load(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [bannerId, setBannerTitle]);
+
   // Fetch banner data only if authorized
   useEffect(() => {
     if (!isAuthorized) return;
-
-    const fetchBanner = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await authenticatedFetch(`/api/banners/${bannerId}`);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch banner');
-        }
-        
-        const result = await response.json();
-        if (result.success && result.data) {
-          const banner = result.data as IBanner;
-          
-          // Transform banner data for form
-          const formData = transformBannerToFormData(banner);
-          setInitialFormData(formData);
-          setBannerData(formData);
-          // Set banner title for breadcrumbs
-          setBannerTitle(banner.Title);
-        } else {
-          throw new Error(result.message || 'Banner not found');
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to load banner';
-        setError(errorMessage);
-        errorToast.load(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     if (bannerId) {
       fetchBanner();
@@ -125,7 +129,7 @@ export default function EditBannerPage() {
     return () => {
       setBannerTitle(null);
     };
-  }, [isAuthorized, bannerId, router, setBannerTitle]);
+  }, [isAuthorized, bannerId, setBannerTitle, fetchBanner]);
 
   const handleSave = async (data: IBannerFormData) => {
   const toastId = loadingToast.update('banner');
@@ -252,13 +256,9 @@ export default function EditBannerPage() {
   }
 };
 
-// Show loading while checking authorization
-if (isChecking) {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-    </div>
-  );
+// Show loading while checking authorization or fetching data
+if (isChecking || loading) {
+  return <LoadingSpinner />;
 }
 
 // Don't render anything if not authorized
@@ -266,65 +266,41 @@ if (!isAuthorized) {
   return null;
 }
 
-if (loading) {
-  return (
-    <div className="min-h-screen bg-brand-q flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-a mx-auto mb-4"></div>
-          <p className="text-brand-k">Loading banner...</p>
-        </div>
-    </div>
-  );
-}
-
 if (!bannerData || !initialFormData) {
   return (
-    <div className="min-h-screen bg-brand-q">
-        <div className="nav-container">
-          <div className="page-container">
-            <div className="flex items-center justify-between h-16">
-              <h1 className="heading-4">Banner Not Found</h1>
-            </div>
-          </div>
-        </div>
-        <div className="page-container section-spacing padding-top-zero">
-          <div className="text-center py-12">
-            <h2 className="heading-3 mb-4">Banner Not Found</h2>
-            <p className="text-base text-brand-f mb-6">
-              {error || 'The banner you are looking for does not exist or has been deleted.'}
-            </p>
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <ErrorState
+        title="Error Loading Banner"
+        message={error || 'Banner Not Found'}
+        onRetry={fetchBanner}
+      />
     </div>
   );
 }
 
 return (
   <div className="min-h-screen bg-brand-q">
-      <BannerPageHeader pageType="edit" />
+    <PageHeader title="Edit Banner" />
+    <BannerPageHeader pageType="edit" />
 
-      <div className="page-container section-spacing padding-top-zero">
-        {/* Header */}
-        <div className="mb-8">
-          <h3 className="heading-4">Edit Banner</h3>
-        </div>
-        {/* Full-width Preview at Top */}
-        <div className="mb-8">
-          {bannerData && (
-            <BannerPreview data={bannerData} />
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <BannerEditor
-            initialData={initialFormData}
-            onDataChange={setBannerData}
-            onSave={handleSave}
-            saving={saving}
-            validationErrors={validationErrors}
-          />
-        </div>
+    <div className="page-container section-spacing padding-top-zero">
+      {/* Full-width Preview at Top */}
+      <div className="mb-8 py-8">
+        {bannerData && (
+          <BannerPreview data={bannerData} />
+        )}
       </div>
+
+      <div className="space-y-6">
+        <BannerEditor
+          initialData={initialFormData}
+          onDataChange={setBannerData}
+          onSave={handleSave}
+          saving={saving}
+          validationErrors={validationErrors}
+        />
+      </div>
+    </div>
   </div>
 );
 }

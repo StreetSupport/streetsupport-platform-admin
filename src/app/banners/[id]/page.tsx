@@ -7,10 +7,13 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function BannerViewPage() {
   // Check authorization FIRST
@@ -72,7 +75,7 @@ export default function BannerViewPage() {
     return () => {
       setBannerTitle(null);
     };
-  }, [isAuthorized, fetchBanner, setBannerTitle]);
+  }, [isAuthorized, fetchBanner]);
 
   const handleDelete = async () => {
     if (!banner) return;
@@ -172,13 +175,9 @@ export default function BannerViewPage() {
     });
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized
@@ -186,62 +185,38 @@ export default function BannerViewPage() {
     return null;
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-brand-q">
-          <div className="nav-container">
-            <div className="page-container">
-              <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4"></h1>
-              </div>
-            </div>
-          </div>
-          <div className="page-container section-spacing padding-top-zero">
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-            </div>
-          </div>
-      </div>
-    );
-  }
-
   if (error || !banner) {
     return (
-      <div className="min-h-screen bg-brand-q">
-          <div className="nav-container">
-            <div className="page-container">
-              <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">Banner Not Found</h1>
-              </div>
-            </div>
-          </div>
-          <div className="page-container section-spacing padding-top-zero">
-            <div className="text-center py-12">
-              <h2 className="heading-3 mb-4">Banner Not Found</h2>
-              <p className="text-base text-brand-f mb-6">
-                {error || 'The banner you are looking for does not exist or has been deleted.'}
-              </p>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <ErrorState
+          title="Error Loading Banner"
+          message={error || 'Banner Not Found'}
+          onRetry={fetchBanner}
+        />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-brand-q">
-        <BannerPageHeader 
-          pageType='view'
-          banner={banner}
-          onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
-          isToggling={toggling}
-          isDeleting={deleting}
+        <PageHeader 
+          title="View Banner"
+          actions={
+            <BannerPageHeader 
+              pageType='view'
+              banner={banner}
+              onDelete={handleDelete}
+              onToggleActive={handleToggleActive}
+              isToggling={toggling}
+              isDeleting={deleting}
+            />
+          }
         />
 
         <div className="page-container section-spacing padding-top-zero">
           
           {/* Banner Preview */}
-          <div className="mb-8">
+          <div className="mb-8 py-8">
             <BannerPreview data={transformForPreview(banner)} />
           </div>
 

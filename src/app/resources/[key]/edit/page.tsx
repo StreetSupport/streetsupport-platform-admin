@@ -12,10 +12,13 @@ import { validateResourceForm, transformErrorPath } from '@/schemas/resourceSche
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Trash } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface ValidationError {
   Path: string;
@@ -232,13 +235,9 @@ export default function ResourceEditPage() {
     }
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized
@@ -246,38 +245,23 @@ export default function ResourceEditPage() {
     return null;
   }
 
-  // Loading State
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-        </div>
-      </div>
-    );
-  }
-
   // Error State
   if (error && !loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center py-12">
-          <h2 className="heading-5 mb-4 text-brand-g">Error Loading Resource</h2>
-          <p className="text-base text-brand-f mb-6">{error}</p>
-          <Button variant="primary" onClick={fetchResource}>
-            Try Again
-          </Button>
-        </div>
+        <ErrorState
+          title="Error Loading Resource"
+          message={error}
+          onRetry={fetchResource}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h3 className="heading-4">Edit Resource</h3>
-      </div>
+    <div className="min-h-screen bg-brand-q">
+      <PageHeader title="Edit Resource" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* All Form Fields in One Section */}
@@ -503,7 +487,7 @@ export default function ResourceEditPage() {
           </div>
         )}
 
-        <div className="flex gap-4 pt-6 border-t border-brand-q">
+        <div className="flex gap-3 justify-end pt-6 border-t border-brand-q">
           <Button
             type="button"
             variant="outline"
@@ -521,6 +505,7 @@ export default function ResourceEditPage() {
           </Button>
         </div>
       </form>
+      </div>
 
       {/* Cancel Confirmation Modal */}
       <ConfirmModal

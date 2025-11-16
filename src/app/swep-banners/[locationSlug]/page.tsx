@@ -7,8 +7,9 @@ import { ROLES } from '@/constants/roles';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { formatSwepActivePeriod, parseSwepBody } from '@/utils/swep';
-import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { errorToast } from '@/utils/toast';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function SwepViewPage() {
   // Check authorization FIRST before any other logic
@@ -55,13 +56,9 @@ export default function SwepViewPage() {
     }
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
@@ -69,32 +66,15 @@ export default function SwepViewPage() {
     return null;
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="py-12">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Error state
   if (error || !swepData) {
     return (
-      <div className="py-12">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">SWEP Banner Not Found</h2>
-          <p className="text-gray-600 mb-6">
-            {error || `No SWEP banner found for ${locationSlug}`}
-          </p>
-          <Button variant="primary" onClick={fetchSwepData}>
-            Try Again
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <ErrorState
+          title="Error Loading SWEP Banner"
+          message={error || `No SWEP banner found for ${locationSlug}`}
+          onRetry={fetchSwepData}
+        />
       </div>
     );
   }

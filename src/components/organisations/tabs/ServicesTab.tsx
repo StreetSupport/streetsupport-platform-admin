@@ -10,6 +10,7 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import AddServiceModal from '@/components/organisations/AddServiceModal';
 import { decodeText } from '@/utils/htmlDecode';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface ServicesTabProps {
   organisation: IOrganisation;
@@ -146,9 +147,7 @@ const ServicesTab: React.FC<ServicesTabProps> = ({ organisation, viewMode = fals
 
           {/* Services List */}
           {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-brand-f">Loading services...</p>
-            </div>
+            <LoadingSpinner />
           ) : services.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-brand-f mb-4">No services found for this organisation.</p>

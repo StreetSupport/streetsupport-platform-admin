@@ -13,6 +13,7 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function NewBannerPage() {
   // Check authorization FIRST before any other logic
@@ -154,11 +155,7 @@ export default function NewBannerPage() {
 
   // Show loading while checking authorization
   if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)

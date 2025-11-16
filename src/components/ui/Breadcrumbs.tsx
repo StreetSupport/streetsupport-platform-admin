@@ -28,7 +28,7 @@ export default function Breadcrumbs({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { bannerTitle } = useBreadcrumb();
+  const { bannerTitle, adviceTitle } = useBreadcrumb();
   
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
@@ -97,6 +97,21 @@ export default function Breadcrumbs({
       return items;
     }
 
+    // Special handling for advice routes - show title instead of ID
+    // Exclude 'Edit' from breadcrumbs (same as SWEP and Resources)
+    if (segments[0] === "advice" && segments.length >= 2 && adviceTitle) {
+      const id = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/advice", label: "Advice" },
+        { href: isEdit ? `/advice/${id}` : undefined, label: adviceTitle, current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for advice (consistent with SWEP and Resources)
+      return items;
+    }
+
     // If not a banner route or no fetched title, fall back to base items
     if (!(segments[0] === "banners" && segments.length >= 2) || !bannerTitle) {
       return baseItems;
@@ -111,7 +126,7 @@ export default function Breadcrumbs({
       { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
     ];
     return items;
-  }, [itemsProp, baseItems, bannerTitle, segments, homePageUrl]);
+  }, [itemsProp, baseItems, bannerTitle, adviceTitle, segments, homePageUrl]);
 
   return (
     <div className="bg-brand-n py-4">

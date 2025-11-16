@@ -2,6 +2,7 @@
 
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function SupportedByPage() {
   // Check authorization FIRST before any other logic
@@ -13,11 +14,7 @@ export default function SupportedByPage() {
 
   // Show loading while checking authorization
   if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
