@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';

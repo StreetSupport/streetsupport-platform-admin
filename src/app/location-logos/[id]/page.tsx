@@ -80,7 +80,7 @@ export default function ViewLocationLogoPage() {
 
       successToast.delete('location logo');
       router.push('/location-logos');
-    } catch (err) {
+    } catch {
       errorToast.delete('location logo');
     }
   };

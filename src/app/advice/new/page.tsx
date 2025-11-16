@@ -138,7 +138,7 @@ export default function NewAdvicePage() {
     router.push('/advice');
   };
 
-  const hasData = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  // const hasData = JSON.stringify(formData) !== JSON.stringify(initialFormData);
   
   // Show loading while checking authorization
   if (isChecking) {

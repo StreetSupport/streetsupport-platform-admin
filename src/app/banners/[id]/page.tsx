@@ -64,7 +64,7 @@ export default function BannerViewPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, isAuthorized]);
+  }, [id, isAuthorized, setBannerTitle]);
 
   useEffect(() => {
     if (isAuthorized) {
@@ -75,7 +75,7 @@ export default function BannerViewPage() {
     return () => {
       setBannerTitle(null);
     };
-  }, [isAuthorized, fetchBanner]);
+  }, [isAuthorized, fetchBanner, setBannerTitle]);
 
   const handleDelete = async () => {
     if (!banner) return;

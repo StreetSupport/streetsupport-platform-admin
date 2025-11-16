@@ -141,7 +141,7 @@ export default function Breadcrumbs({
       { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
     ];
     return items;
-  }, [itemsProp, baseItems, bannerTitle, adviceTitle, segments, homePageUrl]);
+  }, [itemsProp, baseItems, bannerTitle, adviceTitle, logoTitle, segments, homePageUrl]);
 
   return (
     <div className="bg-brand-n py-4">
