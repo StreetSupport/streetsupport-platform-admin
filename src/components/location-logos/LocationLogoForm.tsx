@@ -56,6 +56,15 @@ export default function LocationLogoForm({
     }
   };
 
+  // Generate Name from DisplayName (similar to OrganisationForm)
+  const generateName = (displayName: string): string => {
+    return displayName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -65,6 +74,14 @@ export default function LocationLogoForm({
       ...prev,
       [name]: value
     }));
+
+    // Auto-generate Name from DisplayName
+    if (name === 'DisplayName') {
+      setFormData((prev) => ({
+        ...prev,
+        Name: generateName(value)
+      }));
+    }
 
     // Update location name when location slug changes
     if (name === 'LocationSlug') {
@@ -146,25 +163,6 @@ export default function LocationLogoForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      {/* Name */}
-      <div>
-        <label htmlFor="Name" className="block text-sm font-medium text-brand-k mb-2">
-          Name <span className="text-red-600">*</span>
-        </label>
-        <Input
-          id="Name"
-          name="Name"
-          type="text"
-          value={formData.Name}
-          onChange={handleInputChange}
-          placeholder="Organisation name"
-          disabled={saving}
-        />
-        <p className="text-xs text-brand-f mt-1">
-          Internal reference name for the organisation
-        </p>
-      </div>
-
       {/* Display Name */}
       <div>
         <label htmlFor="DisplayName" className="block text-sm font-medium text-brand-k mb-2">

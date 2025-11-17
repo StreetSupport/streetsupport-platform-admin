@@ -21,7 +21,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'streetsupportstoragestag.blob.core.windows.net',
+        hostname: process.env.BLOB_STORAGE_HOSTNAME,
         port: '',
         pathname: '/**',
       },
