@@ -167,7 +167,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user';
       toastUtils.dismiss(toastId);
       setGeneralError(errorMessage);
-      errorToast.create('user', errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 

@@ -94,7 +94,7 @@ export function AddAccommodationModal({
           errorToast.validation();
         } else {
           setErrorMessage(data.error || 'Failed to save accommodation');
-          errorToast.create('accommodation', data.error);
+          errorToast.generic(data.error);
         }
         return;
       }

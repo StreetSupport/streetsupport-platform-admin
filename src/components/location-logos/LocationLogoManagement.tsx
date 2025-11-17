@@ -109,7 +109,7 @@ export default function LocationLogoManagement() {
         throw new Error(errorData.error || 'Failed to delete location logo');
       }
 
-      successToast.delete('location logo');
+      successToast.delete('Location logo');
       setShowDeleteModal(false);
       setSelectedLogo(null);
       

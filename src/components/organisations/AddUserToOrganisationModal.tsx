@@ -107,7 +107,7 @@ export default function AddUserToOrganisationModal({
       toastUtils.dismiss(toastId);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
       setGeneralError(errorMessage);
-      errorToast.create('user', errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 

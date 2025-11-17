@@ -57,10 +57,10 @@ export default function BannerViewPage() {
       if (data.data?.Title) {
         setBannerTitle(data.data.Title);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
-      setError(errorMessage);
-      errorToast.generic(errorMessage);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load banner';
+      setError(message);
+      errorToast.generic(message);
     } finally {
       setLoading(false);
     }
@@ -101,10 +101,10 @@ export default function BannerViewPage() {
       toastUtils.dismiss(toastId);
       successToast.delete('Banner');
       router.push('/banners');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete banner';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete banner';
       toastUtils.dismiss(toastId);
-      errorToast.delete('banner', errorMessage);
+      errorToast.generic(message);
     } finally {
       setDeleting(false);
     }
@@ -134,10 +134,10 @@ export default function BannerViewPage() {
       
       toastUtils.dismiss(toastId);
       successToast.update('Banner status');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update banner status';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update banner status';
       toastUtils.dismiss(toastId);
-      errorToast.update('banner status', errorMessage);
+      errorToast.generic(message);
     } finally {
       setToggling(false);
     }

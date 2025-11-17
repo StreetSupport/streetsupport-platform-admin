@@ -91,7 +91,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
       toastUtils.dismiss(toastId);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create organisation';
       setError(errorMessage);
-      errorToast.create('organisation', errorMessage);
+      errorToast.generic(errorMessage);
     } finally {
       setSaving(false);
     }

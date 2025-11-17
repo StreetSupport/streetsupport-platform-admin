@@ -41,7 +41,7 @@ export default function CreateLocationLogoPage() {
         throw new Error(errorData.error || 'Failed to create location logo');
       }
 
-      successToast.create('location logo');
+      successToast.create('Location logo');
       router.push('/location-logos');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create location logo';

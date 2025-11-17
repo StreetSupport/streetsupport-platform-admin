@@ -109,9 +109,9 @@ export default function EditBannerPage() {
         throw new Error(result.message || 'Banner not found');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load banner';
-      setError(errorMessage);
-      errorToast.load(errorMessage);
+      const message = error instanceof Error ? error.message : 'Failed to load banner';
+      setError(message);
+      errorToast.generic(message);
     } finally {
       setLoading(false);
     }
@@ -247,10 +247,10 @@ export default function EditBannerPage() {
     toastUtils.dismiss(toastId);
     successToast.update('Banner');
     router.push(`/banners/${bannerId}`);
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update banner';
     toastUtils.dismiss(toastId);
-    errorToast.update('banner', errorMessage);
+    errorToast.generic(message);
   } finally {
     setSaving(false);
   }

@@ -78,7 +78,7 @@ export default function EditLocationLogoPage() {
         throw new Error(errorData.error || 'Failed to update location logo');
       }
 
-      successToast.update('location logo');
+      successToast.update('ocation logo');
       router.push(`/location-logos/${id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update location logo';

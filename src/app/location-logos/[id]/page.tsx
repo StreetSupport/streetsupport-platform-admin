@@ -78,10 +78,10 @@ export default function ViewLocationLogoPage() {
         throw new Error(errorData.error || 'Failed to delete location logo');
       }
 
-      successToast.delete('location logo');
+      successToast.delete('Location logo');
       router.push('/location-logos');
     } catch {
-      errorToast.delete('location logo');
+      errorToast.delete('Location logo');
     }
   };
 

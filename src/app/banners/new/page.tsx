@@ -145,10 +145,10 @@ export default function NewBannerPage() {
       successToast.create('Banner');
       const newId = result?.data?._id || result?._id || result?.data?.id || result?.id;
       router.push(newId ? `/banners/${newId}` : '/banners');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create banner';
       toastUtils.dismiss(toastId);
-      errorToast.create('banner', errorMessage);
+      errorToast.generic(message);
     } finally {
       setSaving(false);
     }
