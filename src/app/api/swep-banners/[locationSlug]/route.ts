@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { proxyResponse, sendError, sendForbidden, sendInternalError } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
@@ -9,10 +10,7 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 const getHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req: NextRequest, context, auth) => {
   try {
     if (!hasApiAccess(auth.session.user.authClaims, '/api/swep-banners', HTTP_METHODS.GET)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const params = await context.params;
@@ -30,19 +28,13 @@ const getHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to fetch SWEP banner' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to fetch SWEP banner');
     }
 
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching SWEP banner:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendForbidden();
   }
 };
 
@@ -50,10 +42,7 @@ const getHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req
 const putHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req: NextRequest, context, auth) => {
   try {
     if (!hasApiAccess(auth.session.user.authClaims, '/api/swep-banners', HTTP_METHODS.PUT)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const params = await context.params;
@@ -75,19 +64,13 @@ const putHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to update SWEP banner' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to update SWEP banner');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error updating SWEP banner:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 };
 
@@ -95,10 +78,7 @@ const putHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req
 const patchHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req: NextRequest, context, auth) => {
   try {
     if (!hasApiAccess(auth.session.user.authClaims, '/api/swep-banners', HTTP_METHODS.PATCH)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const params = await context.params;
@@ -118,19 +98,13 @@ const patchHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (r
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to update SWEP banner status' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to update SWEP banner status');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error updating SWEP banner status:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 };
 

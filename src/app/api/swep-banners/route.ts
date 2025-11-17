@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { getUserSwepLocationSlugs } from '@/utils/locationUtils';
 import { UserAuthClaims } from '@/types/auth';
+import { proxyResponse, sendError, sendForbidden, sendInternalError } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
@@ -12,10 +13,7 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/swep-banners', HTTP_METHODS.GET)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     // Forward query parameters
@@ -46,19 +44,13 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to fetch SWEP banners' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to fetch SWEP banners');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching SWEP banners:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return sendInternalError();
   }
 };
 

@@ -27,7 +27,7 @@
 .banner-thumbnail {
   position: relative;
   height: 128px;
-  background: linear-gradient(135deg, var(--color-brand-a, #38ae8e) 0%, var(--color-brand-b, #0b9b75) 100%);
+  /* background: linear-gradient(135deg, var(--color-brand-a, #38ae8e) 0%, var(--color-brand-b, #0b9b75) 100%); */
   display: flex;
   align-items: center;
   justify-content: center;

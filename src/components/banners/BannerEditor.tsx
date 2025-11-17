@@ -96,9 +96,6 @@ const RESOURCE_TYPES = [
 
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  const minDateTime = now.toISOString().slice(0, 16);
   const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
 
   useEffect(() => {
@@ -374,10 +371,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.Title.trim()) {
-      newErrors.Title = 'Title is required';
-    }
-
     if ((formData.CtaButtons?.length ?? 0) > 0 && (formData.CtaButtons ?? []).some(btn => !btn.Label.trim() || !btn.Url.trim())) {
       newErrors.CtaButtons = 'All CTA buttons must have a label and URL';
     }
@@ -473,11 +466,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             
             <FormField label="Campaign End Date">
               <Input
-                type="datetime-local"
-                min={minDateTime}
+                type="date"
                 value={
                   formData.GivingCampaign?.CampaignEndDate
-                    ? new Date(formData.GivingCampaign.CampaignEndDate).toISOString().slice(0, 16)
+                    ? new Date(formData.GivingCampaign.CampaignEndDate).toISOString().split('T')[0]
                     : ''
                 }
                 onChange={(e) => updateFormData('GivingCampaign.CampaignEndDate', e.target.value ? new Date(e.target.value) : undefined)}
@@ -692,15 +684,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
             <FormField label="Last Updated">
               <Input
-                type="datetime-local"
+                type="date"
                 value={(
                   (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File) && formData.ResourceProject.ResourceFile.LastUpdated)
-                    ? new Date(formData.ResourceProject.ResourceFile.LastUpdated).toISOString().slice(0, 16)
+                    ? new Date(formData.ResourceProject.ResourceFile.LastUpdated).toISOString().slice(0, 10)
                     : ''
                 )}
                 onChange={(e) => {
                   if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
-                    updateFormData('ResourceProject.ResourceFile.LastUpdated', e.target.value ? new Date(e.target.value) : undefined);
+                    const dateValue = e.target.value;
+                    updateFormData('ResourceProject.ResourceFile.LastUpdated', dateValue ? new Date(dateValue) : undefined);
                   }
                 }}
               />
@@ -736,7 +729,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               value={formData.Title}
               onChange={(e) => updateFormData('Title', e.target.value)}
               maxLength={50}
-              required
             />
           </FormField>
           
@@ -1029,7 +1021,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
                 value={formData.LocationSlug}
                 onChange={(e) => updateFormData('LocationSlug', e.target.value)}
-                required
               >
                 <option value="">Select a location...</option>
                 {cities.map(city => (
@@ -1047,40 +1038,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 max={10}
               />
             </FormField>
-          </div>
-          
-          <Checkbox
-            label="Active (visible to users)"
-            checked={formData.IsActive}
-            onChange={(e) => updateFormData('IsActive', (e.target as HTMLInputElement).checked)}
-          />
-
-          <div className="border-t border-brand-q pt-4">
-            <h4 className="heading-6 pb-2">Scheduling</h4>
-            <Checkbox
-              label="Enable visibility date range"
-              checked={formData.ShowDates}
-              onChange={(e) => updateFormData('ShowDates', (e.target as HTMLInputElement).checked)}
-            />
-            {formData.ShowDates && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <FormField label="Start Date">
-                  <Input
-                    type="datetime-local"
-                    value={formData.StartDate ? new Date(formData.StartDate).toISOString().slice(0, 16) : ''}
-                    onChange={(e) => updateFormData('StartDate', e.target.value ? new Date(e.target.value) : undefined)}
-                  />
-                </FormField>
-                <FormField label="End Date">
-                  <Input
-                    type="datetime-local"
-                    min={minDateTime}
-                    value={formData.EndDate ? new Date(formData.EndDate).toISOString().slice(0, 16) : ''}
-                    onChange={(e) => updateFormData('EndDate', e.target.value ? new Date(e.target.value) : undefined)}
-                  />
-                </FormField>
-              </div>
-            )}
           </div>
         </div>
 

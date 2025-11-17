@@ -90,6 +90,41 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
   }
 };
 
+// PATCH /api/banners/[id] - Update banner activation with optional date range
+const patchHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequest, context, auth) => {
+  try {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', HTTP_METHODS.PATCH)) {
+      return sendForbidden();
+    }
+
+    const params = await context.params;
+    const { id } = params;
+    const body = await req.json();
+    const url = `${API_BASE_URL}/api/banners/${id}/toggle-active`;
+
+    const response = await fetch(url, {
+      method: HTTP_METHODS.PATCH,
+      headers: {
+        'Authorization': `Bearer ${auth.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return sendError(response.status, data.error || 'Failed to update banner status');
+    }
+
+    return proxyResponse(data);
+  } catch (error) {
+    console.error('Error updating banner status:', error);
+    return sendInternalError();
+  }
+};
+
 export const GET = withAuth(getHandler);
 export const PUT = withAuth(putHandler);
 export const DELETE = withAuth(deleteHandler);
+export const PATCH = withAuth(patchHandler);

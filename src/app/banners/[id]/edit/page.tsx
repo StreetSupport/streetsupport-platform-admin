@@ -57,8 +57,11 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     
     ResourceProject: banner.ResourceProject ? {
       ...banner.ResourceProject,
-      // Keep existing ResourceFile as IResourceFile
-      ResourceFile: banner.ResourceProject.ResourceFile || null
+      // Keep existing ResourceFile as IResourceFile with proper Date conversion
+      ResourceFile: banner.ResourceProject.ResourceFile ? {
+        ...banner.ResourceProject.ResourceFile,
+        LastUpdated: banner.ResourceProject.ResourceFile.LastUpdated ? new Date(banner.ResourceProject.ResourceFile.LastUpdated) : undefined
+      } : null
     } : undefined,
   };
 }

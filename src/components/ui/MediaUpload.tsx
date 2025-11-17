@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from './Button';
 import { FileUpload } from './FileUpload';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
@@ -103,11 +104,14 @@ export function MediaUpload({
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
                 {accept.includes('image') ? (
-                  <img 
-                    src={getPreviewUrl(value)} 
-                    alt={getDisplayName(value)}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
+                  <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                    <Image 
+                      src={getPreviewUrl(value)} 
+                      alt={getDisplayName(value)}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                     <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -193,11 +197,14 @@ export function MediaArrayUpload({
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {accept.includes('image') ? (
-                      <img 
-                        src={getPreviewUrl(item)} 
-                        alt={getDisplayName(item)}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                        <Image 
+                          src={getPreviewUrl(item)} 
+                          alt={getDisplayName(item)}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                         <ImageIcon className="w-8 h-8 text-gray-400" />

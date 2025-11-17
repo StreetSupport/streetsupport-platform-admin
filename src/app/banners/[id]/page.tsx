@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import ActivateBannerModal from '@/components/banners/ActivateBannerModal';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
@@ -33,6 +34,7 @@ export default function BannerViewPage() {
   const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
   const { setBannerTitle } = useBreadcrumb();
 
   const fetchBanner = useCallback(async () => {
@@ -110,18 +112,23 @@ export default function BannerViewPage() {
     }
   };
 
-  const handleToggleActive = async () => {
+  const handleToggleActive = async (bannerId: string, isActive: boolean, startDate?: Date, endDate?: Date) => {
     if (!banner) return;
 
     const toastId = loadingToast.update('banner status');
     setToggling(true);
     
     try {
-      const response = await authenticatedFetch(`/api/banners/${id}/toggle`, {
+      const response = await authenticatedFetch(`/api/banners/${bannerId}`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          IsActive: isActive,
+          StartDate: startDate,
+          EndDate: endDate
+        })
       });
 
       if (!response.ok) {
@@ -138,9 +145,14 @@ export default function BannerViewPage() {
       const message = error instanceof Error ? error.message : 'Failed to update banner status';
       toastUtils.dismiss(toastId);
       errorToast.generic(message);
+      throw error; // Re-throw for modal error handling
     } finally {
       setToggling(false);
     }
+  };
+
+  const handleOpenActivateModal = () => {
+    setShowActivateModal(true);
   };
   
   // Transform IBanner to IBannerFormData for preview
@@ -169,9 +181,7 @@ export default function BannerViewPage() {
     return d.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
 
@@ -206,7 +216,7 @@ export default function BannerViewPage() {
               pageType='view'
               banner={banner}
               onDelete={handleDelete}
-              onToggleActive={handleToggleActive}
+              onToggleActive={handleOpenActivateModal}
               isToggling={toggling}
               isDeleting={deleting}
             />
@@ -463,6 +473,14 @@ export default function BannerViewPage() {
             variant="danger"
             confirmLabel="Delete"
             cancelLabel="Cancel"
+          />
+
+          {/* Activate/Deactivate Modal */}
+          <ActivateBannerModal
+            banner={banner}
+            isOpen={showActivateModal}
+            onClose={() => setShowActivateModal(false)}
+            onActivate={handleToggleActive}
           />
       </div>
     </div>

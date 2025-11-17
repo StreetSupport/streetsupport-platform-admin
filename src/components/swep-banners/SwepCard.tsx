@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { Button } from '@/components/ui/Button';
-import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 interface SwepCardProps {
@@ -32,11 +33,12 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
     <div className={`card card-compact ${isLoading ? 'loading-card' : ''}`}>
       {/* Image Preview */}
       {swep.Image && (
-        <div className="w-full h-48 bg-brand-q overflow-hidden">
-          <img 
+        <div className="w-full h-48 bg-brand-q overflow-hidden relative">
+          <Image 
             src={swep.Image} 
             alt={swep.Title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         </div>
       )}
@@ -66,28 +68,21 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
               <Edit className="w-4 h-4" />
             </Button>
           </Link>
-        </div>
 
-        {/* Action Buttons - Second Row */}
-        <div className="flex items-center gap-2 mb-4">
           <Button
             variant="outline"
             size="sm"
             onClick={handleActivate}
             disabled={isLoading}
             title={swep.IsActive ? 'Deactivate SWEP banner' : 'Activate SWEP banner'}
-            className={`flex-1 ${swep.IsActive ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}`}
+            className={swep.IsActive ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}
           >
-            {swep.IsActive ? (
-              <>
-                <XCircle className="w-4 h-4 mr-2" />
-                Deactivate
-              </>
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+            ) : swep.IsActive ? (
+              <EyeOff className="w-4 h-4" />
             ) : (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Activate
-              </>
+              <Eye className="w-4 h-4" />
             )}
           </Button>
         </div>
@@ -113,7 +108,13 @@ const SwepCard = React.memo(function SwepCard({ swep, onActivate, isLoading = fa
         </p>
 
         {/* Date Range Display - Only show if scheduled or SwepActiveUntil is in future */}
-        {swep.SwepActiveFrom && swep.SwepActiveUntil && new Date(swep.SwepActiveUntil) > new Date() && (
+        {swep.SwepActiveFrom && swep.SwepActiveUntil && (() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const endDate = new Date(swep.SwepActiveUntil);
+          endDate.setHours(0, 0, 0, 0);
+          return endDate >= today;
+        })() && (
           <div className="mb-4 p-3 bg-brand-q rounded-lg">
             <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
               <Calendar className="w-3 h-3" />

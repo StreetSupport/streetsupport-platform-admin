@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 import { ISwepBanner, ISwepBannerFormData } from '@/types/swep-banners/ISwepBanner';
@@ -218,10 +219,11 @@ export default function SwepEditPage() {
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">Current Image:</p>
               <div className="relative w-full aspect-[16/9] border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
-                <img
-                  src={imagePreview || swep?.Image}
+                <Image
+                  src={imagePreview || swep?.Image || ''}
                   alt="SWEP Banner"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
               {/* Remove Existing Image Button */}
@@ -423,4 +425,3 @@ export default function SwepEditPage() {
     </div>
   );
 }
-

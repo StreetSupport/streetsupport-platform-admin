@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
@@ -108,11 +109,12 @@ export default function SwepViewPage() {
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-6">
           {swepData.Image && (
-            <div className="mb-8">
-              <img 
+            <div className="bg-white rounded-lg overflow-hidden relative w-full mb-8" style={{minHeight: '400px'}}>
+              <Image 
                 src={swepData.Image} 
                 alt={`SWEP information for ${swepData.LocationName || locationSlug}`}
-                className="w-full h-auto object-contain rounded-lg shadow-md"
+                fill
+                className="rounded-lg shadow-md"
               />
             </div>
           )}

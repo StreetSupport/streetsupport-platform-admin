@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import ActivateBannerModal from '@/components/banners/ActivateBannerModal';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FiltersSection } from '@/components/ui/FiltersSection';
 import { Plus } from 'lucide-react';
@@ -43,9 +44,11 @@ export default function BannersListPage() {
   const [total, setTotal] = useState(0);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
   const [bannerToDelete, setBannerToDelete] = useState<IBanner | null>(null);
-  
-  const limit = 5;
+  const [bannerToActivate, setBannerToActivate] = useState<IBanner | null>(null);
+
+  const limit = 9;
   
   // Only run effects if authorized
   useEffect(() => {
@@ -59,7 +62,7 @@ export default function BannersListPage() {
       fetchBanners();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthorized, currentPage, searchTerm, templateFilter, statusFilter, locationFilter, limit]);
+  }, [isAuthorized, currentPage, searchTerm, templateFilter, statusFilter, locationFilter]);
 
   const fetchBanners = async () => {
     try {
@@ -169,16 +172,29 @@ export default function BannersListPage() {
     }
   };
 
-  const handleToggleActive = async (banner: IBanner) => {
+  const handleOpenActivateModal = (bannerId: string) => {
+    const banner = banners.find(b => b._id === bannerId);
+    if (banner) {
+      setBannerToActivate(banner);
+      setShowActivateModal(true);
+    }
+  };
+
+  const handleToggleActive = async (bannerId: string, isActive: boolean, startDate?: Date, endDate?: Date) => {
     const toastId = loadingToast.update('banner status');
-    setTogglingId(banner._id);
+    setTogglingId(bannerId);
     
     try {
-      const response = await authenticatedFetch(`/api/banners/${banner._id}/toggle`, {
+      const response = await authenticatedFetch(`/api/banners/${bannerId}`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          IsActive: isActive,
+          StartDate: startDate,
+          EndDate: endDate
+        })
       });
 
       if (!response.ok) {
@@ -190,15 +206,18 @@ export default function BannersListPage() {
       
       // Update the banner in the local state
       setBanners(prevBanners => 
-        prevBanners.map(b => b._id === banner._id ? result.data : b)
+        prevBanners.map(b => b._id === bannerId ? result.data : b)
       );
       
       toastUtils.dismiss(toastId);
       successToast.update('Banner status');
+      setShowActivateModal(false);
+      setBannerToActivate(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update banner status';
       toastUtils.dismiss(toastId);
       errorToast.update('banner status', errorMessage);
+      throw err; // Re-throw for modal error handling
     } finally {
       setTogglingId(null);
     }
@@ -310,7 +329,7 @@ export default function BannersListPage() {
                   key={banner._id}
                   banner={banner}
                   onDelete={handleDelete}
-                  onToggleActive={handleToggleActive}
+                  onToggleActive={handleOpenActivateModal}
                   isToggling={togglingId === banner._id}
                 />
               ))}
@@ -344,6 +363,19 @@ export default function BannersListPage() {
           confirmLabel="Delete"
           cancelLabel="Cancel"
         />
+
+        {/* Activate/Deactivate Modal */}
+        {bannerToActivate && (
+          <ActivateBannerModal
+            banner={bannerToActivate}
+            isOpen={showActivateModal}
+            onClose={() => {
+              setShowActivateModal(false);
+              setBannerToActivate(null);
+            }}
+            onActivate={handleToggleActive}
+          />
+        )}
     </div>
   );
 }

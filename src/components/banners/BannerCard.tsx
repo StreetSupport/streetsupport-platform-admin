@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -11,7 +12,7 @@ interface BannerCardProps {
   banner: IBanner;
   isLoading?: boolean;
   onDelete?: (banner: IBanner) => void;
-  onToggleActive?: (banner: IBanner) => void;
+  onToggleActive?: (bannerId: string) => void;
   isToggling?: boolean;
 }
 
@@ -58,46 +59,14 @@ const BannerCard = React.memo(function BannerCard({
     }
   };
 
-  const handleToggleActive = (e: React.MouseEvent) => {
+  const handleOpenActivateModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const today = new Date();
-    const startDate = banner.StartDate ? new Date(banner.StartDate) : null;
-    const endDate = banner.EndDate ? new Date(banner.EndDate) : null;
-    const activating = !banner.IsActive;
-
-    let alertMessage = '';
-
-    if (activating) {
-      // Warn if activating outside the allowed window (only when that boundary exists)
-      const beforeStart = startDate && today < startDate;
-      const afterEnd = endDate && today > endDate;
-      if (beforeStart || afterEnd) {
-        alertMessage = 'You are activating a banner that is outside its scheduled date range. Are you sure you want to activate it now?';
-      }
-    } else {
-      // Deactivating: warn if currently within the effective active window
-      const notBeforeStart = !startDate || today >= startDate;
-      const notAfterEnd = !endDate || today <= endDate;
-      if (notBeforeStart && notAfterEnd) {
-        alertMessage = 'You are deactivating a banner that is currently within its scheduled date range. Are you sure?';
-      }
-    }
-
-    if (alertMessage) {
-      setConfirmConfig({
-        message: alertMessage,
-        onConfirm: () => {
-          setShowConfirmModal(false);
-          onToggleActive?.(banner);
-        }
-      });
-      setShowConfirmModal(true);
-    } else {
-      onToggleActive?.(banner);
+    if (onToggleActive) {
+      onToggleActive(banner._id);
     }
   };
+
 
   // Template-specific stats
   const renderTemplateStats = () => {
@@ -175,13 +144,22 @@ const BannerCard = React.memo(function BannerCard({
   return (
     <div className={`card card-compact ${isLoading ? 'loading-card' : ''}`}>
       {/* Banner Preview/Thumbnail */}
-      <div className="banner-thumbnail relative h-32 bg-gradient-to-r from-brand-a to-brand-b flex items-center justify-center overflow-hidden rounded-t-lg">
+      <div 
+        className="banner-thumbnail relative h-32 flex items-center justify-center overflow-hidden"
+        style={{
+          backgroundColor: banner.Background?.Type === 'solid' ? banner.Background.Value : undefined,
+          backgroundImage: banner.Background?.Type === 'gradient' ? `linear-gradient(${banner.Background.Value})` : undefined
+        }}
+      >
         {banner.Logo?.Url && (
-          <img
-            src={banner.Logo.Url}
-            alt={banner.Logo.Alt || 'Banner logo'}
-            className="h-16 w-auto object-contain z-10"
-          />
+          <div className="relative h-16 w-32 z-10">
+            <Image
+              src={banner.Logo.Url}
+              alt={banner.Logo.Alt || 'Banner logo'}
+              fill
+              className="object-contain"
+            />
+          </div>
         )}
         
         {/* Background Image if available */}
@@ -223,11 +201,17 @@ const BannerCard = React.memo(function BannerCard({
               View
             </Button>
           </Link>
-          
+
+          <Link href={`/banners/${banner._id}/edit`}>
+            <Button variant="secondary" size="sm" title="Edit banner">
+              <Edit className="w-4 h-4" />
+            </Button>
+          </Link>
+
           <Button
             variant="outline"
             size="sm"
-            onClick={handleToggleActive}
+            onClick={handleOpenActivateModal}
             disabled={isToggling}
             title={banner.IsActive ? 'Deactivate banner' : 'Activate banner'}
             className={banner.IsActive ? 'text-brand-g border-brand-g hover:bg-brand-g hover:text-white' : 'text-brand-b border-brand-b hover:bg-brand-b hover:text-white'}
@@ -240,12 +224,6 @@ const BannerCard = React.memo(function BannerCard({
               <Eye className="w-4 h-4" />
             )}
           </Button>
-          
-          <Link href={`/banners/${banner._id}/edit`}>
-            <Button variant="secondary" size="sm" title="Edit banner">
-              <Edit className="w-4 h-4" />
-            </Button>
-          </Link>
           
           <Button
             variant="outline"
@@ -292,25 +270,34 @@ const BannerCard = React.memo(function BannerCard({
           </div>
         )}
 
-        {/* Dates */}
-        {(banner.StartDate || banner.EndDate) && (
-          <div className="text-xs text-brand-f mb-4 space-y-1">
-            {banner.StartDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-brand-b" />
-                <span>Starts: {formatDate(banner.StartDate)}</span>
-              </div>
-            )}
-            {banner.EndDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-brand-g" />
-                <span>Ends: {formatDate(banner.EndDate)}</span>
-              </div>
-            )}
+        {/* Date Range Display - Only show if scheduled or EndDate is in future */}
+        {banner.StartDate && banner.EndDate && (() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const endDate = new Date(banner.EndDate);
+          endDate.setHours(0, 0, 0, 0);
+          return endDate >= today;
+        })() && (
+          <div className="mb-4 p-3 bg-brand-q rounded-lg">
+            <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
+              <Calendar className="w-3 h-3" />
+              <span>Scheduled Activation</span>
+            </div>
+            <div className="text-sm font-medium text-brand-k">
+              {formatDate(banner.StartDate)}
+            </div>
+            <div className="text-xs text-brand-f">until</div>
+            <div className="text-sm font-medium text-brand-k">
+              {formatDate(banner.EndDate)}
+            </div>
           </div>
         )}
 
-        <div className="text-xs text-brand-f">
+        <div className="text-xs text-brand-f space-y-1">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            <span>Created: {formatDate(banner.DocumentCreationDate)}</span>
+          </div>
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             <span>Modified: {formatDate(banner.DocumentModifiedDate)}</span>
@@ -323,14 +310,15 @@ const BannerCard = React.memo(function BannerCard({
         <ConfirmModal
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
-          onConfirm={confirmConfig.onConfirm}
+          onConfirm={confirmConfig?.onConfirm || (() => {})}
           title="Confirm Action"
-          message={confirmConfig.message}
-          variant="warning"
+          message={confirmConfig?.message || ''}
+          variant="danger"
           confirmLabel="Confirm"
           cancelLabel="Cancel"
         />
       )}
+
     </div>
   );
 });

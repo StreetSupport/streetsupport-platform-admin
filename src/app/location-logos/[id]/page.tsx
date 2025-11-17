@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -138,11 +139,12 @@ export default function ViewLocationLogoPage() {
           <div className="bg-white rounded-lg border border-brand-q p-6">
             <h2 className="heading-5 mb-6 border-b border-brand-q pb-4">Logo Preview</h2>
             <div className="bg-brand-q p-8 flex items-center justify-center rounded-lg">
-              <div className="relative w-full max-w-md">
-                <img 
+              <div className="relative w-full max-w-md h-64">
+                <Image 
                   src={logo.LogoPath} 
                   alt={logo.DisplayName}
-                  className="object-contain w-full max-h-64"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>

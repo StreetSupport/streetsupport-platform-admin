@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { ILocationLogo } from '@/types/ILocationLogo';
 import { Button } from '@/components/ui/Button';
 import { Eye, Edit, Trash2, ExternalLink, MapPin, Calendar } from 'lucide-react';
@@ -31,11 +32,12 @@ const LocationLogoCard = React.memo(function LocationLogoCard({ logo, onDelete }
     <div className="card card-compact">
       {/* Logo Preview */}
       {logo.LogoPath && (
-        <div className="w-full h-48 bg-brand-q overflow-hidden">
-          <img 
+        <div className="w-full h-48 bg-brand-q overflow-hidden relative">
+          <Image 
             src={logo.LogoPath} 
             alt={logo.DisplayName}
-            className="w-full h-full object-contain p-4"
+            fill
+            className="object-contain p-4"
           />
         </div>
       )}

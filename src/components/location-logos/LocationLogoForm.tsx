@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { LocationLogoFormData, validateLocationLogo, transformErrorPath } from '@/schemas/locationLogoSchema';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -235,11 +236,12 @@ export default function LocationLogoForm({
         {logoPreview ? (
           <div className="space-y-3">
             <div className="relative inline-block">
-              <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
-                <img 
+              <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-200 relative" style={{width: '300px', height: '180px'}}>
+                <Image 
                   src={logoPreview} 
                   alt="Logo preview"
-                  className="object-contain max-h-40 max-w-full"
+                  fill
+                  className="object-contain"
                 />
               </div>
               {!saving && (
@@ -272,7 +274,7 @@ export default function LocationLogoForm({
               />
             </label>
             <p className="text-xs text-brand-f mt-2">
-              PNG, JPG, SVG up to 2MB
+              PNG, JPG, SVG up to 5MB
             </p>
           </div>
         )}

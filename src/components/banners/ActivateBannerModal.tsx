@@ -1,21 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
+import { IBanner } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
-interface ActivateSwepModalProps {
-  swep: ISwepBanner;
+interface ActivateBannerModalProps {
+  banner: IBanner;
   isOpen: boolean;
   onClose: () => void;
-  onActivate: (locationSlug: string, isActive: boolean, swepActiveFrom?: Date, swepActiveUntil?: Date) => Promise<void>;
+  onActivate: (bannerId: string, isActive: boolean, startDate?: Date, endDate?: Date) => Promise<void>;
 }
 
-export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }: ActivateSwepModalProps) {
+export default function ActivateBannerModal({ banner, isOpen, onClose, onActivate }: ActivateBannerModalProps) {
   const [activationType, setActivationType] = useState<'immediate' | 'scheduled'>('immediate');
-  const [swepActiveFrom, setSwepActiveFrom] = useState<string>('');
-  const [swepActiveUntil, setSwepActiveUntil] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,23 +29,23 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
   const handleDeactivateConfirm = async () => {
     try {
       setIsSubmitting(true);
-      await onActivate(swep.LocationSlug, false, undefined, undefined);
+      await onActivate(banner._id, false, undefined, undefined);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to deactivate SWEP banner');
+      setError(err instanceof Error ? err.message : 'Failed to deactivate banner');
       setIsSubmitting(false);
     }
   };
 
   // Show deactivate confirm modal if banner is active
-  if (isOpen && swep.IsActive) {
+  if (isOpen && banner.IsActive) {
     return (
       <ConfirmModal
         isOpen={true}
         onClose={onClose}
         onConfirm={handleDeactivateConfirm}
-        title="Deactivate SWEP Banner"
-        message={`${swep.LocationName} - ${swep.Title}.\n\nAre you sure you want to deactivate this SWEP banner? The banner will no longer be visible to users seeking help.`}
+        title="Deactivate Banner"
+        message={`${banner.Title}.\n\nAre you sure you want to deactivate this banner? The banner will no longer be visible to users.`}
         variant="warning"
         confirmLabel="Deactivate"
         cancelLabel="Cancel"
@@ -62,7 +62,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
 
     // Validation
     if (activationType === 'scheduled') {
-      if (!swepActiveFrom || !swepActiveUntil) {
+      if (!startDate || !endDate) {
         setError('Please select both start and end dates for scheduled activation');
         return;
       }
@@ -70,10 +70,10 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const fromDate = new Date(swepActiveFrom);
+      const fromDate = new Date(startDate);
       fromDate.setHours(0, 0, 0, 0);
       
-      const untilDate = new Date(swepActiveUntil);
+      const untilDate = new Date(endDate);
       untilDate.setHours(0, 0, 0, 0);
       
       if (fromDate < today) {
@@ -97,20 +97,20 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
       
       if (activationType === 'immediate') {
         // Immediate activation: isActive = true, clear date range
-        await onActivate(swep.LocationSlug, true, undefined, undefined);
+        await onActivate(banner._id, true, undefined, undefined);
       } else {
         // Scheduled activation: isActive = false, set date range
         await onActivate(
-          swep.LocationSlug,
+          banner._id,
           false,
-          new Date(swepActiveFrom),
-          new Date(swepActiveUntil)
+          new Date(startDate),
+          new Date(endDate)
         );
       }
       
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to activate SWEP banner');
+      setError(err instanceof Error ? err.message : 'Failed to activate banner');
     } finally {
       setIsSubmitting(false);
     }
@@ -120,8 +120,8 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
     if (!isSubmitting) {
       setError(null);
       setActivationType('immediate');
-      setSwepActiveFrom('');
-      setSwepActiveUntil('');
+      setStartDate('');
+      setEndDate('');
       onClose();
     }
   };
@@ -137,17 +137,17 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
             <h2 className="heading-4">
-              {swep.IsActive ? 'Deactivate' : 'Activate'} SWEP Banner
+              {banner.IsActive ? 'Deactivate' : 'Activate'} Banner
             </h2>
           </div>
 
           {/* Content */}
           <div className="p-4 sm:p-6">
             <p className="text-sm text-brand-l mb-4">
-              {swep.LocationName} - {swep.Title}
+              {banner.Title}
             </p>
 
-            {swep.IsActive ? null : (
+            {banner.IsActive ? null : (
             // Activation form
             <form onSubmit={handleSubmit}>
               {/* Activation Type Selection */}
@@ -188,12 +188,12 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
                 <div className="space-y-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Active From <span className="text-brand-g">*</span>
+                      Start Date <span className="text-brand-g">*</span>
                     </label>
                     <input
                       type="date"
-                      value={swepActiveFrom}
-                      onChange={(e) => setSwepActiveFrom(e.target.value)}
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
                       min={getTodayString()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
                       required={activationType === 'scheduled'}
@@ -204,12 +204,12 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Active Until <span className="text-brand-g">*</span>
+                      End Date <span className="text-brand-g">*</span>
                     </label>
                     <input
                       type="date"
-                      value={swepActiveUntil}
-                      onChange={(e) => setSwepActiveUntil(e.target.value)}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
                       min={getTodayString()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
                       required={activationType === 'scheduled'}
@@ -232,8 +232,8 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-xs text-blue-800">
                   {activationType === 'immediate' 
-                    ? 'The SWEP banner will be visible immediately and remain active until manually deactivated.'
-                    : 'The SWEP banner will automatically activate and deactivate based on the selected date range.'}
+                    ? 'The banner will be visible immediately and remain active until manually deactivated.'
+                    : 'The banner will automatically activate and deactivate based on the selected date range.'}
                 </p>
               </div>
 
