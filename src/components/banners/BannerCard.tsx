@@ -24,10 +24,10 @@ const BannerCard = React.memo(function BannerCard({
   isToggling = false
 }: BannerCardProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmConfig, setConfirmConfig] = useState<{
-    message: string;
-    onConfirm: () => void;
-  } | null>(null);
+  // const [confirmConfig, setConfirmConfig] = useState<{
+  //   message: string;
+  //   onConfirm: () => void;
+  // } | null>(null);
 
   const getTemplateTypeLabel = (type: BannerTemplateType): string => {
     switch (type) {

@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { Button } from '@/components/ui/Button';
-import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle, EyeOff } from 'lucide-react';
+import { Edit, Calendar, MapPin, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 interface SwepCardProps {
