@@ -6,7 +6,7 @@ import { sendError, sendForbidden, sendInternalError, proxyResponse } from '@/ut
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 import { UserAuthClaims } from '@/types/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL;
 
 // GET /api/advice - Get all advice items with filtering and pagination
 const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, auth) => {

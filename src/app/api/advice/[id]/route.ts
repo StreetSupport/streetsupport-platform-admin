@@ -4,7 +4,7 @@ import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { sendError, sendForbidden, sendInternalError, proxyResponse } from '@/utils/apiResponses';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.API_BASE_URL;
 
 type RouteParams = {
   id: string;
