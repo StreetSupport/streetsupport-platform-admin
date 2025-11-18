@@ -23,7 +23,7 @@ const BannerCard = React.memo(function BannerCard({
   onToggleActive,
   isToggling = false
 }: BannerCardProps) {
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // const [showConfirmModal, setShowConfirmModal] = useState(false);
   // const [confirmConfig, setConfirmConfig] = useState<{
   //   message: string;
   //   onConfirm: () => void;
@@ -306,7 +306,7 @@ const BannerCard = React.memo(function BannerCard({
       </div>
 
       {/* Confirmation Modal */}
-      {showConfirmModal && confirmConfig && (
+      {/* {showConfirmModal && confirmConfig && (
         <ConfirmModal
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
@@ -317,7 +317,7 @@ const BannerCard = React.memo(function BannerCard({
           confirmLabel="Confirm"
           cancelLabel="Cancel"
         />
-      )}
+      )} */}
 
     </div>
   );
