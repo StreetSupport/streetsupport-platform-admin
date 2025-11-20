@@ -6,6 +6,7 @@ import { LocationLogoFormData, validateLocationLogo, transformErrorPath } from '
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import { FormField } from '@/components/ui/FormField';
 import { Upload, X } from 'lucide-react';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 
@@ -165,10 +166,7 @@ export default function LocationLogoForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       {/* Display Name */}
-      <div>
-        <label htmlFor="DisplayName" className="block text-sm font-medium text-brand-k mb-2">
-          Display Name <span className="text-red-600">*</span>
-        </label>
+      <FormField label="Display Name" required>
         <Input
           id="DisplayName"
           name="DisplayName"
@@ -181,13 +179,10 @@ export default function LocationLogoForm({
         <p className="text-xs text-brand-f mt-1">
           This is the public-facing name shown on the website
         </p>
-      </div>
+      </FormField>
 
       {/* Location */}
-      <div>
-        <label htmlFor="LocationSlug" className="block text-sm font-medium text-brand-k mb-2">
-          Location <span className="text-red-600">*</span>
-        </label>
+      <FormField label="Location" required>
         <select
           id="LocationSlug"
           name="LocationSlug"
@@ -206,13 +201,10 @@ export default function LocationLogoForm({
         <p className="text-xs text-brand-f mt-1">
           The location/city where this supporter is active
         </p>
-      </div>
+      </FormField>
 
       {/* URL */}
-      <div>
-        <label htmlFor="Url" className="block text-sm font-medium text-brand-k mb-2">
-          Website URL <span className="text-red-600">*</span>
-        </label>
+      <FormField label="Website URL" required>
         <Input
           id="Url"
           name="Url"
@@ -225,13 +217,10 @@ export default function LocationLogoForm({
         <p className="text-xs text-brand-f mt-1">
           The organisation&apos;s website URL (must start with https:// or http://)
         </p>
-      </div>
+      </FormField>
 
       {/* Logo Upload */}
-      <div>
-        <label className="block text-sm font-medium text-brand-k mb-2">
-          Logo {!isEdit && <span className="text-red-600">*</span>}
-        </label>
+      <FormField label="Logo" required>
         
         {logoPreview ? (
           <div className="space-y-3">
@@ -259,7 +248,7 @@ export default function LocationLogoForm({
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-brand-a transition-colors">
             <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <label htmlFor="logo" className={`cursor-pointer ${saving ? 'pointer-events-none opacity-50' : ''}`}>
+            <label htmlFor="logo" className={`cursor-pointer field-label ${saving ? 'pointer-events-none opacity-50' : ''}`}>
               <span className="text-sm text-brand-a hover:text-brand-b font-medium">
                 Click to upload
               </span>
@@ -278,7 +267,7 @@ export default function LocationLogoForm({
             </p>
           </div>
         )}
-      </div>
+      </FormField>
 
       {/* Validation Errors */}
       <ErrorDisplay ValidationErrors={validationErrors} />

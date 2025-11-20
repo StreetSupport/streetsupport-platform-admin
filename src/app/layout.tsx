@@ -11,7 +11,7 @@ import { Toaster } from 'react-hot-toast';
 import { BreadcrumbProvider } from '@/contexts/BreadcrumbContext';
 
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

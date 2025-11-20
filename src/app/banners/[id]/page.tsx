@@ -223,13 +223,12 @@ export default function BannerViewPage() {
           }
         />
 
-        <div className="page-container section-spacing padding-top-zero">
-          
-          {/* Banner Preview */}
-          <div className="mb-8 py-8">
-            <BannerPreview data={transformForPreview(banner)} />
-          </div>
+        {/* Full-width Preview at Top - Outside page-container */}
+        <div className="mb-8">
+          <BannerPreview data={transformForPreview(banner)} />
+        </div>
 
+        <div className="page-container section-spacing padding-top-zero">
           {/* Banner Details */}
           <div className="bg-white rounded-lg border border-brand-q p-6">
             <h2 className="heading-5 mb-6">Banner Details</h2>
@@ -280,7 +279,7 @@ export default function BannerViewPage() {
                   {banner.LocationSlug && (
                     <div>
                       <dt className="text-small font-medium text-brand-k">Location</dt>
-                      <dd className="text-base text-brand-l">{banner.LocationSlug}</dd>
+                      <dd className="text-base text-brand-l">{banner.LocationName}</dd>
                     </div>
                   )}
                 </dl>

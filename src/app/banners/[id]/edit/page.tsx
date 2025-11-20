@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { validateBannerForm } from '@/schemas/bannerSchema';
+import { validateBannerForm, transformErrorPath } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
@@ -33,6 +33,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     Priority: banner.Priority,
     TrackingContext: banner.TrackingContext,
     LocationSlug: banner.LocationSlug || '',
+    LocationName: banner.LocationName || '',
     BadgeText: banner.BadgeText || '',
     StartDate: banner.StartDate ? new Date(banner.StartDate) : undefined,
     EndDate: banner.EndDate ? new Date(banner.EndDate) : undefined,
@@ -60,7 +61,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
       // Keep existing ResourceFile as IResourceFile with proper Date conversion
       ResourceFile: banner.ResourceProject.ResourceFile ? {
         ...banner.ResourceProject.ResourceFile,
-        LastUpdated: banner.ResourceProject.ResourceFile.LastUpdated ? new Date(banner.ResourceProject.ResourceFile.LastUpdated) : undefined
+        LastUpdated: new Date(banner.ResourceProject.ResourceFile.LastUpdated)
       } : null
     } : undefined,
   };
@@ -144,7 +145,12 @@ export default function EditBannerPage() {
     // Client-side validation using Zod
     const validation = validateBannerForm(data);
     if (!validation.success) {
-      setValidationErrors(validation.errors);
+      // Transform error paths for better user-friendly messages
+      const transformedErrors = validation.errors.map(error => ({
+        ...error,
+        path: transformErrorPath(error.path)
+      }));
+      setValidationErrors(transformedErrors);
       toastUtils.dismiss(toastId);
       errorToast.validation('Please fix the validation errors below');
       return;
@@ -286,14 +292,14 @@ return (
     <PageHeader title="Edit Banner" />
     <BannerPageHeader pageType="edit" />
 
-    <div className="page-container section-spacing padding-top-zero">
-      {/* Full-width Preview at Top */}
-      <div className="mb-8 py-8">
-        {bannerData && (
-          <BannerPreview data={bannerData} />
-        )}
-      </div>
+    {/* Full-width Preview at Top - Outside page-container */}
+    <div className="mb-10">
+      {bannerData && (
+        <BannerPreview data={bannerData} />
+      )}
+    </div>
 
+    <div className="page-container section-spacing padding-top-zero">
       <div className="space-y-6">
         <BannerEditor
           initialData={initialFormData}

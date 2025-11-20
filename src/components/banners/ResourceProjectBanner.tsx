@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import type { PublicBackground, PublicCTAButton } from '@/types/banners/PreviewTypes';
+import { CTAVariant, LayoutStyle, ResourceType } from '@/types';
 
 // Banner utility functions adapted for admin preview (same as other components)
 function generateBackgroundClasses(background: PublicBackground): string {
@@ -55,11 +56,11 @@ function generateTextColourClasses(textColour: string): string {
 
 function generateLayoutClasses(layoutStyle: string): string {
   switch (layoutStyle) {
-    case 'split':
+    case LayoutStyle.SPLIT:
       return 'grid md:grid-cols-2 gap-8 items-center';
-    case 'full-width':
+    case LayoutStyle.FULL_WIDTH:
       return 'text-center';
-    case 'card':
+    case LayoutStyle.CARD:
       return 'max-w-4xl mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8';
     default:
       return '';
@@ -67,25 +68,25 @@ function generateLayoutClasses(layoutStyle: string): string {
 }
 
 function generateCTAClasses(button: PublicCTAButton, textColour: string): string {
-  const { variant = 'primary' } = button;
+  const { variant = CTAVariant.PRIMARY } = button;
   let baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer';
   
   switch (variant) {
-    case 'primary':
+    case CTAVariant.PRIMARY:
       if (textColour === 'white') {
         baseClasses += ' bg-white text-gray-900 hover:bg-gray-100 focus:ring-white';
       } else {
         baseClasses += ' bg-brand-a text-white hover:bg-brand-b focus:ring-brand-a';
       }
       break;
-    case 'secondary':
+    case CTAVariant.SECONDARY:
       if (textColour === 'white') {
         baseClasses += ' bg-white/20 text-white border border-white/40 hover:bg-white/30 focus:ring-white';
       } else {
         baseClasses += ' bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500';
       }
       break;
-    case 'outline':
+    case CTAVariant.OUTLINE:
       if (textColour === 'white') {
         baseClasses += ' border-2 border-white text-white hover:bg-white hover:text-gray-900 focus:ring-white';
       } else {
@@ -117,15 +118,15 @@ function generateCTAClasses(button: PublicCTAButton, textColour: string): string
 
 function getResourceTypeLabel(type?: string): string {
   switch (type) {
-    case 'guide':
+    case ResourceType.GUIDE:
       return 'User Guide';
-    case 'toolkit':
+    case ResourceType.TOOLKIT:
       return 'Toolkit';
-    case 'research':
+    case ResourceType.RESEARCH:
       return 'Research';
-    case 'training':
+    case ResourceType.TRAINING:
       return 'Training Material';
-    case 'event':
+    case ResourceType.EVENT:
       return 'Event';
     default:
       return 'Resource';
@@ -134,15 +135,15 @@ function getResourceTypeLabel(type?: string): string {
 
 function getResourceTypeIcon(type?: string): string {
   switch (type) {
-    case 'guide':
+    case ResourceType.GUIDE:
       return '📖';
-    case 'toolkit':
+    case ResourceType.TOOLKIT:
       return '🧰';
-    case 'research':
+    case ResourceType.RESEARCH:
       return '📊';
-    case 'training':
+    case ResourceType.TRAINING:
       return '🎓';
-    case 'event':
+    case ResourceType.EVENT:
       return '📅';
     default:
       return '📄';
@@ -287,7 +288,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className={layoutClasses}>
           {/* Content Section */}
-          <div className={layoutStyle === 'split' ? 'order-2 md:order-1' : ''}>
+          <div className={layoutStyle === LayoutStyle.SPLIT ? 'order-2 md:order-1' : ''}>
             {/* Badge and resource type */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
               {badgeText && (
@@ -337,7 +338,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
 
             {/* Description */}
             {description && (
-              <p className="text-lg sm:text-xl mb-6 opacity-80 leading-relaxed max-w-2xl">
+              <p className={`text-lg sm:text-xl mb-6 opacity-80 leading-relaxed max-w-2xl ${layoutStyle === LayoutStyle.FULL_WIDTH ? 'mx-auto' : ''}`}>
                 {description}
               </p>
             )}
@@ -454,19 +455,19 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
                   About This {getResourceTypeLabel(resourceType)}
                 </h3>
                 <p className="text-sm opacity-80">
-                  {resourceType === 'guide' && 
+                  {resourceType === ResourceType.GUIDE && 
                     "This user guide provides step-by-step instructions and best practices to help you get the most out of Street Support Network services."
                   }
-                  {resourceType === 'toolkit' && 
+                  {resourceType === ResourceType.TOOLKIT && 
                     "This comprehensive toolkit includes templates, resources, and guidance to support your work in tackling homelessness."
                   }
-                  {resourceType === 'research' && 
+                  {resourceType === ResourceType.RESEARCH && 
                     "This research document presents evidence-based insights and data to inform policy and practice in homelessness support."
                   }
-                  {resourceType === 'training' && 
+                  {resourceType === ResourceType.TRAINING && 
                     "This training material provides educational content to enhance understanding and skills in homelessness support work."
                   }
-                  {resourceType === 'event' && 
+                  {resourceType === ResourceType.EVENT && 
                     "This event brings together professionals and volunteers to share knowledge, network, and collaborate on homelessness solutions."
                   }
                 </p>
@@ -492,7 +493,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
           </div>
 
           {/* Media Section */}
-          {layoutStyle === 'split' && image && image.url && (
+          {layoutStyle === LayoutStyle.SPLIT && image && image.url && (
             <div className="order-1 md:order-2 h-full">
               <div className="relative h-full flex items-center justify-center">
                 <Image
@@ -506,7 +507,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'split' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.SPLIT && (!image || !image.url) && (
             <div className="order-1 md:order-2">
               <div className="relative rounded-lg overflow-hidden h-full">
                 <div className="flex items-center justify-center w-full h-full">
@@ -522,7 +523,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'full-width' && image && image.url && (
+          {layoutStyle === LayoutStyle.FULL_WIDTH && image && image.url && (
             <div className="mt-8 max-w-4xl mx-auto">
               <div className="relative">
                 <Image
@@ -536,7 +537,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'full-width' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.FULL_WIDTH && (!image || !image.url) && (
             <div className="mt-8 max-w-4xl mx-auto">
               <div className="relative rounded-lg overflow-hidden">
                 <div className="flex items-center justify-center w-full h-full">
@@ -554,7 +555,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
           )}
 
           {/* Card layout media */}
-          {layoutStyle === 'card' && image && image.url && (
+          {layoutStyle === LayoutStyle.CARD && image && image.url && (
             <div className="mt-6">
               <div className="relative">
                 <Image
@@ -568,7 +569,7 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'card' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.CARD && (!image || !image.url) && (
             <div className="mt-6">
               <div className="relative rounded-lg overflow-hidden">
                 <div className="flex items-center justify-center w-full h-full">

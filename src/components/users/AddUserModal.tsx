@@ -4,6 +4,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -213,10 +214,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
           {/* Content - scrollable */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {/* Email Input */}
-            <div className="field-group">
-              <label htmlFor="email" className="field-label required">
-                Email <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Email Address" required>
               <Input
                 type="email"
                 id="email"
@@ -227,12 +225,12 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
                 }}
                 placeholder="user@example.com"
               />
-            </div>
+            </FormField>
 
             {/* Roles Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="field-label">Roles <span className="text-brand-g">*</span></label>
+                <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                 <Button
                   variant="secondary"
                   size="sm"

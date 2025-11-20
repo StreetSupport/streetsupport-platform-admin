@@ -10,6 +10,7 @@ import { MultiSelect } from '@/components/ui/MultiSelect';
 import { OpeningTimesManager } from '@/components/organisations/OpeningTimesManager';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
+import { FormField } from '@/components/ui/FormField';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { IServiceCategory } from '@/types/organisations/IServiceCategory';
@@ -500,10 +501,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                 <div>
                   <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Category</h4>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Service Category <span className="text-brand-g">*</span>
-                      </label>
+                    <FormField label="Service Category" required>
                       <select
                         id="service-category"
                         value={formData.CategoryId}
@@ -518,13 +516,10 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </FormField>
 
                     {selectedCategory && selectedCategory.SubCategories.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-brand-k mb-2">
-                          Sub Categories <span className="text-brand-g">*</span>
-                        </label>
+                      <FormField label="Sub Categories" required>
                         <MultiSelect
                           options={selectedCategory.SubCategories.map(sub => ({
                             value: sub.Key,
@@ -535,7 +530,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           placeholder={viewMode ? '' : 'Select subcategories...'}
                           disabled={viewMode}
                         />
-                      </div>
+                      </FormField>
                     )}
                   </div>
                 </div>
@@ -544,10 +539,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                 <div>
                   <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Service Details</h4>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Description
-                      </label>
+                    <FormField label="Description">
                       <Textarea
                         value={formData.Info || ''}
                         onChange={(e) => updateFormData('Info', e.target.value)}
@@ -555,7 +547,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         rows={4}
                         disabled={viewMode}
                       />
-                    </div>
+                    </FormField>
 
                     <Checkbox
                       id="isTelephoneService"
@@ -565,10 +557,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       disabled={viewMode}
                     />
 
-                    <div>
-                      <label className="block text-sm font-medium text-brand-k mb-2">
-                        Telephone
-                      </label>
+                    <FormField label="Telephone">
                       <Input
                         value={formData.Telephone || ''}
                         onChange={(e) => updateFormData('Telephone', e.target.value)}
@@ -576,7 +565,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         type="tel"
                         disabled={viewMode}
                       />
-                    </div>
+                    </FormField>
                   </div>
                 </div>
 
@@ -600,10 +589,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
                     {/* Outreach Description - shown only if IsOutreachLocation is true */}
                     {isOutreachLocation && (
-                      <div>
-                        <label className="block text-sm font-medium text-brand-k mb-2">
-                          Outreach Location Description <span className="text-brand-g">*</span>
-                        </label>
+                      <FormField label="Outreach Location Description" required>
                         <Textarea
                           value={formData.Location.Description || ''}
                           onChange={(e) => updateFormData('Location', {
@@ -614,17 +600,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           rows={3}
                           disabled={viewMode}
                         />
-                      </div>
+                      </FormField>
                     )}
 
                     {/* Fixed Location Fields - shown only if IsOutreachLocation is false */}
                     {!isOutreachLocation && (
                       <>
                         {!viewMode && (
-                          <div>
-                            <label className="block text-sm font-medium text-brand-k mb-2">
-                              Use Existing Address
-                            </label>
+                          <FormField label="Use Existing Address">
                             <select
                               id="use-existing-address"
                               onChange={(e) => handleAddressSelect(e.target.value)}
@@ -640,14 +623,11 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                             <p className="text-xs text-brand-f mt-1">
                               Selecting an existing address will auto-populate the fields below including opening times
                             </p>
-                          </div>
+                          </FormField>
                         )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label htmlFor="service-street1" className="block text-sm font-medium text-brand-k mb-2">
-                              Street <span className="text-brand-g">*</span>
-                            </label>
+                          <FormField label="Street" required>
                             <Input
                               type="text"
                               id="service-street1"
@@ -662,12 +642,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'Main street address'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
 
-                          <div>
-                            <label htmlFor="service-street2" className="block text-sm font-medium text-brand-k mb-2">
-                              Street Line 2
-                            </label>
+                          <FormField label="Street Line 2">
                             <Input
                               type="text"
                               id="service-street2"
@@ -682,12 +659,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'Building name, floor, etc.'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
 
-                          <div>
-                            <label htmlFor="service-street3" className="block text-sm font-medium text-brand-k mb-2">
-                              Street Line 3
-                            </label>
+                          <FormField label="Street Line 3">
                             <Input
                               type="text"
                               id="service-street3"
@@ -702,12 +676,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'Additional address info'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
 
-                          <div>
-                            <label htmlFor="service-street4" className="block text-sm font-medium text-brand-k mb-2">
-                              Street Line 4
-                            </label>
+                          <FormField label="Street Line 4">
                             <Input
                               type="text"
                               id="service-street4"
@@ -722,12 +693,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'Additional address info'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
 
-                          <div>
-                            <label htmlFor="service-city" className="block text-sm font-medium text-brand-k mb-2">
-                              City
-                            </label>
+                          <FormField label="City">
                             <Input
                               type="text"
                               id="service-city"
@@ -742,12 +710,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'City'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
 
-                          <div>
-                            <label htmlFor="service-postcode" className="block text-sm font-medium text-brand-k mb-2">
-                              Postcode <span className="text-brand-g">*</span>
-                            </label>
+                          <FormField label="Postcode" required>
                             <Input
                               type="text"
                               id="service-postcode"
@@ -762,7 +727,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               placeholder={viewMode ? '' : 'M1 1AA'}
                               disabled={viewMode}
                             />
-                          </div>
+                          </FormField>
                         </div>
                       </>
                     )}

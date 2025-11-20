@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import AddRoleModal from './AddRoleModal';
 import { IUser } from '@/types/IUser';
@@ -255,20 +257,20 @@ export default function EditUserModal({
             {/* Content - scrollable */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
               {/* Email (Read-only) */}
-              <div>
-                <label className="block text-sm font-semibold text-brand-k mb-2">
-                  Email
-                </label>
-                <div className="p-3 bg-brand-q rounded-lg text-brand-f text-sm">
-                  {email}
-                </div>
+              <FormField label="Email" required>
+                <Input
+                  type="text"
+                  value={email}
+                  readOnly
+                  className="p-3 bg-brand-q rounded-lg text-brand-f text-sm"
+                />
                 <p className="text-xs text-brand-f mt-1">Email cannot be changed</p>
-              </div>
+              </FormField>
 
               {/* Roles */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="field-label">Roles</label>
+                  <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                   <Button
                     type="button"
                     variant="secondary"

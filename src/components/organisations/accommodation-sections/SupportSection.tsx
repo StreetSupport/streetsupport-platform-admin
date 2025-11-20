@@ -57,4 +57,3 @@ export function SupportSection({ formData, onChange, viewMode = false }: Support
     </div>
   );
 }
-

@@ -1,13 +1,13 @@
 import { ResourceType } from './IBanner';
 
 export interface IResourceFile {
-  FileUrl?: string;
-  FileName?: string;
-  ResourceType?: ResourceType;
+  FileUrl: string;
+  FileName: string;
+  ResourceType: ResourceType;
   DownloadCount?: number;
-  LastUpdated?: Date;
-  FileSize?: string;
-  FileType?: string;
+  LastUpdated: Date;
+  FileSize: string;
+  FileType: string;
 }
 
 // Supported file types for resource projects

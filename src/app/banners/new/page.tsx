@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { validateBannerForm } from '@/schemas/bannerSchema';
+import { validateBannerForm, transformErrorPath } from '@/schemas/bannerSchema';
 import toastUtils, { successToast, errorToast, loadingToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
@@ -39,7 +39,13 @@ export default function NewBannerPage() {
       // Client-side validation using Zod
       const validation = validateBannerForm(data);
       if (!validation.success) {
-        setValidationErrors(validation.errors);
+        debugger
+        // Transform error paths for better user-friendly messages
+        const transformedErrors = validation.errors.map(error => ({
+          ...error,
+          path: transformErrorPath(error.path)
+        }));
+        setValidationErrors(transformedErrors);
         toastUtils.dismiss(toastId);
         errorToast.validation('Please fix the validation errors below');
         return;
@@ -169,14 +175,14 @@ export default function NewBannerPage() {
         <PageHeader title="Create New Banner" />
         <BannerPageHeader pageType="new" />
 
-        <div className="page-container section-spacing padding-top-zero">
-          {/* Full-width Preview at Top */}
-          <div className="mb-8 py-8">
-            {bannerData && (
-              <BannerPreview data={bannerData} />
-            )}
-          </div>
+        {/* Full-width Preview at Top - Outside page-container */}
+        <div className="mb-10">
+          {bannerData && (
+            <BannerPreview data={bannerData} />
+          )}
+        </div>
 
+        <div className="page-container section-spacing padding-top-zero">
           <div className="space-y-6">
             <BannerEditor
               initialData={{}}

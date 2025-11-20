@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import { FormField } from '@/components/ui/FormField';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { validateSwepBanner, transformErrorPath } from '@/schemas/swepBannerSchema';
 import toast from 'react-hot-toast';
@@ -303,28 +304,22 @@ export default function SwepEditPage() {
         </div>
 
         {/* Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title <span className="text-red-500">*</span>
-          </label>
+        <FormField label="Title" required>
           <Input
             type="text"
             value={formData.Title}
             onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
           />
-        </div>
+        </FormField>
 
         {/* Short Message */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Short Message <span className="text-red-500">*</span>
-          </label>
+        <FormField label="Short Message" required>
           <Input
             type="text"
             value={formData.ShortMessage}
             onChange={(e) => setFormData({ ...formData, ShortMessage: e.target.value })}
           />
-        </div>
+        </FormField>
 
         {/* Body (Rich Text Editor) */}
         <RichTextEditor
@@ -341,10 +336,7 @@ export default function SwepEditPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Emergency Contact</h3>
           
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone
-              </label>
+            <FormField label="Phone">
               <Input
                 type="tel"
                 value={formData.EmergencyContact?.Phone || ''}
@@ -353,12 +345,9 @@ export default function SwepEditPage() {
                   EmergencyContact: { ...formData.EmergencyContact, Phone: e.target.value }
                 })}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+            <FormField label="Email">
               <Input
                 type="email"
                 value={formData.EmergencyContact?.Email || ''}
@@ -367,12 +356,9 @@ export default function SwepEditPage() {
                   EmergencyContact: { ...formData.EmergencyContact, Email: e.target.value }
                 })}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hours
-              </label>
+            <FormField label="Hours">
               <Input
                 type="text"
                 value={formData.EmergencyContact?.Hours || ''}
@@ -381,7 +367,7 @@ export default function SwepEditPage() {
                   EmergencyContact: { ...formData.EmergencyContact, Hours: e.target.value }
                 })}
               />
-            </div>
+            </FormField>
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import { FileUpload } from './FileUpload';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { IMediaAsset } from '@/types';
 
-interface MediaUploadProps {
+interface BannerMediaUploadProps {
   value?: File | IMediaAsset | null;
   onUpload: (file: File) => void;
   onRemove: () => void;
@@ -18,7 +18,7 @@ interface MediaUploadProps {
   multiple?: boolean;
 }
 
-interface MediaArrayUploadProps {
+interface BannerMediaArrayUploadProps {
   value?: (File | IMediaAsset)[];
   onUpload: (file: File) => void;
   onRemove: (index: number) => void;
@@ -60,7 +60,7 @@ const getDisplayName = (item: MediaLike): string => {
 };
 
 // Single media upload component
-export function MediaUpload({ 
+export function BannerMediaUpload({ 
   value, 
   onUpload, 
   onRemove, 
@@ -68,7 +68,7 @@ export function MediaUpload({
   maxSize = 5 * 1024 * 1024,
   label,
   description 
-}: MediaUploadProps) {
+}: BannerMediaUploadProps) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -174,7 +174,7 @@ export function MediaUpload({
 }
 
 // Multiple media upload component
-export function MediaArrayUpload({ 
+export function BannerMediaArrayUpload({ 
   value = [], 
   onUpload, 
   onRemove, 
@@ -182,7 +182,7 @@ export function MediaArrayUpload({
   maxSize = 5 * 1024 * 1024,
   label,
   description 
-}: MediaArrayUploadProps) {
+}: BannerMediaArrayUploadProps) {
   return (
     <div className="space-y-4">
       {label && <h3 className="text-sm font-medium text-gray-700">{label}</h3>}

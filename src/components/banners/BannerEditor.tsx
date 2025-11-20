@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
+import { BannerMediaUpload, BannerMediaArrayUpload } from '@/components/ui/BannerMediaUpload';
 import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IResourceFile, IMediaAsset } from '@/types';
 import { Input } from '@/components/ui/Input';
@@ -16,6 +16,12 @@ import { RESOURCE_FILE_ACCEPT_STRING, MAX_RESOURCE_FILE_SIZE, getFileTypeFromMim
 import { errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
+
+// Resource file mode enum
+enum ResourceFileMode {
+  UPLOAD = 'upload',
+  MANUAL = 'manual'
+}
 
 // Helper function to format file size
 function formatFileSize(bytes: number): string {
@@ -97,6 +103,15 @@ const RESOURCE_TYPES = [
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
   const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
+  const [resourceFileMode, setResourceFileMode] = useState<ResourceFileMode>(ResourceFileMode.UPLOAD); // Toggle between upload file or manual URL
+  const emptyResourceFile = {
+        FileUrl: '',
+        ResourceType: ResourceType.GUIDE,
+        DownloadCount: 0,
+        LastUpdated: new Date(),
+        FileSize: '',
+        FileType: '',
+      } as IResourceFile;
 
   useEffect(() => {
     async function fetchLocations() {
@@ -121,32 +136,36 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   }, []);
 
   // Define default form data - used for both initialization and cancel on create
-  const getDefaultFormData = (): IBannerFormData => ({
-    Title: 'Title',
-    Subtitle: 'Subtitle',
-    Description: 'Description',
-    TemplateType: BannerTemplateType.GIVING_CAMPAIGN,
-    LayoutStyle: LayoutStyle.SPLIT,
-    TextColour: TextColour.WHITE,
-    Background: {
-      Type: BackgroundType.SOLID,
-      Value: '#38ae8e',
-      Overlay: {
-        Colour: 'rgba(0,0,0,0.5)',
-        Opacity: 0.5
-      }
-    },
-    CtaButtons: [
-      {
-        Label: 'Click',
-        Url: '/',
-        Variant: CTAVariant.PRIMARY,
-        External: false
-      }
-    ],
+  const getDefaultFormData = (): IBannerFormData => {
+    const templateType = initialData?.TemplateType || BannerTemplateType.GIVING_CAMPAIGN;
+    
+    return {
+      Title: 'Title',
+      Subtitle: 'Subtitle',
+      Description: 'Description',
+      TemplateType: templateType,
+      LayoutStyle: LayoutStyle.SPLIT,
+      TextColour: TextColour.WHITE,
+      Background: {
+        Type: BackgroundType.SOLID,
+        Value: '#38ae8e',
+        Overlay: {
+          Colour: 'rgba(0,0,0,0.5)',
+          Opacity: 0.5
+        }
+      },
+      CtaButtons: [
+        {
+          Label: templateType === BannerTemplateType.RESOURCE_PROJECT ? 'Download' : 'Click',
+          Url: '/',
+          Variant: CTAVariant.PRIMARY,
+          External: false
+        }
+      ],
     IsActive: true,
     Priority: 5,
     LocationSlug: '',
+    LocationName: '',
     BadgeText: 'Badge text',
     GivingCampaign: {
       UrgencyLevel: UrgencyLevel.MEDIUM,
@@ -162,21 +181,15 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       SignatoriesCount: 1,
       PartnerLogos: []
     },
-    ResourceProject: {
-      ResourceFile: {
-        FileUrl: '',
-        ResourceType: ResourceType.GUIDE,
-        DownloadCount: 0,
-        LastUpdated: new Date(),
-        FileSize: '',
-        FileType: '',
-      } as IResourceFile
-    },
-    StartDate: undefined,
-    EndDate: undefined,
-    ShowDates: false,
-    _id: '',
-  });
+      ResourceProject: {
+        ResourceFile: emptyResourceFile
+      },
+      StartDate: undefined,
+      EndDate: undefined,
+      ShowDates: false,
+      _id: '',
+    };
+  };
 
   // Store original data for cancel functionality
   useEffect(() => {
@@ -237,11 +250,68 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     setErrors({});
   }, [formData.TemplateType]);
 
+  const handleTemplateTypeChange = (newTemplateType: BannerTemplateType, currentData: IBannerFormData): IBannerFormData => {
+    const newData = { ...currentData };
+    
+    // Handle change from RESOURCE_PROJECT to another type
+    if (currentData.TemplateType === BannerTemplateType.RESOURCE_PROJECT && 
+        newTemplateType !== BannerTemplateType.RESOURCE_PROJECT) {
+      
+      // Clear the ResourceProject section (which includes the resource file)
+      if (newData.ResourceProject) {
+        // Log the file URL that would be cleaned up on the server side
+        // Check if ResourceFile exists and is not a File object (i.e., it's an IResourceFile with FileUrl)
+        if (newData.ResourceProject.ResourceFile && 
+            !(newData.ResourceProject.ResourceFile instanceof File) &&
+            'FileUrl' in newData.ResourceProject.ResourceFile) {
+          console.log(`Resource file will be cleaned up on save: ${(newData.ResourceProject.ResourceFile as IResourceFile).FileUrl}`);
+        }
+        // Clear the ResourceProject section immediately for UI feedback
+        delete newData.ResourceProject;
+      }
+      
+      // Remove first CTA button if it contains a blob URL
+      if (newData.CtaButtons && Array.isArray(newData.CtaButtons) && newData.CtaButtons.length > 0) {
+        const firstButton = newData.CtaButtons[0];
+        if (firstButton?.Url && firstButton.Url.includes('blob.core.windows.net')) {
+          // Remove the first CTA button
+          newData.CtaButtons = newData.CtaButtons.slice(1);
+          console.log(`Removed first CTA button with blob URL during template type change: ${firstButton.Url}`);
+        }
+      }
+    }
+    
+    // Handle change TO RESOURCE_PROJECT - ensure required CTA button exists
+    if (currentData.TemplateType !== BannerTemplateType.RESOURCE_PROJECT && 
+        newTemplateType === BannerTemplateType.RESOURCE_PROJECT) {
+      
+      // Ensure CtaButtons array exists and has at least 1 button for RESOURCE_PROJECT
+      if (!newData.CtaButtons || newData.CtaButtons.length === 0) {
+        newData.CtaButtons = [{
+          Label: 'Download',
+          Url: '/',
+          Variant: CTAVariant.PRIMARY,
+          External: false
+        }];
+        console.log('Created required CTA button for RESOURCE_PROJECT template');
+      }
+    }
+    
+    return newData;
+  };
+
   const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
       const keys = path.split('.');
       // Start with a shallow copy of the root (object expected for IBannerFormData)
-      const newData: IBannerFormData = { ...(prev as IBannerFormData) };
+      let newData: IBannerFormData = { ...(prev as IBannerFormData) };
+      
+      // Handle template type change specifically
+      if (path === 'TemplateType') {
+        const newTemplateType = value as BannerTemplateType;
+        newData = handleTemplateTypeChange(newTemplateType, newData);
+      }
+      
       // Walk the path, cloning each branch as we go using indexable records
       let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
       let source: Record<string, unknown> = prev as unknown as Record<string, unknown>;
@@ -280,10 +350,18 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   const removeCTAButton = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      CtaButtons: (prev.CtaButtons ?? []).filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      // Prevent removing the last button for RESOURCE_PROJECT templates
+      if (prev.TemplateType === BannerTemplateType.RESOURCE_PROJECT && 
+          (prev.CtaButtons?.length ?? 0) <= 1) {
+        return prev; // Don't allow removal
+      }
+      
+      return {
+        ...prev,
+        CtaButtons: (prev.CtaButtons ?? []).filter((_, i) => i !== index)
+      };
+    });
   };
 
   const updateCTAButton = <K extends keyof ICTAButton>(index: number, field: K, value: ICTAButton[K]) => {
@@ -296,7 +374,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   // File management functions
-  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage' | 'AccentGraphic') => {
+  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
+  // const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage' | 'AccentGraphic') => {
+  const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage') => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: null
@@ -368,31 +448,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if ((formData.CtaButtons?.length ?? 0) > 0 && (formData.CtaButtons ?? []).some(btn => !btn.Label.trim() || !btn.Url.trim())) {
-      newErrors.CtaButtons = 'All CTA buttons must have a label and URL';
-    }
-
-    if (formData.TemplateType === BannerTemplateType.GIVING_CAMPAIGN && formData.GivingCampaign?.DonationGoal && (formData.GivingCampaign.DonationGoal.Target === undefined || formData.GivingCampaign.DonationGoal.Target <= 0)) {
-      newErrors.DonationTarget = 'Donation target must be greater than 0';
-    }
-
-    // Require a resource file for Resource Project banners
-    if (formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
-      const rf = formData.ResourceProject?.ResourceFile;
-      const hasNewFile = typeof rf === 'object' && rf !== null && 'File' in (rf as Record<string, unknown>) && (rf as { File?: unknown }).File instanceof File;
-      const hasExistingUrl = !!(rf && typeof rf === 'object' && !('File' in (rf as Record<string, unknown>)) && (rf as { FileUrl?: string }).FileUrl);
-      if (!hasNewFile && !hasExistingUrl) {
-        newErrors.ResourceFile = 'Resource file is required';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const cleanTemplateData = (data: IBannerFormData): IBannerFormData => {
     const cleanedData: Partial<IBannerFormData> = { ...data };
 
@@ -422,12 +477,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      const cleanedData = cleanTemplateData(formData);
-      onSave(cleanedData);
-    } else {
-      errorToast.validation();
-    }
+    const cleanedData = cleanTemplateData(formData);
+    onSave(cleanedData);
   };
 
   const renderTemplateSpecificFields = () => {
@@ -437,7 +488,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Campaign Settings</h3>
             
-            <FormField label="Urgency Level">
+            <FormField label="Urgency Level" required>
               <Select
                 value={formData.GivingCampaign?.UrgencyLevel}
                 onChange={(e) => updateFormData('GivingCampaign.UrgencyLevel', e.target.value)}
@@ -446,7 +497,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
             
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Target Amount (£)" error={errors.DonationTarget}>
+              <FormField label="Target Amount (£)" error={errors.DonationTarget} required>
                 <Input
                   type="number"
                   value={formData.GivingCampaign?.DonationGoal?.Target}
@@ -483,7 +534,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Charter Settings</h3>
             
-            <FormField label="Charter Type">
+            <FormField label="Charter Type" required>
               <Select
                 value={formData.PartnershipCharter?.CharterType}
                 onChange={(e) => updateFormData('PartnershipCharter.CharterType', e.target.value)}
@@ -501,7 +552,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
             
             <FormField label="Partner Logos" error={errors.PartnerLogos}>
-              <MediaArrayUpload
+              <BannerMediaArrayUpload
                 description="Upload logos of partner organizations (max 5MB each)"
                 value={formData.PartnershipCharter?.PartnerLogos}
                 onUpload={addPartnerLogo}
@@ -514,94 +565,231 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         );
 
       case BannerTemplateType.RESOURCE_PROJECT:
+        // Check if we have an uploaded file (File object or object with File property)
+        const hasUploadedFile = formData.ResourceProject?.ResourceFile instanceof File || 
+          (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'File' in formData.ResourceProject.ResourceFile);
+        
         return (
           <div className="space-y-4 border-t border-brand-q pt-6">
             <h3 className="heading-5 border-b border-brand-q pb-2">Resource Settings</h3>
             
-            <FormField label="Resource File">
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  id="resource-file"
-                  accept={RESOURCE_FILE_ACCEPT_STRING}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      if (!isValidResourceFileType(file.type)) {
-                        errorToast.fileType('PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WEBP, SVG, ZIP, RAR, 7Z, JSON, XML');
-                        e.target.value = '';
-                        return;
+            {/* Radio buttons to choose between upload and manual URL */}
+            <FormField label="Upload file or provide link to file">
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resourceFileMode"
+                    value={ResourceFileMode.UPLOAD}
+                    checked={resourceFileMode === ResourceFileMode.UPLOAD}
+                    onChange={() => setResourceFileMode(ResourceFileMode.UPLOAD)}
+                    className="w-4 h-4 text-brand-a focus:ring-brand-a"
+                  />
+                  <span className="text-sm text-brand-k">Upload file</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resourceFileMode"
+                    value={ResourceFileMode.MANUAL}
+                    checked={resourceFileMode === ResourceFileMode.MANUAL}
+                    onChange={() => {
+                      setResourceFileMode(ResourceFileMode.MANUAL);
+                      // Clear the uploaded file if switching to manual mode
+                      if (hasUploadedFile) {
+                        updateFormData('ResourceProject.ResourceFile', emptyResourceFile);
                       }
-                      if (file.size > MAX_RESOURCE_FILE_SIZE) {
-                        errorToast.fileSize(formatFileSize(MAX_RESOURCE_FILE_SIZE));
-                        e.target.value = '';
-                        return;
-                      }
-                      const newResourceFile: IResourceFile = {
-                        // Keep existing metadata like ResourceType, but reset others
-                        ResourceType: (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
-                          ? formData.ResourceProject.ResourceFile.ResourceType 
-                          : ResourceType.GUIDE,
-                        FileName: file.name, // Auto-populate FileName
-                        LastUpdated: new Date(),
-                        FileSize: formatFileSize(file.size),
-                        FileType: getFileTypeFromMimeType(file.type) || 'unknown',
-                        DownloadCount: 0,
-                      };
-                      // Update the state with an object that includes both the metadata and the file
-                      updateFormData('ResourceProject.ResourceFile', { ...newResourceFile, File: file });
-                      
-                      // Clear any existing ResourceFile validation error
-                      setErrors(prev => {
-                        const newErrors = { ...prev };
-                        delete newErrors.ResourceFile;
-                        return newErrors;
-                      });
-                    }
-                  }}
-                  className="block w-full text-sm text-brand-k file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-a file:text-white hover:file:bg-brand-b"
-                />
-                {formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File) && formData.ResourceProject.ResourceFile !== null && formData.ResourceProject.ResourceFile.FileUrl && (
-                  <div className="flex items-center justify-between p-2 bg-brand-q rounded">
-                    <span className="text-sm text-brand-k">Current: {formData.ResourceProject?.ResourceFile?.FileUrl}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateFormData('ResourceProject.ResourceFile', null)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                )}
-                {formData.ResourceProject?.ResourceFile instanceof File && (
-                  <div className="flex items-center justify-between p-2 bg-brand-q rounded">
-                    <span className="text-sm text-brand-k">Selected: {(formData.ResourceProject?.ResourceFile as File)?.name}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateFormData('ResourceProject.ResourceFile', null)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                )}
+                    }}
+                    className="w-4 h-4 text-brand-a focus:ring-brand-a"
+                  />
+                  <span className="text-sm text-brand-k">Add link to file</span>
+                </label>
               </div>
             </FormField>
 
-            <FormField label="File Name">
+            {/* File Upload Section - only show when "Upload file" is selected */}
+            {resourceFileMode === ResourceFileMode.UPLOAD && (
+              <div className="space-y-3">
+                <FormField label="Resource File">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <label 
+                        htmlFor="resource-file"
+                        className="btn-base btn-primary btn-md cursor-pointer inline-flex items-center"
+                      >
+                        Choose File
+                      </label>
+                      <input
+                        type="file"
+                        id="resource-file"
+                        accept={RESOURCE_FILE_ACCEPT_STRING}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (!isValidResourceFileType(file.type)) {
+                              errorToast.fileType('PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WEBP, SVG, ZIP, RAR, 7Z, JSON, XML');
+                              e.target.value = '';
+                              return;
+                            }
+                            if (file.size > MAX_RESOURCE_FILE_SIZE) {
+                              errorToast.fileSize(formatFileSize(MAX_RESOURCE_FILE_SIZE));
+                              e.target.value = '';
+                              return;
+                            }
+                            
+                            const fileName = file.name;
+                            const newResourceFile: IResourceFile & { File: File } = {
+                              FileUrl: `/${fileName}`,
+                              FileName: fileName,
+                              ResourceType: (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'ResourceType' in formData.ResourceProject.ResourceFile) 
+                                ? formData.ResourceProject.ResourceFile.ResourceType 
+                                : ResourceType.GUIDE,
+                              LastUpdated: new Date(),
+                              FileSize: formatFileSize(file.size),
+                              FileType: getFileTypeFromMimeType(file.type) || 'unknown',
+                              DownloadCount: 0,
+                              File: file
+                            };
+                            
+                            updateFormData('ResourceProject.ResourceFile', newResourceFile);
+                            
+                            // Update first CTA button
+                            if (formData.CtaButtons && formData.CtaButtons.length > 0) {
+                              const updatedButtons = [...formData.CtaButtons];
+                              updatedButtons[0] = {
+                                ...updatedButtons[0],
+                                Label: 'Download',
+                                Url: `/${fileName}`
+                              };
+                              updateFormData('CtaButtons', updatedButtons);
+                            }
+                            
+                            // Clear validation errors
+                            setErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors['Resource File'];
+                              delete newErrors.ResourceFile;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <span className="text-sm text-brand-f">
+                        {hasUploadedFile 
+                          ? (formData.ResourceProject?.ResourceFile instanceof File 
+                              ? formData.ResourceProject.ResourceFile.name 
+                              : (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && !(formData.ResourceProject.ResourceFile instanceof File) && 'FileName' in formData.ResourceProject.ResourceFile ? formData.ResourceProject.ResourceFile.FileName : 'No file chosen'))
+                          : 'No file chosen'}
+                      </span>
+                    </div>
+                    
+                    {/* Show Remove button if file is uploaded */}
+                    {hasUploadedFile && (
+                      <div className="flex items-center justify-between p-3 bg-brand-q rounded-md border border-brand-q">
+                        <span className="text-sm text-brand-k font-medium">
+                          {formData.ResourceProject?.ResourceFile instanceof File 
+                            ? formData.ResourceProject.ResourceFile.name
+                            : (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && !(formData.ResourceProject.ResourceFile instanceof File) && 'FileName' in formData.ResourceProject.ResourceFile ? formData.ResourceProject.ResourceFile.FileName : '')}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            updateFormData('ResourceProject.ResourceFile', emptyResourceFile);
+                            // Reset first button
+                            if (formData.CtaButtons && formData.CtaButtons.length > 0) {
+                              const updatedButtons = [...formData.CtaButtons];
+                              updatedButtons[0] = {
+                                ...updatedButtons[0],
+                                Label: 'Download',
+                                Url: '/'
+                              };
+                              updateFormData('CtaButtons', updatedButtons);
+                            }
+                            // Clear the file input
+                            const fileInput = document.getElementById('resource-file') as HTMLInputElement;
+                            if (fileInput) fileInput.value = '';
+                          }}
+                        >
+                          Remove File
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-brand-f">
+                      Accepted formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WebP, SVG, ZIP, RAR, 7Z, JSON, XML. Maximum file size: 5MB.
+                    </p>
+                  </div>
+                </FormField>
+              </div>
+            )}
+
+            {/* File URL Field */}
+            <FormField label="File URL" required>
               <Input
                 value={
-                  formData.ResourceProject?.ResourceFile instanceof File 
-                    ? (formData.ResourceProject.ResourceFile as File).name
-                    : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
-                      ? formData.ResourceProject.ResourceFile.FileName || '' 
-                      : ''
+                  formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'FileUrl' in formData.ResourceProject.ResourceFile
+                    ? formData.ResourceProject.ResourceFile.FileUrl || ''
+                    : ''
                 }
-                disabled={formData.ResourceProject?.ResourceFile instanceof File}
+                disabled={resourceFileMode === ResourceFileMode.UPLOAD}
                 onChange={(e) => {
-                  if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                  const url = e.target.value;
+                  // If in manual mode, update or create the ResourceFile object
+                  if (resourceFileMode === ResourceFileMode.MANUAL) {
+                    const existingFile = formData.ResourceProject?.ResourceFile && 
+                      typeof formData.ResourceProject.ResourceFile === 'object' && 
+                      !('File' in formData.ResourceProject.ResourceFile) &&
+                      'FileUrl' in formData.ResourceProject.ResourceFile
+                      ? formData.ResourceProject.ResourceFile as IResourceFile
+                      : null;
+                    
+                    const updatedFile: IResourceFile = {
+                      FileUrl: url,
+                      FileName: existingFile?.FileName || '',
+                      ResourceType: existingFile?.ResourceType || ResourceType.GUIDE,
+                      FileSize: existingFile?.FileSize || '',
+                      FileType: existingFile?.FileType || '',
+                      DownloadCount: existingFile?.DownloadCount || 0,
+                      LastUpdated: existingFile?.LastUpdated || new Date()
+                    };
+                    
+                    updateFormData('ResourceProject.ResourceFile', updatedFile);
+                    
+                    // Update first CTA button URL
+                    if (formData.CtaButtons && formData.CtaButtons.length > 0) {
+                      const updatedButtons = [...formData.CtaButtons];
+                      updatedButtons[0] = {
+                        ...updatedButtons[0],
+                        Label: 'Download',
+                        Url: url
+                      };
+                      updateFormData('CtaButtons', updatedButtons);
+                    }
+                  }
+                }}
+                placeholder="e.g., https://example.com/file.pdf"
+                className={resourceFileMode === ResourceFileMode.UPLOAD ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
+              />
+              {resourceFileMode === ResourceFileMode.UPLOAD && (
+                <p className="text-xs text-brand-f mt-1">
+                  URL is taken automatically from the uploaded file
+                </p>
+              )}
+            </FormField>
+
+            <FormField label="File Name" required>
+              <Input
+                value={
+                  formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'FileName' in formData.ResourceProject.ResourceFile
+                    ? formData.ResourceProject.ResourceFile.FileName || ''
+                    : ''
+                }
+                disabled={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile === true}
+                onChange={(e) => {
+                  if (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && !(formData.ResourceProject.ResourceFile instanceof File) && 'FileName' in formData.ResourceProject.ResourceFile) {
                     updateFormData('ResourceProject.ResourceFile', { 
                       ...formData.ResourceProject.ResourceFile, 
                       FileName: e.target.value 
@@ -609,10 +797,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   }
                 }}
                 placeholder="e.g., Annual Report 2024.pdf"
+                className={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
               />
+              {resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile && (
+                <p className="text-xs text-brand-f mt-1">
+                  Auto-populated from uploaded file
+                </p>
+              )}
             </FormField>
             
-            <FormField label="Resource Type">
+            <FormField label="Resource Type" required>
               <Select
                 value={(formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) ? formData.ResourceProject.ResourceFile.ResourceType || '' : ''}
                 onChange={(e) => {
@@ -628,18 +822,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
             
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="File Size">
+              <FormField label="File Size" required>
                 <Input
                   value={
-                    formData.ResourceProject?.ResourceFile instanceof File 
-                      ? formatFileSize((formData.ResourceProject.ResourceFile as File).size)
-                      : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
-                        ? formData.ResourceProject.ResourceFile.FileSize || '' 
-                        : ''
+                    formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'FileSize' in formData.ResourceProject.ResourceFile
+                      ? formData.ResourceProject.ResourceFile.FileSize || ''
+                      : ''
                   }
-                  disabled={formData.ResourceProject?.ResourceFile instanceof File}
+                  disabled={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile === true}
                   onChange={(e) => {
-                    if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                    if (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && !(formData.ResourceProject.ResourceFile instanceof File) && 'FileSize' in formData.ResourceProject.ResourceFile) {
                       updateFormData('ResourceProject.ResourceFile', { 
                         ...formData.ResourceProject.ResourceFile, 
                         FileSize: e.target.value 
@@ -647,20 +839,24 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                     }
                   }}
                   placeholder="e.g., 2.5 MB"
+                  className={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
                 />
+                {resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile && (
+                  <p className="text-xs text-brand-f mt-1">
+                    Auto-populated from uploaded file
+                  </p>
+                )}
               </FormField>
-              <FormField label="File Type">
+              <FormField label="File Type" required>
                 <Input
                   value={
-                    formData.ResourceProject?.ResourceFile instanceof File 
-                      ? getFileTypeFromMimeType((formData.ResourceProject.ResourceFile as File).type) || ''
-                      : (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) 
-                        ? formData.ResourceProject.ResourceFile.FileType || '' 
-                        : ''
+                    formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'FileType' in formData.ResourceProject.ResourceFile
+                      ? formData.ResourceProject.ResourceFile.FileType || ''
+                      : ''
                   }
-                  disabled={formData.ResourceProject?.ResourceFile instanceof File}
+                  disabled={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile === true}
                   onChange={(e) => {
-                    if (formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) {
+                    if (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && !(formData.ResourceProject.ResourceFile instanceof File) && 'FileType' in formData.ResourceProject.ResourceFile) {
                       updateFormData('ResourceProject.ResourceFile', { 
                         ...formData.ResourceProject.ResourceFile, 
                         FileType: e.target.value 
@@ -668,7 +864,13 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                     }
                   }}
                   placeholder="e.g., PDF"
+                  className={resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
                 />
+                {resourceFileMode === ResourceFileMode.UPLOAD && hasUploadedFile && (
+                  <p className="text-xs text-brand-f mt-1">
+                    Auto-populated from uploaded file
+                  </p>
+                )}
               </FormField>
             </div>
             
@@ -682,7 +884,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
 
-            <FormField label="Last Updated">
+            <FormField label="Last Updated" required>
               <Input
                 type="date"
                 value={(
@@ -730,6 +932,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               onChange={(e) => updateFormData('Title', e.target.value)}
               maxLength={50}
             />
+            <p className="text-xs text-brand-f mt-1">
+              {formData.Title.length}/50 characters
+            </p>
           </FormField>
           
           <FormField label="Subtitle">
@@ -738,6 +943,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               onChange={(e) => updateFormData('Subtitle', e.target.value)}
               maxLength={50}
             />
+            <p className="text-xs text-brand-f mt-1">
+              {formData.Subtitle?.length}/50 characters
+            </p>
           </FormField>
           
           <FormField label="Description">
@@ -747,6 +955,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               rows={2}
               maxLength={200}
             />
+            <p className="text-xs text-brand-f mt-1">
+              {formData.Description?.length}/200 characters
+            </p>
           </FormField>
         </div>
 
@@ -754,7 +965,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Media Assets</h3>
           
-          <MediaUpload
+          <BannerMediaUpload
             label="Layout Image"
             value={formData.MainImage}
             onUpload={(file) => {
@@ -780,7 +991,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             maxSize={5 * 1024 * 1024}
           />
           
-          <MediaUpload
+          <BannerMediaUpload
             label="Logo"
             value={formData.Logo}
             onUpload={(file) => updateFormData('Logo', file)}
@@ -788,18 +999,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             accept="image/*"
             maxSize={5 * 1024 * 1024}
           />
-          
-          <MediaUpload
-            label="Background Image"
-            value={formData.BackgroundImage}
-            onUpload={(file) => updateFormData('BackgroundImage', file)}
-            onRemove={() => removeFile('BackgroundImage')}
-            accept="image/*"
-            maxSize={5 * 1024 * 1024}
-          />
 
           {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. */}
-          {/* <MediaUpload
+          {/* <BannerMediaUpload
             label="Accent Graphic"
             value={formData.AccentGraphic}
             onUpload={(file) => {
@@ -856,7 +1058,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2">Styling Options</h3>
           
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Layout Style">
+            <FormField label="Layout Style" required>
               <Select
                 value={formData.LayoutStyle}
                 onChange={(e) => updateFormData('LayoutStyle', e.target.value)}
@@ -864,7 +1066,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
             
-            <FormField label="Text Color">
+            <FormField label="Text Color" required>
               <Select
                 value={formData.TextColour}
                 onChange={(e) => updateFormData('TextColour', e.target.value)}
@@ -874,7 +1076,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Background Type <span className="text-brand-g">*</span></label>
             <div className="grid grid-cols-3 gap-2">
               {BACKGROUND_TYPES.map(type => (
                 <button
@@ -894,7 +1096,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
           
           {formData.Background.Type === BackgroundType.SOLID && (
-            <FormField label="Background Color">
+            <FormField label="Background Color" required>
               <Input
                 type="color"
                 value={formData.Background.Value}
@@ -905,13 +1107,65 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
           
           {formData.Background.Type === BackgroundType.GRADIENT && (
-            <FormField label="CSS Gradient">
+            <FormField label="CSS Gradient" required>
               <Input
                 value={formData.Background.Value}
                 onChange={(e) => updateFormData('Background.Value', e.target.value)}
                 placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
               />
             </FormField>
+          )}
+          
+          {formData.Background.Type === BackgroundType.IMAGE && (
+            <div className="space-y-4 p-4 rounded-md">
+              <BannerMediaUpload
+                label="Background Image"
+                value={formData.BackgroundImage}
+                onUpload={(file) => {
+                  updateFormData('BackgroundImage', file);
+                  // Set a default value to pass validation (will be overridden on API side)
+                  updateFormData('Background.Value', 'background-image-url');
+                }}
+                onRemove={() => {
+                  removeFile('BackgroundImage');
+                  updateFormData('Background.Value', '');
+                }}
+                accept="image/*"
+                maxSize={5 * 1024 * 1024}
+              />
+              
+              <h4 className="text-sm font-semibold text-brand-k">Image Overlay Settings</h4>
+              <p className="text-xs text-brand-f mb-3">Add a colour overlay to improve text readability on the background image</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Overlay Color" required>
+                  <Input
+                    type="color"
+                    value={formData.Background.Overlay?.Colour?.startsWith('#') 
+                      ? formData.Background.Overlay.Colour 
+                      : '#000000'}
+                    onChange={(e) => {
+                      const hex = e.target.value;
+                      const opacity = formData.Background.Overlay?.Opacity ?? 0.5;
+                      updateFormData('Background.Overlay.Colour', hex);
+                    }}
+                    className="h-10"
+                  />
+                </FormField>
+                
+                <FormField label={`Opacity (${Math.round((formData.Background.Overlay?.Opacity ?? 0.5) * 100)}%)`} required>
+                  <Input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={formData.Background.Overlay?.Opacity ?? 0.5}
+                    onChange={(e) => updateFormData('Background.Overlay.Opacity', parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                </FormField>
+              </div>
+            </div>
           )}
           
           <FormField label="Badge Text">
@@ -946,25 +1200,29 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               return (
                 <div key={index} className="card-compact border border-brand-q">
                   <div className="grid grid-cols-2 gap-4 mb-3">
-                    <FormField label="Button Label">
+                    <FormField label="Button Label" required>
                       <Input
                         value={button.Label}
                         onChange={(e) => updateCTAButton(index, 'Label', e.target.value)}
                         placeholder="Click"
                       />
                     </FormField>
-                    <FormField label="Button URL">
+                    <FormField label="Button URL" required>
                       <Input
                         value={button.Url}
                         onChange={(e) => updateCTAButton(index, 'Url', e.target.value)}
-                        placeholder="/url"
-                        disabled={button.AutomaticallyPopulatedUrl === true}
-                        className={button.AutomaticallyPopulatedUrl ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
+                        disabled={isShowAutomaticallyPopulatedUrl === true}
+                        className={isShowAutomaticallyPopulatedUrl ? 'bg-brand-q text-brand-f cursor-not-allowed' : ''}
                       />
+                      {isShowAutomaticallyPopulatedUrl && (
+                        <p className="text-xs text-brand-f mt-1">
+                          URL is taken automatically from the File URL field
+                        </p>
+                      )}
                     </FormField>
                   </div>
                   <div className="flex justify-between items-center">
-                    <FormField label="Button Style">
+                    <FormField label="Button Style" required>
                       <Select
                         value={button.Variant}
                         onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
@@ -977,29 +1235,18 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       size="sm"
                       onClick={() => removeCTAButton(index)}
                       title='Remove button'
+                      disabled={index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT}
+                      className={index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT ? 'opacity-50 cursor-not-allowed' : ''}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2">
                     <Checkbox
                       label="External link (opens in new tab)"
                       checked={button.External}
                       onChange={(e) => updateCTAButton(index, 'External', (e.target as HTMLInputElement).checked)}
                     />
-                    {isShowAutomaticallyPopulatedUrl && (
-                      <Checkbox
-                        label="Automatically populate Url"
-                        checked={button.AutomaticallyPopulatedUrl || false}
-                        onChange={(e) => {
-                          const checked = (e.target as HTMLInputElement).checked;
-                          updateCTAButton(index, 'AutomaticallyPopulatedUrl', checked);
-                          if (checked) {
-                            updateCTAButton(index, 'Url', '/');
-                          }
-                        }}
-                      />
-                    )}
                   </div>
                 </div>
               );
@@ -1015,12 +1262,21 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2">Publishing Options</h3>
           
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Location">
+            <FormField label="Location" required>
               <select
                 id="locationSlug"
                 className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
                 value={formData.LocationSlug}
-                onChange={(e) => updateFormData('LocationSlug', e.target.value)}
+                onChange={(e) => {
+                  const selectedLocationSlug = e.target.value;
+                  updateFormData('LocationSlug', selectedLocationSlug);
+                  
+                  // Auto-populate LocationName when LocationSlug changes
+                  const selectedLocation = cities.find((loc) => loc.Key === selectedLocationSlug);
+                  if (selectedLocation) {
+                    updateFormData('LocationName', selectedLocation.Name);
+                  }
+                }}
               >
                 <option value="">Select a location...</option>
                 {cities.map(city => (
@@ -1029,7 +1285,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               </select>
             </FormField>
             
-            <FormField label="Priority (1-10)">
+            <FormField label="Priority (1-10)" required>
               <Input
                 type="number"
                 value={formData.Priority}

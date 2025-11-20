@@ -17,6 +17,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { FormField } from '@/components/ui/FormField';
 import { Trash } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -268,41 +269,32 @@ export default function ResourceEditPage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="space-y-6">
             {/* Basic Information */}
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Name <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Name" required>
               <Input
                 type="text"
                 value={formData.Name}
                 onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
                 placeholder="Name shown on the resources list page"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Header <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Header" required>
               <Input
                 type="text"
                 value={formData.Header}
                 onChange={(e) => setFormData({ ...formData, Header: e.target.value })}
                 placeholder="Header shown on the resource page"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Short Description <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Short Description" required>
               <Textarea
                 value={formData.ShortDescription}
                 onChange={(e) => setFormData({ ...formData, ShortDescription: e.target.value })}
                 placeholder="Brief description shown on the resources list page"
                 rows={3}
               />
-            </div>
+            </FormField>
 
             {/* Body Content */}
             <div className="border-t border-brand-q pt-6">
@@ -348,20 +340,16 @@ export default function ResourceEditPage() {
                     </div>
 
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold mb-2">
-                          Name
-                        </label>
+                      <FormField label="Name">
                         <Input
                           type="text"
                           value={linkList.Name}
                           onChange={(e) => updateLinkList(listIndex, 'Name', e.target.value)}
                           placeholder="List name"
                         />
-                      </div>
+                      </FormField>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-2">Type <span className="text-brand-g">*</span></label>
+                      <FormField label="Type" required>
                         <select
                           value={linkList.Type}
                           onChange={(e) => updateLinkList(listIndex, 'Type', e.target.value as LinkListType)}
@@ -371,12 +359,9 @@ export default function ResourceEditPage() {
                           <option value={LinkListType.CARD_LINK}>Card Link</option>
                           <option value={LinkListType.FILE_LINK}>File Link</option>
                         </select>
-                      </div>
+                      </FormField>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-2">
-                          Priority (1-10) <span className="text-brand-g">*</span>
-                        </label>
+                      <FormField label="Priority (1-10)" required>
                         <Input
                           type="number"
                           value={linkList.Priority}
@@ -384,12 +369,12 @@ export default function ResourceEditPage() {
                           min={1}
                           max={10}
                         />
-                      </div>
+                      </FormField>
 
                       {/* Link Items */}
                       <div className="border-t border-brand-q pt-4 mt-4">
                         <div className="flex justify-between items-center mb-3">
-                          <label className="block text-sm font-semibold">Links</label>
+                          <label className="field-label">Links</label>
                           <Button
                             type="button"
                             variant="secondary"

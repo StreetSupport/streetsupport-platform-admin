@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { FormField } from '@/components/ui/FormField';
 import { IAddressFormData, IOpeningTimeFormData } from '@/types/organisations/IOrganisation';
 import { OpeningTimeFormSchema, AddressSchema } from '@/schemas/organisationSchema';
 import { OpeningTimesManager } from './OpeningTimesManager';
@@ -230,10 +231,7 @@ export function AddLocationModal({
                 <h4 className="heading-4 border-b border-brand-q pb-3">Address Information</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="location-street" className="block text-sm font-medium text-brand-k mb-2">
-                      Street <span className="text-brand-g">*</span>
-                    </label>
+                  <FormField label="Street" required>
                     {viewMode ? (
                       <p className="text-base text-brand-k bg-brand-q px-4 py-2 rounded-md break-words">
                         {currentLocation.Street || '-'}
@@ -249,12 +247,9 @@ export function AddLocationModal({
                         placeholder="Main street address"
                       />
                     )}
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label htmlFor="location-street1" className="block text-sm font-medium text-brand-k mb-2">
-                      Street Line 1
-                    </label>
+                  <FormField label="Street Line 1">
                     {viewMode ? (
                       <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
                         {currentLocation.Street1 || '-'}
@@ -270,12 +265,9 @@ export function AddLocationModal({
                         placeholder="Building name, floor, etc."
                       />
                     )}
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label htmlFor="location-street2" className="block text-sm font-medium text-brand-k mb-2">
-                      Street Line 2
-                    </label>
+                  <FormField label="Street Line 2">
                     {viewMode ? (
                       <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
                         {currentLocation.Street2 || '-'}
@@ -291,12 +283,9 @@ export function AddLocationModal({
                         placeholder="Additional address info"
                       />
                     )}
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label htmlFor="location-street3" className="block text-sm font-medium text-brand-k mb-2">
-                      Street Line 3
-                    </label>
+                  <FormField label="Street Line 3">
                     {viewMode ? (
                       <p className="text-base text-brand-k bg-brand-q px-3 py-2 rounded-md break-words">
                         {currentLocation.Street3 || '-'}
@@ -312,12 +301,9 @@ export function AddLocationModal({
                         placeholder="Additional address info"
                       />
                     )}
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label htmlFor="location-city" className="block text-sm font-medium text-brand-k mb-2">
-                      City
-                    </label>
+                  <FormField label="City">
                     <Input
                       id="location-city"
                       value={currentLocation.City}
@@ -328,12 +314,9 @@ export function AddLocationModal({
                       placeholder={viewMode ? '' : 'City'}
                       disabled={viewMode}
                     />
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label htmlFor="location-postcode" className="block text-sm font-medium text-brand-k mb-2">
-                      Postcode <span className="text-brand-g">*</span>
-                    </label>
+                  <FormField label="Postcode" required>
                     <Input
                       id="location-postcode"
                       value={currentLocation.Postcode}
@@ -344,12 +327,9 @@ export function AddLocationModal({
                       placeholder={viewMode ? '' : 'Postcode'}
                       disabled={viewMode}
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="md:col-span-2">
-                    <label htmlFor="location-telephone" className="block text-sm font-medium text-brand-k mb-2">
-                      Telephone
-                    </label>
+                  <FormField label="Telephone" className="md:col-span-2">
                     <Input
                       id="location-telephone"
                       value={currentLocation.Telephone}
@@ -361,7 +341,7 @@ export function AddLocationModal({
                       type="tel"
                       disabled={viewMode}
                     />
-                  </div>
+                  </FormField>
                 </div>
               </div>
 

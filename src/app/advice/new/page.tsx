@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { FormField } from '@/components/ui/FormField';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 interface ValidationError {
@@ -163,10 +164,7 @@ export default function NewAdvicePage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="space-y-6">
               {/* Title */}
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-brand-k mb-2">
-                  Title <span className="text-red-500">*</span>
-                </label>
+              <FormField label="Title" required>
                 <Input
                   id="title"
                   type="text"
@@ -174,13 +172,10 @@ export default function NewAdvicePage() {
                   onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
                   placeholder="Enter advice title..."
                 />
-              </div>
+              </FormField>
 
               {/* Location Select */}
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-brand-k mb-2">
-                  Location <span className="text-red-500">*</span>
-                </label>
+              <FormField label="Location" required>
                 <select
                   id="location"
                   value={formData.LocationKey}
@@ -195,13 +190,10 @@ export default function NewAdvicePage() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </FormField>
 
               {/* Sort Position */}
-              <div>
-                <label htmlFor="sortPosition" className="block text-sm font-medium text-brand-k mb-2">
-                  Sort Position <span className="text-red-500">*</span>
-                </label>
+              <FormField label="Sort Position" required>
                 <Input
                   id="sortPosition"
                   type="number"
@@ -209,10 +201,7 @@ export default function NewAdvicePage() {
                   value={formData.SortPosition}
                   onChange={(e) => setFormData({ ...formData, SortPosition: parseInt(e.target.value) || 0 })}
                 />
-                <p className="text-xs text-brand-f mt-1">
-                  Lower numbers appear first in the list
-                </p>
-              </div>
+              </FormField>
 
               {/* Rich Text Editor */}
               <div>
@@ -222,6 +211,7 @@ export default function NewAdvicePage() {
                   onChange={(value) => setFormData({ ...formData, Body: value })}
                   placeholder="Enter the advice content..."
                   minHeight="400px"
+                  required
                 />
               </div>
 

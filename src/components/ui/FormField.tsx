@@ -10,6 +10,9 @@ interface FormFieldProps {
   className?: string;
 }
 
+// NOTE: As I can see we use this component only for 'label' in the most cases. 
+// Also we don't use it in all forms. 
+// I think we should use it for all forms and for all fields.
 export function FormField({ label, children, error, required = false, className = '' }: FormFieldProps) {
   return (
     <div className={`space-y-1 ${className}`}>

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface ActivateSwepModalProps {
@@ -143,81 +145,73 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
 
           {/* Content */}
           <div className="p-4 sm:p-6">
-            <p className="text-sm text-brand-l mb-4">
+            <h3 className="heading-6 text-brand-k mb-4">
               {swep.LocationName} - {swep.Title}
-            </p>
+            </h3>
 
             {swep.IsActive ? null : (
             // Activation form
             <form onSubmit={handleSubmit}>
               {/* Activation Type Selection */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Activation Type
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="immediate"
-                      checked={activationType === 'immediate'}
-                      onChange={(e) => setActivationType(e.target.value as 'immediate')}
-                      className="h-4 w-4 text-brand-a border-gray-300 focus:ring-brand-a"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      Activate Immediately
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="scheduled"
-                      checked={activationType === 'scheduled'}
-                      onChange={(e) => setActivationType(e.target.value as 'scheduled')}
-                      className="h-4 w-4 text-brand-a border-gray-300 focus:ring-brand-a"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      Schedule Activation (Date Range)
-                    </span>
-                  </label>
-                </div>
+                <FormField label="Activation Type">
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="immediate"
+                        checked={activationType === 'immediate'}
+                        onChange={(e) => setActivationType(e.target.value as 'immediate')}
+                        className="h-4 w-4 text-brand-a border-gray-300 focus:ring-brand-a"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Activate Immediately
+                      </span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="scheduled"
+                        checked={activationType === 'scheduled'}
+                        onChange={(e) => setActivationType(e.target.value as 'scheduled')}
+                        className="h-4 w-4 text-brand-a border-gray-300 focus:ring-brand-a"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Schedule Activation (Date Range)
+                      </span>
+                    </label>
+                  </div>
+                </FormField>
               </div>
 
               {/* Date Range Fields - Only show for scheduled */}
               {activationType === 'scheduled' && (
                 <div className="space-y-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Active From <span className="text-brand-g">*</span>
-                    </label>
-                    <input
+                  <FormField label="Start Date" required>
+                    <Input
                       type="date"
                       value={swepActiveFrom}
                       onChange={(e) => setSwepActiveFrom(e.target.value)}
                       min={getTodayString()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
-                      required={activationType === 'scheduled'}
                     />
                     <p className="text-xs text-brand-f mt-1">
                       Select today to activate immediately, or a future date to schedule activation
                     </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Active Until <span className="text-brand-g">*</span>
-                    </label>
-                    <input
+                  </FormField>
+                  <FormField label="End Date" required>
+                    <Input
                       type="date"
                       value={swepActiveUntil}
                       onChange={(e) => setSwepActiveUntil(e.target.value)}
-                      min={getTodayString()}
+                      min={swepActiveFrom || getTodayString()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
                       required={activationType === 'scheduled'}
                     />
                     <p className="text-xs text-brand-f mt-1">
                       The banner will automatically deactivate on this date
                     </p>
-                  </div>
+                  </FormField>
                 </div>
               )}
 

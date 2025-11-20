@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, Trash, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { IOpeningTimeFormData, DAYS_OF_WEEK } from '@/types/organisations/IOrganisation';
 
@@ -161,10 +162,7 @@ export function OpeningTimesManager({ openingTimes, onChange, viewMode = false }
           </h5>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-brand-k mb-2">
-                Day of Week
-              </label>
+            <FormField label="Day of Week">
               <Select
                 value={formData.Day.toString()}
                 onChange={(e) => setFormData({
@@ -176,12 +174,9 @@ export function OpeningTimesManager({ openingTimes, onChange, viewMode = false }
                   label: day.label
                 }))}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label htmlFor="opening-time" className="block text-sm font-medium text-brand-k mb-2">
-                Opening Time
-              </label>
+            <FormField label="Opening Time">
               <Input
                 type="time"
                 id="opening-time"
@@ -192,12 +187,9 @@ export function OpeningTimesManager({ openingTimes, onChange, viewMode = false }
                 })}
                 className="w-full"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label htmlFor="closing-time" className="block text-sm font-medium text-brand-k mb-2">
-                Closing Time
-              </label>
+            <FormField label="Closing Time">
               <Input
                 type="time"
                 id="closing-time"
@@ -208,7 +200,7 @@ export function OpeningTimesManager({ openingTimes, onChange, viewMode = false }
                 })}
                 className="w-full"
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="flex gap-3 mt-4">

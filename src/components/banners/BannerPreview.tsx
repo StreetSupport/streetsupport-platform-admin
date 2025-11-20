@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
+import { IBannerFormData, BannerTemplateType, LayoutStyle } from '@/types/banners/IBanner';
 // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-import type { IMediaAsset /*, IAccentGraphic*/, IResourceFile } from '@/types';
+import { BackgroundType, CTAVariant, type IMediaAsset /*, IAccentGraphic*/, type IResourceFile } from '@/types';
 import { GivingCampaignBanner } from './GivingCampaignBanner';
 import { PartnershipCharterBanner } from './PartnershipCharterBanner';
 import { ResourceProjectBanner } from './ResourceProjectBanner';
@@ -119,7 +119,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     return {
       label: btn.Label || '',
       url,
-      variant: btn.Variant?.toLowerCase() || 'primary',
+      variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
       external: btn.External || false
     };
   }) || [];
@@ -135,7 +135,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     ctaButtons: ctaButtons,
     background: {
       type: backgroundType,
-      value: backgroundType === 'image' ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
+      value: backgroundType === BackgroundType.IMAGE ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
       backgroundImage: bgImage,
       overlay: data.Background?.Overlay ? {
         colour: data.Background.Overlay.Colour || 'rgba(0,0,0,0.5)',
@@ -143,7 +143,7 @@ function transformToPublicFormat(data: IBannerFormData) {
       } : undefined
     },
     textColour: data.TextColour?.toLowerCase() || 'white',
-    layoutStyle: data.LayoutStyle?.toLowerCase() || 'split',
+    layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
     // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
     // accentGraphic: processAccentGraphic(data.AccentGraphic),
     showDates: data.ShowDates || false,

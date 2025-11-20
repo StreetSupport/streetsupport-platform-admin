@@ -103,7 +103,6 @@ export default function EditLocationLogoPage() {
   if (error || !logo) {
     return (
       <div className="min-h-screen bg-brand-q">
-        <PageHeader title="Edit Location Logo" />
         <div className="page-container section-spacing padding-top-zero">
           <ErrorState
             title="Failed to Load Location Logo"

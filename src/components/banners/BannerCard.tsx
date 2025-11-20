@@ -7,6 +7,7 @@ import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
+import { BackgroundType } from '@/types';
 
 interface BannerCardProps {
   banner: IBanner;
@@ -147,8 +148,8 @@ const BannerCard = React.memo(function BannerCard({
       <div 
         className="banner-thumbnail relative h-32 flex items-center justify-center overflow-hidden"
         style={{
-          backgroundColor: banner.Background?.Type === 'solid' ? banner.Background.Value : undefined,
-          backgroundImage: banner.Background?.Type === 'gradient' ? `linear-gradient(${banner.Background.Value})` : undefined
+          backgroundColor: banner.Background?.Type === BackgroundType.SOLID ? banner.Background.Value : undefined,
+          backgroundImage: banner.Background?.Type === BackgroundType.GRADIENT ? `${banner.Background.Value}` : undefined
         }}
       >
         {banner.Logo?.Url && (
@@ -163,11 +164,24 @@ const BannerCard = React.memo(function BannerCard({
         )}
         
         {/* Background Image if available */}
-        {banner.BackgroundImage?.Url && (
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${banner.BackgroundImage.Url})` }}
-          />
+        {banner.Background?.Type === BackgroundType.IMAGE && (banner.BackgroundImage?.Url || banner.Background?.Value) && (
+          <>
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${banner.BackgroundImage?.Url || banner.Background?.Value})` }}
+            />
+            {/* Overlay for image background */}
+            {banner.Background?.Overlay && (
+              <div 
+                className="absolute inset-0"
+                style={{
+                  backgroundColor: banner.Background.Overlay.Colour,
+                  opacity: banner.Background.Overlay.Opacity
+                }}
+                aria-hidden="true"
+              />
+            )}
+          </>
         )}
         
         {/* Status Badge */}
