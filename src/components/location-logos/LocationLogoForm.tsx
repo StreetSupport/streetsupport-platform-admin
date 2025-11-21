@@ -273,7 +273,7 @@ export default function LocationLogoForm({
       <ErrorDisplay ValidationErrors={validationErrors} />
 
       {/* Form Actions */}
-      <div className="flex gap-4 pt-4 border-t border-gray-200">
+      <div className="flex gap-3 justify-end pt-6 border-t border-brand-q mt-6">
         <Button
           type="button"
           variant="outline"
@@ -286,7 +286,6 @@ export default function LocationLogoForm({
           type="submit"
           variant="primary"
           disabled={saving}
-          className="flex-1"
         >
           {saving ? 'Saving...' : isEdit ? 'Update Logo' : 'Create Logo'}
         </Button>

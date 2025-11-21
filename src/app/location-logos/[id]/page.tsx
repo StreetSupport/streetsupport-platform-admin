@@ -155,12 +155,7 @@ export default function ViewLocationLogoPage() {
             <h2 className="heading-5 mb-6 border-b border-brand-q pb-4">Basic Information</h2>
             
             <div className="space-y-6">
-              {/* Name */}
-              <div>
-                <h3 className="text-sm font-medium text-brand-f mb-2">Name</h3>
-                <p className="text-base text-brand-k">{logo.Name}</p>
-              </div>
-
+              
               {/* Display Name */}
               <div>
                 <h3 className="text-sm font-medium text-brand-f mb-2">Display Name</h3>
