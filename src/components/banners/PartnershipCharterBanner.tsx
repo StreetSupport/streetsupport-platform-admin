@@ -98,24 +98,6 @@ function generateCTAClasses(button: PublicCTAButton, textColour: string): string
   return baseClasses;
 }
 
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// function generateAccentGraphicClasses(position?: string): string {
-//   switch (position) {
-//     case 'top-left':
-//       return 'absolute top-4 left-4 z-10';
-//     case 'top-right':
-//       return 'absolute top-4 right-4 z-10';
-//     case 'bottom-left':
-//       return 'absolute bottom-4 left-4 z-10';
-//     case 'bottom-right':
-//       return 'absolute bottom-4 right-4 z-10';
-//     case 'center':
-//       return 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0';
-//     default:
-//       return 'absolute top-4 right-4 z-10';
-//   }
-// }
-
 function getCharterTypeLabel(type?: string): string {
   switch (type) {
     case CharterType.HOMELESS_CHARTER:
@@ -156,8 +138,6 @@ interface PartnershipCharterBannerProps {
   background: { type: string; value: string; overlay?: { colour: string; opacity: number } };
   textColour: string;
   layoutStyle: string;
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // accentGraphic?: { url: string; alt: string; position: string; opacity: number };
   showDates?: boolean;
   startDate?: Date;
   endDate?: Date;
@@ -178,8 +158,6 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
   background,
   textColour,
   layoutStyle,
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // accentGraphic,
   showDates,
   startDate,
   endDate,

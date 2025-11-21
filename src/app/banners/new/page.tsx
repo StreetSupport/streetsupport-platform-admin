@@ -8,8 +8,6 @@ import { useAuthorization } from '@/hooks/useAuthorization';
 import { validateBannerForm, transformErrorPath } from '@/schemas/bannerSchema';
 import toastUtils, { successToast, errorToast, loadingToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// import type { IAccentGraphic } from '@/types';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
@@ -76,20 +74,6 @@ export default function NewBannerPage() {
             }
           }
         }
-        // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-        // else if (key === 'AccentGraphic' && value && typeof value === 'object') {
-        //   const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });
-        //   // Handle AccentGraphic with metadata
-        //   if (accentGraphic.File instanceof File) {
-        //     // 1. AccentGraphic object with File and metadata
-        //     formData.append('newfile_AccentGraphic', accentGraphic.File);
-            
-        //     // 2. Send the complete AccentGraphic metadata (excluding the File property)
-        //     const accentGraphicMetadata = { ...accentGraphic };
-        //     delete accentGraphicMetadata.File; // Remove the File object from metadata
-        //     formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
-        //   }
-        // } 
         else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
           // Handle nested PartnershipCharter with PartnerLogos
           const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;

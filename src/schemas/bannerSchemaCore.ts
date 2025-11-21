@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ValidationResult, createValidationResult } from './validationHelpers';
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
 import { 
   BannerTemplateType, 
   TextColour, 
@@ -10,8 +9,6 @@ import {
   ResourceType,
   BackgroundType,
   CTAVariant,
-  // ACCENT_POSITIONS,
-  // AccentPosition
 } from '@/types/index';
 
 // Core Media Asset Schema - shared structure
@@ -116,8 +113,6 @@ export const BannerSchemaCore = z.object({
   Logo: MediaAssetSchemaCore,
   BackgroundImage: MediaAssetSchemaCore,
   MainImage: MediaAssetSchemaCore,
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // AccentGraphic: AccentGraphicSchemaCore,
 
   // Styling
   Background: BannerBackgroundSchemaCore,

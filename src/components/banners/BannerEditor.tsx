@@ -374,8 +374,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   };
 
   // File management functions
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage' | 'AccentGraphic') => {
   const removeFile = (fieldName: 'Logo' | 'BackgroundImage' | 'MainImage') => {
     setFormData(prev => ({
       ...prev,
