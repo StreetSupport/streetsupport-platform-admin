@@ -196,21 +196,6 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
         />
       )}
 
-      {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. Don't forget about the API part. */}
-      {/* Accent graphic */}
-      {/* {accentGraphic && (
-        <div className={generateAccentGraphicClasses(accentGraphic.position)}>
-          <Image
-            src={accentGraphic.url}
-            alt={accentGraphic.alt}
-            width={100}
-            height={100}
-            className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-            style={{ opacity: accentGraphic.opacity || 0.6 }}
-          />
-        </div>
-      )} */}
-
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className={layoutClasses}>
           {/* Content Section */}

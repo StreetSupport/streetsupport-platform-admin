@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
+// import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
 import { BackgroundType } from '@/types';
 

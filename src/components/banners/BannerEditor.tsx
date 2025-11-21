@@ -261,11 +261,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       if (newData.ResourceProject) {
         // Log the file URL that would be cleaned up on the server side
         // Check if ResourceFile exists and is not a File object (i.e., it's an IResourceFile with FileUrl)
-        if (newData.ResourceProject.ResourceFile && 
-            !(newData.ResourceProject.ResourceFile instanceof File) &&
-            'FileUrl' in newData.ResourceProject.ResourceFile) {
-          console.log(`Resource file will be cleaned up on save: ${(newData.ResourceProject.ResourceFile as IResourceFile).FileUrl}`);
-        }
+        // Resource file cleanup is handled on the server side
         // Clear the ResourceProject section immediately for UI feedback
         delete newData.ResourceProject;
       }
@@ -274,9 +270,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       if (newData.CtaButtons && Array.isArray(newData.CtaButtons) && newData.CtaButtons.length > 0) {
         const firstButton = newData.CtaButtons[0];
         if (firstButton?.Url && firstButton.Url.includes('blob.core.windows.net')) {
-          // Remove the first CTA button
+          // Remove the first CTA button with blob URL
           newData.CtaButtons = newData.CtaButtons.slice(1);
-          console.log(`Removed first CTA button with blob URL during template type change: ${firstButton.Url}`);
         }
       }
     }
@@ -293,7 +288,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           Variant: CTAVariant.PRIMARY,
           External: false
         }];
-        console.log('Created required CTA button for RESOURCE_PROJECT template');
       }
     }
     
@@ -562,7 +556,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
         );
 
-      case BannerTemplateType.RESOURCE_PROJECT:
+      case BannerTemplateType.RESOURCE_PROJECT: {
         // Check if we have an uploaded file (File object or object with File property)
         const hasUploadedFile = formData.ResourceProject?.ResourceFile instanceof File || 
           (formData.ResourceProject?.ResourceFile && typeof formData.ResourceProject.ResourceFile === 'object' && 'File' in formData.ResourceProject.ResourceFile);
@@ -900,6 +894,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
           </div>
         );
+      }
 
       default:
         return null;
@@ -997,58 +992,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             accept="image/*"
             maxSize={5 * 1024 * 1024}
           />
-
-          {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. */}
-          {/* <BannerMediaUpload
-            label="Accent Graphic"
-            value={formData.AccentGraphic}
-            onUpload={(file) => {
-              const newAccentGraphic = {
-                Filename: file.name,
-                Alt: file.name,
-                Size: file.size,
-                File: file, // Keep the file object for upload
-                Position: 'top-left', // Default position
-                Opacity: 0.6 // Default opacity
-              };
-              updateFormData('AccentGraphic', newAccentGraphic);
-            }}
-            onRemove={() => removeFile('AccentGraphic')}
-            accept="image/*"
-            maxSize={5 * 1024 * 1024}
-          /> */}
-          
-          {/* Accent Graphic Controls */}
-          {/* {formData.AccentGraphic && (
-            <div className="ml-4 p-4 bg-brand-i rounded-md space-y-4">
-              <h4 className="heading-6">Accent Graphic Settings</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Position">
-                  <Select
-                    value={(formData.AccentGraphic && !(formData.AccentGraphic instanceof File)) ? formData.AccentGraphic.Position || 'top-left' : 'top-left'}
-                    onChange={(e) => updateFormData('AccentGraphic.Position', e.target.value)}
-                    options={[
-                      { value: 'top-left', label: 'Top Left' },
-                      { value: 'top-right', label: 'Top Right' },
-                      { value: 'bottom-left', label: 'Bottom Left' },
-                      { value: 'bottom-right', label: 'Bottom Right' },
-                      { value: 'center', label: 'Center' }
-                    ]}
-                  />
-                </FormField>
-                <FormField label="Opacity">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={(formData.AccentGraphic && !(formData.AccentGraphic instanceof File)) ? formData.AccentGraphic.Opacity || 0.6 : 0.6}
-                    onChange={(e) => updateFormData('AccentGraphic.Opacity', parseFloat(e.target.value))}
-                  />
-                </FormField>
-              </div>
-            </div>
-          )} */}
         </div> 
 
         {/* Styling Options */}

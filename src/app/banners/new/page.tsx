@@ -37,7 +37,6 @@ export default function NewBannerPage() {
       // Client-side validation using Zod
       const validation = validateBannerForm(data);
       if (!validation.success) {
-        debugger
         // Transform error paths for better user-friendly messages
         const transformedErrors = validation.errors.map(error => ({
           ...error,
