@@ -305,7 +305,7 @@ export default function SwepEditPage() {
                 cursor-pointer"
             />
             <p className="mt-2 text-xs text-gray-500">
-              Accepted formats: JPG, PNG, GIF, WebP. Maximum file size: 5MB.
+              Images only • Max 5MB
             </p>
             {imageFile && (
               <Button

@@ -20,6 +20,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { FormField } from '@/components/ui/FormField';
 import { Trash } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { RESOURCE_FILE_ACCEPT_STRING } from '@/types';
 
 interface ValidationError {
   Path: string;
@@ -479,7 +480,7 @@ export default function ResourceEditPage() {
                                     <Input
                                       type="file"
                                       onChange={(e) => handleFileChange(listIndex, itemIndex, e.target.files?.[0] || null)}
-                                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.jpg,.png"
+                                      accept={RESOURCE_FILE_ACCEPT_STRING}
                                     />
                                   </div>
                                 )}

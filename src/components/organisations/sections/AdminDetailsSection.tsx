@@ -203,7 +203,7 @@ export function AdminDetailsSection({
             </p>
           )}
           {warningLevel === 'warning' && (
-            <p className="text-xs text-brand-j mt-1">
+            <p className="text-xs text-amber-700 mt-1">
               ⚠️ Reminder sent. Organisation will be unverified in {100 - daysSinceUpdate} days without action
             </p>
           )}

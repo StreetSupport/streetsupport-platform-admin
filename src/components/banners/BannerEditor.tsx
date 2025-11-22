@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { BannerMediaUpload, BannerMediaArrayUpload } from '@/components/ui/BannerMediaUpload';
+import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
 import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IResourceFile, IMediaAsset } from '@/types';
 import { Input } from '@/components/ui/Input';
@@ -568,7 +568,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
             
             <FormField label="Partner Logos" error={errors.PartnerLogos}>
-              <BannerMediaArrayUpload
+              <MediaArrayUpload
                 description="Upload logos of partner organizations (max 5MB each)"
                 value={formData.PartnershipCharter?.PartnerLogos}
                 onUpload={addPartnerLogo}
@@ -643,7 +643,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                           const file = e.target.files?.[0];
                           if (file) {
                             if (!isValidResourceFileType(file.type)) {
-                              errorToast.fileType('PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WEBP, SVG, ZIP, RAR, 7Z, JSON, XML');
+                              errorToast.fileType('PDF, DOT, DOC, XLS, PPT, MP3, M4V, MP4, ZIP, JPG, JPEG, JFIF, PJP, PJPEG, PNG');
                               e.target.value = '';
                               return;
                             }
@@ -735,7 +735,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                     )}
                     
                     <p className="text-xs text-brand-f">
-                      Accepted formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, CSV, TXT, RTF, JPG, PNG, GIF, WebP, SVG, ZIP, RAR, 7Z, JSON, XML. Maximum file size: 5MB.
+                      Accepted formats: PDF, DOT, DOC, XLS, PPT, MP3, M4V, MP4, ZIP, JPG, JPEG, JFIF, PJP, PJPEG, PNG. Maximum file size: 10MB.
                     </p>
                   </div>
                 </FormField>
@@ -889,8 +889,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 )}
               </FormField>
             </div>
-            
-            <FormField label="Download Count">
+
+            {/* TODO: Uncomment it when we get value of downloadCount from GA4 */}
+            {/* <FormField label="Download Count">
               <Input
                 type="number"
                 value={(formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) ? formData.ResourceProject.ResourceFile.DownloadCount || 0 : 0}
@@ -898,7 +899,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 min={0}
                 className="bg-gray-50 cursor-not-allowed"
               />
-            </FormField>
+            </FormField> */}
 
             <FormField label="Last Updated" required>
               <Input
@@ -982,7 +983,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Media Assets</h3>
           
-          <BannerMediaUpload
+          <MediaUpload
             label="Layout Image"
             value={formData.MainImage}
             onUpload={(file) => {
@@ -1008,7 +1009,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             maxSize={5 * 1024 * 1024}
           />
           
-          <BannerMediaUpload
+          <MediaUpload
             label="Logo"
             value={formData.Logo}
             onUpload={(file) => updateFormData('Logo', file)}
@@ -1083,7 +1084,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           {formData.Background.Type === BackgroundType.IMAGE && (
             <div className="space-y-4 p-4 rounded-md">
-              <BannerMediaUpload
+              <MediaUpload
                 label="Background Image"
                 value={formData.BackgroundImage}
                 onUpload={(file) => {

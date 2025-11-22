@@ -7,7 +7,7 @@ import { FileUpload } from './FileUpload';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { IMediaAsset } from '@/types';
 
-interface BannerMediaUploadProps {
+interface MediaUploadProps {
   value?: File | IMediaAsset | null;
   onUpload: (file: File) => void;
   onRemove: () => void;
@@ -15,10 +15,11 @@ interface BannerMediaUploadProps {
   maxSize?: number;
   label?: string;
   description?: string;
+  required?: boolean;
   multiple?: boolean;
 }
 
-interface BannerMediaArrayUploadProps {
+interface MediaArrayUploadProps {
   value?: (File | IMediaAsset)[];
   onUpload: (file: File) => void;
   onRemove: (index: number) => void;
@@ -60,15 +61,16 @@ const getDisplayName = (item: MediaLike): string => {
 };
 
 // Single media upload component
-export function BannerMediaUpload({ 
+export function MediaUpload({ 
   value, 
   onUpload, 
   onRemove, 
   accept = "image/*", 
   maxSize = 5 * 1024 * 1024,
   label,
-  description 
-}: BannerMediaUploadProps) {
+  description,
+  required = false
+}: MediaUploadProps) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -93,7 +95,10 @@ export function BannerMediaUpload({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
       {description && (
         <p className="text-xs text-gray-500">{description}</p>
       )}
@@ -124,9 +129,9 @@ export function BannerMediaUpload({
                 </p>
                 <p className="text-xs text-gray-500">
                   {(() => {
-                    if (value instanceof File) return `${(value.size / 1024).toFixed(1)} KB`;
-                    if (isFileWrapper(value)) return `${(value.File.size / 1024).toFixed(1)} KB`;
-                    if (isMediaAsset(value) && typeof value.Size === 'number') return `${(value.Size / 1024).toFixed(1)} KB`;
+                    if (value instanceof File && value.size > 0) return `${(value.size / 1024).toFixed(1)} KB`;
+                    if (isFileWrapper(value) && value.File.size > 0) return `${(value.File.size / 1024).toFixed(1)} KB`;
+                    if (isMediaAsset(value) && typeof value.Size === 'number' && value.Size > 0) return `${(value.Size / 1024).toFixed(1)} KB`;
                     return '';
                   })()}
                 </p>
@@ -174,7 +179,7 @@ export function BannerMediaUpload({
 }
 
 // Multiple media upload component
-export function BannerMediaArrayUpload({ 
+export function MediaArrayUpload({ 
   value = [], 
   onUpload, 
   onRemove, 
@@ -182,7 +187,7 @@ export function BannerMediaArrayUpload({
   maxSize = 5 * 1024 * 1024,
   label,
   description 
-}: BannerMediaArrayUploadProps) {
+}: MediaArrayUploadProps) {
   return (
     <div className="space-y-4">
       {label && <h3 className="text-sm font-medium text-gray-700">{label}</h3>}
@@ -217,9 +222,9 @@ export function BannerMediaArrayUpload({
                     </p>
                     <p className="text-xs text-gray-500">
                       {(() => {
-                        if (item instanceof File) return `${(item.size / 1024).toFixed(1)} KB`;
-                        if (isFileWrapper(item)) return `${(item.File.size / 1024).toFixed(1)} KB`;
-                        if (isMediaAsset(item) && typeof item.Size === 'number') return `${(item.Size / 1024).toFixed(1)} KB`;
+                        if (item instanceof File && item.size > 0) return `${(item.size / 1024).toFixed(1)} KB`;
+                        if (isFileWrapper(item) && item.File.size > 0) return `${(item.File.size / 1024).toFixed(1)} KB`;
+                        if (isMediaAsset(item) && typeof item.Size === 'number' && item.Size > 0) return `${(item.Size / 1024).toFixed(1)} KB`;
                         return '';
                       })()}
                     </p>

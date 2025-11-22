@@ -78,7 +78,7 @@ export default function EditLocationLogoPage() {
         throw new Error(errorData.error || 'Failed to update location logo');
       }
 
-      successToast.update('ocation logo');
+      successToast.update('Location logo');
       router.push(`/location-logos/${id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update location logo';
@@ -86,11 +86,6 @@ export default function EditLocationLogoPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleCancel = () => {
-    // Form will handle resetting to original data via its internal ConfirmModal
-    // No redirect needed - user stays on page with original data restored
   };
 
   if (isChecking || loading) {
@@ -124,7 +119,7 @@ export default function EditLocationLogoPage() {
           <LocationLogoForm
             initialData={logo}
             onSubmit={handleSubmit}
-            onCancel={handleCancel}
+            onCancel={() => {}}
             isEdit={true}
             saving={saving}
           />
