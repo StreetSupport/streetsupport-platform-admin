@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { FormField } from '@/components/ui/FormField';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Upload, X } from 'lucide-react';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 
@@ -32,6 +33,15 @@ export default function LocationLogoForm({
     LocationName: initialData?.LocationName || '',
     Url: initialData?.Url || ''
   });
+  
+  const [originalData] = useState<LocationLogoFormData>({
+    Name: initialData?.Name || '',
+    DisplayName: initialData?.DisplayName || '',
+    LocationSlug: initialData?.LocationSlug || '',
+    LocationName: initialData?.LocationName || '',
+    Url: initialData?.Url || ''
+  });
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(
@@ -164,6 +174,7 @@ export default function LocationLogoForm({
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       {/* Display Name */}
       <FormField label="Display Name" required>
@@ -277,7 +288,26 @@ export default function LocationLogoForm({
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={() => {
+            // Check if logo file was uploaded - that's automatically a change
+            if (logoFile) {
+              setShowCancelModal(true);
+              return;
+            }
+            
+            // Check if logo was removed - that's a change
+            if (logoRemoved) {
+              setShowCancelModal(true);
+              return;
+            }
+            
+            // No file changes, check if form data has changed
+            if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
+              setShowCancelModal(true);
+            } else {
+              onCancel();
+            }
+          }}
           disabled={saving}
         >
           Cancel
@@ -291,5 +321,26 @@ export default function LocationLogoForm({
         </Button>
       </div>
     </form>
+    
+    <ConfirmModal
+      isOpen={showCancelModal}
+      onClose={() => setShowCancelModal(false)}
+      onConfirm={() => {
+        setShowCancelModal(false);
+        // Reset form to original data before calling onCancel
+        setFormData(originalData);
+        setLogoFile(null);
+        setLogoPreview(initialData?.LogoPath || null);
+        setLogoRemoved(false);
+        setValidationErrors([]);
+        onCancel();
+      }}
+      title="Close without saving?"
+      message="You may lose unsaved changes."
+      confirmLabel="Discard changes"
+      cancelLabel="Continue Editing"
+      variant="warning"
+    />
+    </>
   );
 }

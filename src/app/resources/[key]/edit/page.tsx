@@ -46,6 +46,7 @@ export default function ResourceEditPage() {
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [hasUploadedFiles, setHasUploadedFiles] = useState(false); // Track if any files were uploaded
 
   // Form state
   const [formData, setFormData] = useState({
@@ -92,7 +93,8 @@ export default function ResourceEditPage() {
       };
       
       setFormData(initialFormData);
-      setOriginalData(initialFormData);
+      // Deep clone to ensure originalData is independent of formData
+      setOriginalData(JSON.parse(JSON.stringify(initialFormData)));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load resource';
       setError(errorMessage);
@@ -168,16 +170,47 @@ export default function ResourceEditPage() {
   };
 
   const handleCancel = () => {
-    // TODO: handle cancelling action
-    // setShowCancelModal(true);
-    confirmCancel();
+    // Check if any File objects exist in current data - that's automatically a change
+    let hasFileUploads = false;
+    for (const list of formData.LinkList) {
+      for (const link of list.Links) {
+        if (isFile(link.Link)) {
+          hasFileUploads = true;
+          break;
+        }
+      }
+      if (hasFileUploads) break;
+    }
+    
+    if (hasFileUploads) {
+      setShowCancelModal(true);
+      return;
+    }
+    
+    // If any files were uploaded during this session (even if cleared), consider it a change
+    if (hasUploadedFiles) {
+      setShowCancelModal(true);
+      return;
+    }
+    
+    // No File objects, compare all data including URLs
+    // This will catch: cleared URLs, changed text fields, etc.
+    if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
+      setShowCancelModal(true);
+    } else {
+      // No changes, reset form to default (deep clone to avoid reference issues)
+      setFormData(JSON.parse(JSON.stringify(originalData)));
+      setValidationErrors([]);
+      setHasUploadedFiles(false);
+    }
   };
 
   const confirmCancel = () => {
-    setFormData(originalData);
+    // Revert to original data (deep clone to avoid reference issues)
+    setFormData(JSON.parse(JSON.stringify(originalData)));
     setValidationErrors([]);
     setShowCancelModal(false);
-    router.push('/resources');
+    setHasUploadedFiles(false); // Reset file upload tracking
   };
 
   // LinkList Management Functions
@@ -223,6 +256,12 @@ export default function ResourceEditPage() {
 
   const updateLinkItem = (listIndex: number, itemIndex: number, field: keyof ILink, value: string | File) => {
     const newLinkList = [...formData.LinkList];
+    
+    // If clearing a file (setting Link to ''), mark as file interaction
+    if (field === 'Link' && value === '' && isFile(newLinkList[listIndex].Links[itemIndex].Link)) {
+      setHasUploadedFiles(true);
+    }
+    
     newLinkList[listIndex].Links[itemIndex] = {
       ...newLinkList[listIndex].Links[itemIndex],
       [field]: value
@@ -233,6 +272,7 @@ export default function ResourceEditPage() {
   const handleFileChange = (listIndex: number, itemIndex: number, file: File | null) => {
     if (file) {
       updateLinkItem(listIndex, itemIndex, 'Link', file);
+      setHasUploadedFiles(true); // Mark that files have been uploaded this session
     }
   };
 

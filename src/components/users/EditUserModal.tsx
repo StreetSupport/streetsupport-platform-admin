@@ -32,6 +32,7 @@ export default function EditUserModal({
 }: EditUserModalProps) {
   const { data: session } = useSession();
   const [roleDisplays, setRoleDisplays] = useState<RoleDisplay[]>([]);
+  const [originalRoleDisplays, setOriginalRoleDisplays] = useState<RoleDisplay[]>([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -51,6 +52,7 @@ export default function EditUserModal({
         (role.id !== ROLES.CITY_ADMIN && role.id !== ROLES.SWEP_ADMIN && role.id !== ROLES.ORG_ADMIN)
       );
       setRoleDisplays(filteredDisplays);
+      setOriginalRoleDisplays(JSON.parse(JSON.stringify(filteredDisplays)));
       
       // Check for generic SwepAdmin when modal opens
       if (hasGenericSwepAdmin(user.AuthClaims)) {
@@ -61,6 +63,19 @@ export default function EditUserModal({
       setShowWarningModal(false);
     }
   }, [user, isOpen]);
+
+  // Check if roles have been changed
+  const hasChanges = () => {
+    return JSON.stringify(roleDisplays) !== JSON.stringify(originalRoleDisplays);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges()) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
 
   if (!isOpen || !user) return null;
 
@@ -244,9 +259,7 @@ export default function EditUserModal({
                 type="button"
                 variant="outline"
                 size="sm"
-                // TODO: handle cancelling action
-                // onClick={() => setShowConfirmModal(true)}
-                onClick={() => confirmCancel()}
+                onClick={handleCancel}
                 className="p-2"
                 title="Close"
               >
@@ -356,9 +369,7 @@ export default function EditUserModal({
               <Button
                 type="button"
                 variant="secondary"
-                // TODO: handle cancelling action
-                // onClick={() => setShowConfirmModal(true)}
-                onClick={() => confirmCancel()}
+                onClick={handleCancel}
                 disabled={isSubmitting}
               >
                 Cancel

@@ -52,7 +52,8 @@ export default function CreateLocationLogoPage() {
   };
 
   const handleCancel = () => {
-    router.push('/location-logos');
+    // Form will handle resetting to initial state via its internal ConfirmModal
+    // No redirect needed - user stays on page with reset form
   };
 
   return (

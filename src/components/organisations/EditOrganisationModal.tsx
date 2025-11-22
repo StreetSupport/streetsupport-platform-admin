@@ -3,9 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
-import OrganisationTab from './tabs/OrganisationTab';
+import OrganisationTab, { OrganisationTabRef } from './tabs/OrganisationTab';
+
+type TriggerCancelOptions = {
+  title?: string;
+  message?: string;
+  confirmLabel?: string;
+};
 import ServicesTab from './tabs/ServicesTab';
 import AccommodationsTab from './tabs/AccommodationsTab';
 
@@ -27,9 +32,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
   viewMode = false
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('organisation');
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showTabSwitchConfirm, setShowTabSwitchConfirm] = useState(false);
-  const [pendingTab, setPendingTab] = useState<TabType | null>(null);
+  const organisationTabRef = React.useRef<OrganisationTabRef>(null);
 
   // Reset to first tab when modal opens
   useEffect(() => {
@@ -40,39 +43,50 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
 
   const handleTabClick = (tab: TabType) => {
     if (tab !== activeTab) {
-      // In view mode, switch tabs immediately without confirmation
-      if (viewMode) {
-        setActiveTab(tab);
-      } else {
-        // TODO: handle cancelling action
-        // setShowTabSwitchConfirm(true);
-        // setPendingTab(tab);
-        setActiveTab(tab);
-      }
+      handleTabSwitch(tab);
     }
-  };
-
-  const confirmTabSwitch = () => {
-    if (pendingTab) {
-      setActiveTab(pendingTab);
-      setPendingTab(null);
-    }
-    setShowTabSwitchConfirm(false);
-  };
-
-  const cancelTabSwitch = () => {
-    setPendingTab(null);
-    setShowTabSwitchConfirm(false);
   };
 
   const handleClose = () => {
+    // Check if on Organisation tab with unsaved changes
+    if (!viewMode && activeTab === 'organisation' && organisationTabRef.current?.hasChanges()) {
+      // Trigger OrganisationTab's cancel confirmation with callback to close after
+      organisationTabRef.current?.triggerCancel(() => {
+        setActiveTab('organisation');
+        onClose();
+      }, {
+        title: 'Close without saving?',
+        message: 'You may lose unsaved changes.',
+        confirmLabel: 'Close without saving'
+      });
+      return;
+    }
+    
     setActiveTab('organisation');
     onClose();
   };
 
-  const confirmCancel = () => {
-    setShowConfirmModal(false);
+  const handleCancel = () => {
     handleClose();
+  };
+
+  const handleTabSwitch = (tab: TabType) => {
+    // Check if leaving Organisation tab with unsaved changes
+    if (!viewMode && activeTab === 'organisation' && organisationTabRef.current?.hasChanges()) {
+      // Trigger OrganisationTab's cancel confirmation with callback to switch tab after
+      // Use specific message for tab switching
+      organisationTabRef.current?.triggerCancel(() => {
+        setActiveTab(tab);
+      }, {
+        title: 'Switch tab without saving?',
+        message: 'You may lose unsaved changes.',
+        confirmLabel: 'Switch Without Saving'
+      });
+      return;
+    }
+    
+    // Switch tabs
+    setActiveTab(tab);
   };
 
   if (!isOpen) return null;
@@ -94,9 +108,7 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => viewMode ? handleClose() : setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -147,10 +159,17 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             {activeTab === 'organisation' && (
               <OrganisationTab
+                ref={organisationTabRef}
                 organisation={organisation}
                 onOrganisationUpdated={onOrganisationUpdated}
-                onClose={handleClose} // Direct close after successful update
-                onCancel={() => setShowConfirmModal(true)} // Show confirmation on manual cancel
+                onClose={() => {
+                  setActiveTab('organisation');
+                  onClose();
+                }}
+                onCancel={() => {
+                  setActiveTab('organisation');
+                  onClose();
+                }}
                 viewMode={viewMode}
               />
             )}
@@ -170,29 +189,6 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
         </div>
       </div>
 
-    {/* Close Confirmation Modal */}
-    <ConfirmModal
-      isOpen={showConfirmModal}
-      onClose={() => setShowConfirmModal(false)}
-      onConfirm={confirmCancel}
-      title="Close without saving?"
-      message="You may lose unsaved changes."
-      confirmLabel="Close Without Saving"
-      cancelLabel="Continue Editing"
-      variant="warning"
-    />
-
-    {/* Tab Switch Confirmation Modal */}
-    <ConfirmModal
-      isOpen={showTabSwitchConfirm}
-      onClose={cancelTabSwitch}
-      onConfirm={confirmTabSwitch}
-      title="Switch tab without saving?"
-      message="You may lose unsaved changes in the current tab."
-      confirmLabel="Switch Tab"
-      cancelLabel="Stay on Current Tab"
-      variant="warning"
-    />
     </>
   );
 };

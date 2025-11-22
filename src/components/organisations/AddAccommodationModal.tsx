@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
@@ -39,6 +39,7 @@ export function AddAccommodationModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<any>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     // Transform client-side validation paths to user-friendly names
@@ -117,19 +118,39 @@ export function AddAccommodationModal({
     }
     setValidationErrors([]);
     setErrorMessage('');
+    setInitialFormData(null);
     onClose();
   };
 
   const handleCancel = () => {
-    // TODO: handle cancelling action
-    // setShowConfirmModal(true);
-    confirmCancel();
+    // Check if form data has changed
+    if (!formRef.current) {
+      handleClose();
+      return;
+    }
+    
+    const currentFormData = formRef.current.getFormData();
+    const initialData = initialFormData || (isEditMode ? accommodation : null);
+    
+    if (initialData && JSON.stringify(currentFormData) !== JSON.stringify(initialData)) {
+      setShowConfirmModal(true);
+    } else {
+      handleClose();
+    }
   };
 
   const confirmCancel = () => {
     setShowConfirmModal(false);
     handleClose();
   };
+
+  // Store initial form data when modal opens
+  useEffect(() => {
+    if (isOpen && formRef.current) {
+      const formData = formRef.current.getFormData();
+      setInitialFormData(JSON.parse(JSON.stringify(formData)));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

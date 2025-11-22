@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation, IOrganisationFormData } from '@/types/organisations/IOrganisation';
 import { timeNumberToString } from '@/schemas/validationHelpers';
@@ -11,6 +12,11 @@ import { OrganisationForm, OrganisationFormRef } from '../OrganisationForm';
 import { AdminDetailsSection } from '../sections/AdminDetailsSection';
 import { decodeText } from '@/utils/htmlDecode';
 
+export interface OrganisationTabRef {
+  hasChanges: () => boolean;
+  triggerCancel: (onConfirm?: () => void, options?: { title?: string; message?: string; confirmLabel?: string }) => void;
+}
+
 interface OrganisationTabProps {
   organisation: IOrganisation;
   onOrganisationUpdated: () => void;
@@ -19,16 +25,24 @@ interface OrganisationTabProps {
   viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
 
-const OrganisationTab: React.FC<OrganisationTabProps> = ({
+const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProps>(({
   organisation,
   onOrganisationUpdated,
   onClose,
   onCancel,
   viewMode = false
-}) => {
+}, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [currentOrganisation, setCurrentOrganisation] = useState<IOrganisation>(organisation);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<Partial<IOrganisationFormData> | undefined>(undefined);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [modalOptions, setModalOptions] = useState<{ title: string; message: string, confirmLabel?: string }>({
+    title: 'Close without saving?',
+    message: 'You may lose unsaved changes.',
+    confirmLabel: 'Close without saving'
+  });
   const formRef = React.useRef<OrganisationFormRef>(null);
 
   // Update current organisation when prop changes
@@ -37,12 +51,13 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
   }, [organisation]);
 
   // Prepare initial data for the form - decode HTML entities
+  // IMPORTANT: Must include ALL fields that the form returns in getFormData()
   const initialData: Partial<IOrganisationFormData> = {
     Key: organisation.Key || '',
+    AssociatedLocationIds: organisation.AssociatedLocationIds || [],
     Name: decodeText(organisation.Name || ''),
     ShortDescription: decodeText(organisation.ShortDescription || ''),
     Description: decodeText(organisation.Description || ''),
-    AssociatedLocationIds: organisation.AssociatedLocationIds || [],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) as any : [],
     IsVerified: organisation.IsVerified || false,
@@ -52,6 +67,7 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
     Website: organisation.Website || '',
     Facebook: organisation.Facebook || '',
     Twitter: organisation.Twitter || '',
+    Bluesky: organisation.Bluesky || '', // Added missing field
     Addresses: (organisation.Addresses || []).map(address => ({
       ...address,
       Street: decodeText(address.Street || ''),
@@ -66,6 +82,67 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
     })),
     Administrators: organisation.Administrators || []
   };
+
+  // Store initial data for comparison when component mounts or organisation changes
+  useEffect(() => {
+    // Deep clone to store independent copy
+    setInitialFormData(JSON.parse(JSON.stringify(initialData)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organisation]);
+
+  // Expose methods to parent via ref
+  React.useImperativeHandle(ref, () => ({
+    hasChanges: () => {
+      if (formRef.current && initialFormData) {
+        const currentFormData = formRef.current.getFormData();
+        return JSON.stringify(currentFormData) !== JSON.stringify(initialFormData);
+      }
+      return false;
+    },
+    triggerCancel: (onConfirm?: () => void, options?: { title?: string; message?: string; confirmLabel?: string }) => {
+      if (formRef.current && initialFormData) {
+        const currentFormData = formRef.current.getFormData();
+        
+        // Check if there are changes
+        if (JSON.stringify(currentFormData) !== JSON.stringify(initialFormData)) {
+          // Store the action to execute after confirmation
+          // Use a wrapper function to properly capture the callback
+          setPendingAction(() => () => {
+            if (onConfirm) {
+              onConfirm();
+            } else {
+              onCancel();
+            }
+          });
+          
+          // Set custom title and message if provided
+          if (options?.title || options?.message || options?.confirmLabel) {
+            setModalOptions({
+              title: options.title || 'Close without saving?',
+              message: options.message || 'You may lose unsaved changes.',
+              confirmLabel: options.confirmLabel || 'Close without saving'
+            });
+          } else {
+            setModalOptions({
+              title: 'Close without saving?',
+              message: 'You may lose unsaved changes.',
+              confirmLabel: 'Close without saving'
+            });
+          }
+          
+          setShowCancelConfirm(true);
+          return;
+        }
+      }
+      
+      // No changes, execute action directly
+      if (onConfirm) {
+        onConfirm();
+      } else {
+        onCancel();
+      }
+    }
+  }));
 
   const handleValidationChange = useCallback((errors: ValidationError[]) => {
     setValidationErrors(errors);
@@ -137,8 +214,37 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
   };
 
   const handleCancel = () => {
+    // Clear any pending action from tab switch or close button
+    // This ensures Cancel button always closes the modal, not switches tabs
+    setPendingAction(null);
+    
+    // Check if form data has changed
+    if (formRef.current && initialFormData) {
+      const currentFormData = formRef.current.getFormData();
+      
+      // Compare current form data with initial data
+      if (JSON.stringify(currentFormData) !== JSON.stringify(initialFormData)) {
+        setShowCancelConfirm(true);
+        return;
+      }
+    }
+    
+    // No changes, close directly
     setValidationErrors([]);
-    onCancel(); // Trigger confirmation modal
+    onCancel();
+  };
+
+  const confirmCancel = () => {
+    setShowCancelConfirm(false);
+    setValidationErrors([]);
+    
+    // Execute the pending action (could be onCancel or a custom action from parent)
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    } else {
+      onCancel();
+    }
   };
 
   return (
@@ -200,8 +306,32 @@ const OrganisationTab: React.FC<OrganisationTabProps> = ({
           </div>
         )}
       </form>
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => {
+          setShowCancelConfirm(false);
+          // Clear pending action when user clicks "Continue Editing"
+          setPendingAction(null);
+          // Reset modal options to default
+          setModalOptions({
+            title: 'Close without saving?',
+            message: 'You may lose unsaved changes.',
+            confirmLabel: 'Close without saving'
+          });
+        }}
+        onConfirm={confirmCancel}
+        title={modalOptions.title}
+        message={modalOptions.message}
+        confirmLabel={modalOptions.confirmLabel}
+        cancelLabel="Continue Editing"
+        variant="warning"
+      />
     </div>
   );
-};
+});
+
+OrganisationTab.displayName = 'OrganisationTab';
 
 export default OrganisationTab;

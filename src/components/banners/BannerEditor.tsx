@@ -102,7 +102,6 @@ const RESOURCE_TYPES = [
 
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const [originalData, setOriginalData] = useState<Partial<IBannerFormData> | null>(null);
   const [resourceFileMode, setResourceFileMode] = useState<ResourceFileMode>(ResourceFileMode.UPLOAD); // Toggle between upload file or manual URL
   const emptyResourceFile = {
         FileUrl: '',
@@ -191,12 +190,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     };
   };
 
-  // Store original data for cancel functionality
-  useEffect(() => {
-    if (initialData && !originalData) {
-      setOriginalData(initialData);
-    }
-  }, [initialData, originalData]);
 
   const [formData, setFormData] = useState<IBannerFormData>(() => {
     const defaults = getDefaultFormData();
@@ -240,6 +233,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  
+  // Store original data from formData for cancel comparison
+  const [originalData, setOriginalData] = useState<IBannerFormData>(() => {
+    return JSON.parse(JSON.stringify(formData));
+  });
 
   useEffect(() => {
     onDataChange(formData);
@@ -417,24 +415,50 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   // Cancel functionality - revert to original data (edit) or defaults (create)
   const handleCancel = () => {
-    // TODO: handle cancelling action
-    // setShowConfirmModal(true);
-    confirmCancel();
+    // Helper to check if object contains any File objects
+    const hasFileObjects = (obj: any): boolean => {
+      if (obj instanceof File) return true;
+      if (Array.isArray(obj)) return obj.some(hasFileObjects);
+      if (obj && typeof obj === 'object') {
+        return Object.values(obj).some(hasFileObjects);
+      }
+      return false;
+    };
+    
+    // If current data has any File objects, that's automatically a change
+    if (hasFileObjects(formData)) {
+      setShowConfirmModal(true);
+      return;
+    }
+    
+    // Check if images were removed (had value in original, null in current)
+    const imageFields = ['Logo', 'BackgroundImage', 'MainImage'];
+    for (const field of imageFields) {
+      const originalValue = (originalData as any)?.[field];
+      const currentValue = (formData as any)?.[field];
+      if (originalValue && !currentValue) {
+        setShowConfirmModal(true);
+        return;
+      }
+    }
+    
+    // No file changes, compare other data
+    if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
+      setShowConfirmModal(true);
+    } else {
+      // No changes, just close/revert
+      if (onCancel) {
+        onCancel();
+      }
+    }
   };
 
   const confirmCancel = () => {
     setShowConfirmModal(false);
     
-    if (originalData && Object.keys(originalData).length > 0) {
-      // Edit mode: restore the original data
-      setFormData({ ...originalData } as IBannerFormData);
-    } else {
-      // Create mode: reset to defaults
-      setFormData(getDefaultFormData());
-    }
-    setErrors({});
+    // Restore the original data
+    setFormData(JSON.parse(JSON.stringify(originalData)));
     
-    // Call parent onCancel if provided
     if (onCancel) {
       onCancel();
     }

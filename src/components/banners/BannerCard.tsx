@@ -1,12 +1,10 @@
 'use client';
 
-// import React, { useState } from 'react';
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
-// import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
 import { BackgroundType } from '@/types';
 
@@ -25,12 +23,6 @@ const BannerCard = React.memo(function BannerCard({
   onToggleActive,
   isToggling = false
 }: BannerCardProps) {
-  // const [showConfirmModal, setShowConfirmModal] = useState(false);
-  // const [confirmConfig, setConfirmConfig] = useState<{
-  //   message: string;
-  //   onConfirm: () => void;
-  // } | null>(null);
-
   const getTemplateTypeLabel = (type: BannerTemplateType): string => {
     switch (type) {
       case BannerTemplateType.GIVING_CAMPAIGN:
@@ -319,21 +311,6 @@ const BannerCard = React.memo(function BannerCard({
           </div>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      {/* {showConfirmModal && confirmConfig && (
-        <ConfirmModal
-          isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={confirmConfig?.onConfirm || (() => {})}
-          title="Confirm Action"
-          message={confirmConfig?.message || ''}
-          variant="danger"
-          confirmLabel="Confirm"
-          cancelLabel="Cancel"
-        />
-      )} */}
-
     </div>
   );
 });

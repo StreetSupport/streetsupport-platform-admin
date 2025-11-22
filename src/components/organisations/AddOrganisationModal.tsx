@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -21,6 +21,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const formRef = useRef<OrganisationFormRef>(null);
+  const [initialFormData, setInitialFormData] = useState<any>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     setValidationErrors(errors);
@@ -97,10 +98,34 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
     }
   };
 
+  const handleCancel = () => {
+    // Check if form data has changed (including nested properties)
+    if (!formRef.current) {
+      onClose();
+      return;
+    }
+    
+    const currentFormData = formRef.current.getFormData();
+    
+    if (initialFormData && JSON.stringify(currentFormData) !== JSON.stringify(initialFormData)) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
+
   const confirmCancel = () => {
     setShowConfirmModal(false);
     onClose();
   };
+
+  // Store initial form data when modal opens
+  useEffect(() => {
+    if (isOpen && formRef.current) {
+      const formData = formRef.current.getFormData();
+      setInitialFormData(JSON.parse(JSON.stringify(formData)));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -119,9 +144,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={() => setShowConfirmModal(true)}
               className="p-2"
               title="Close"
             >
@@ -150,9 +173,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
               <Button
                 type="button"
                 variant="outline"
-                // TODO: handle cancelling action
-                // onClick={() => setShowConfirmModal(true)}
-                onClick={() => confirmCancel()}
+                onClick={handleCancel}
                 disabled={saving}
                 className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
               >

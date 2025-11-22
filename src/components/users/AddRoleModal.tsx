@@ -27,6 +27,9 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   
+  // Store initial state for change detection
+  const initialData = { selectedRole: '', selectedLocations: [] };
+  
   const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
   const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN);
   const isCityAdmin = userAuthClaims.roles.includes(ROLES.CITY_ADMIN) || userAuthClaims.specificClaims.includes(ROLE_PREFIXES.CITY_ADMIN_FOR);
@@ -56,6 +59,20 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   };
 
   if (!isOpen) return null;
+
+  // Check if role selection has changed
+  const hasChanges = () => {
+    const currentData = { selectedRole, selectedLocations };
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges()) {
+      setShowConfirmModal(true);
+    } else {
+      handleClose();
+    }
+  };
 
   const handleLocationToggle = (locationKey: string) => {
     setSelectedLocations(prev =>
@@ -160,9 +177,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -321,9 +336,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
           {/* Footer - fixed at bottom */}
           <div className="border-t border-brand-q p-4 sm:p-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
             <Button variant="outline" 
-            // TODO: handle cancelling action
-            // onClick={() => setShowConfirmModal(true)}
-            onClick={() => confirmCancel()}
+              onClick={handleCancel}
             >
               Cancel
             </Button>

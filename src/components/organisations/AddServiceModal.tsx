@@ -453,6 +453,20 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     }
   };
 
+  const handleCancel = () => {
+    if (viewMode) {
+      onClose();
+      return;
+    }
+    
+    // Check if form data has changed
+    if (originalData && JSON.stringify(formData) !== JSON.stringify(originalData)) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
+
   const confirmCancel = () => {
     setValidationErrors([]);
     setShowConfirmModal(false);
@@ -483,9 +497,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -782,13 +794,11 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             {/* Footer - fixed at bottom */}
             {!viewMode && (
               <div className="border-t border-brand-q p-4 sm:p-6">
-                <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end">
                   <Button
                     type="button"
                     variant="outline"
-                    // TODO: handle cancelling action
-                    // onClick={() => setShowConfirmModal(true)}
-                    onClick={() => confirmCancel()}
+                    onClick={handleCancel}
                     disabled={isLoading}
                     className="flex-1 sm:flex-none"
                   >

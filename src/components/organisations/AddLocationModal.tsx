@@ -45,20 +45,36 @@ export function AddLocationModal({
     IsAppointmentOnly: false,
     OpeningTimes: []
   });
+  const [initialLocation, setInitialLocation] = useState<IAddressFormData | null>(null);
 
   // Initialize form when modal opens or editing location changes
   useEffect(() => {
     if (isOpen) {
       if (editingLocation) {
-        setCurrentLocation({
+        const decodedLocation = {
           ...editingLocation,
           Street: decodeText(editingLocation.Street || ''),
           Street1: decodeText(editingLocation.Street1 || ''),
           Street2: decodeText(editingLocation.Street2 || ''),
           Street3: decodeText(editingLocation.Street3 || '')
-        });
+        };
+        setCurrentLocation(decodedLocation);
+        setInitialLocation(JSON.parse(JSON.stringify(decodedLocation)));
       } else {
         resetForm();
+        const defaultLocation = {
+          Street: '',
+          Street1: '',
+          Street2: '',
+          Street3: '',
+          City: '',
+          Postcode: '',
+          Telephone: '',
+          IsOpen247: false,
+          IsAppointmentOnly: false,
+          OpeningTimes: []
+        };
+        setInitialLocation(JSON.parse(JSON.stringify(defaultLocation)));
       }
     }
   }, [isOpen, editingLocation]);
@@ -146,6 +162,20 @@ export function AddLocationModal({
     onClose();
   };
 
+  const handleCancel = () => {
+    if (viewMode) {
+      onClose();
+      return;
+    }
+    
+    // Check if data has changed
+    if (initialLocation && JSON.stringify(currentLocation) !== JSON.stringify(initialLocation)) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
+
   const confirmCancel = () => {
     setShowConfirmModal(false);
     resetForm();
@@ -213,9 +243,7 @@ export function AddLocationModal({
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => viewMode ? onClose() : setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -393,9 +421,7 @@ export function AddLocationModal({
                 <Button
                   type="button"
                   variant="outline"
-                  // TODO: handle cancelling action
-                  // onClick={() => setShowConfirmModal(true)}
-                  onClick={() => confirmCancel()}
+                  onClick={handleCancel}
                   className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
                 >
                   Cancel

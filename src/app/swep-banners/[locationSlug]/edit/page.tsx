@@ -57,6 +57,7 @@ export default function SwepEditPage() {
     },
     Image: ''
   });
+  const [originalData, setOriginalData] = useState<ISwepBannerFormData | null>(null);
 
   useEffect(() => {
     fetchSwep();
@@ -91,6 +92,7 @@ export default function SwepEditPage() {
         Image: ''
       };
       setFormData(initialData);
+      setOriginalData(JSON.parse(JSON.stringify(initialData)));
       setImageRemoved(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load SWEP banner';
@@ -172,14 +174,43 @@ export default function SwepEditPage() {
   };
 
   const handleCancel = () => {
-    // TODO: handle cancelling action
-    // setShowConfirmModal(true);
-    confirmCancel();
+    // Check if image file was uploaded - that's automatically a change
+    if (imageFile) {
+      setShowConfirmModal(true);
+      return;
+    }
+    
+    // Check if image was removed - that's a change
+    if (imageRemoved) {
+      setShowConfirmModal(true);
+      return;
+    }
+    
+    // No file changes, compare form data
+    if (originalData && JSON.stringify(formData) !== JSON.stringify(originalData)) {
+      setShowConfirmModal(true);
+    } else {
+      // No changes, reset form to defaults
+      if (originalData) {
+        setFormData(originalData);
+        setImageFile(null);
+        setImagePreview(swep?.Image || null);
+        setImageRemoved(false);
+        setValidationErrors([]);
+      }
+    }
   };
 
   const confirmCancel = () => {
+    // Revert to original data
+    if (originalData) {
+      setFormData(originalData);
+      setImageFile(null);
+      setImagePreview(swep?.Image || null);
+      setImageRemoved(false);
+      setValidationErrors([]);
+    }
     setShowConfirmModal(false);
-    router.push('/swep-banners');
   };
 
   // Show loading while checking authorization or fetching data

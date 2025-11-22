@@ -89,7 +89,8 @@ export default function EditLocationLogoPage() {
   };
 
   const handleCancel = () => {
-    router.push(`/location-logos/${id}`);
+    // Form will handle resetting to original data via its internal ConfirmModal
+    // No redirect needed - user stays on page with original data restored
   };
 
   if (isChecking || loading) {

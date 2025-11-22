@@ -29,7 +29,24 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
   const [generalError, setGeneralError] = useState<string>('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Store initial state for change detection
+  const initialData = { email: '', authClaims: [] };
+
   if (!isOpen) return null;
+
+  // Check if any data has been added
+  const hasChanges = () => {
+    const currentData = { email, authClaims };
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges()) {
+      setShowConfirmModal(true);
+    } else {
+      handleClose();
+    }
+  };
 
   const validateForm = (): boolean => {
     const errors: ValidationError[] = [];
@@ -201,9 +218,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               type="button"
               variant="outline"
               size="sm"
-              // TODO: handle cancelling action
-              // onClick={() => setShowConfirmModal(true)}
-              onClick={() => confirmCancel()}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -276,9 +291,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
           <div className="border-t border-brand-q p-4 sm:p-6">
             <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
               <Button variant="outline" 
-                // TODO: handle cancelling action
-                // onClick={() => setShowConfirmModal(true)}
-                onClick={() => confirmCancel()}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
