@@ -5,6 +5,7 @@ import { IBanner } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 
 interface ActivateBannerModalProps {
   banner: IBanner;
@@ -156,7 +157,7 @@ export default function ActivateBannerModal({ banner, isOpen, onClose, onActivat
                 <FormField label="Activation Type">
                   <div className="space-y-2">
                     <label className="flex items-center">
-                      <input
+                      <Input
                         type="radio"
                         value="immediate"
                         checked={activationType === 'immediate'}
@@ -168,7 +169,7 @@ export default function ActivateBannerModal({ banner, isOpen, onClose, onActivat
                       </span>
                     </label>
                     <label className="flex items-center">
-                      <input
+                      <Input
                         type="radio"
                         value="scheduled"
                         checked={activationType === 'scheduled'}
@@ -187,24 +188,22 @@ export default function ActivateBannerModal({ banner, isOpen, onClose, onActivat
               {activationType === 'scheduled' && (
                 <div className="space-y-4 mb-4">
                   <FormField label="Start Date" required>
-                    <input
+                    <Input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       min={getTodayString()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
                     />
                     <p className="text-xs text-brand-f mt-1">
                       Select today to activate immediately, or a future date to schedule activation
                     </p>
                   </FormField>
                   <FormField label="End Date" required>
-                    <input
+                    <Input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={getTodayString()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a"
                     />
                     <p className="text-xs text-brand-f mt-1">
                       The banner will automatically deactivate on this date

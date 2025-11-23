@@ -1,6 +1,7 @@
 'use client';
 
 import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 import { IAccommodationFormData, DISCRETIONARY_OPTIONS } from '@/types/organisations/IAccommodation';
 
 interface PricingSectionProps {
@@ -14,7 +15,7 @@ export function PricingSection({ formData, onChange, errors, viewMode = false }:
   return (
     <div className="space-y-4">
       <div className="flex items-center">
-        <input
+        <Input
           type="checkbox"
           id="referralRequired"
           checked={formData.ReferralIsRequired}
@@ -47,12 +48,11 @@ export function PricingSection({ formData, onChange, errors, viewMode = false }:
       )}
 
       <FormField label="Price (£ p/w)" required>
-        <input
+        <Input
           type="number"
           id="price"
           value={formData.Price}
           onChange={(e) => onChange('PricingAndRequirementsInfo.Price', e.target.value)}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           disabled={viewMode}
         />
       </FormField>

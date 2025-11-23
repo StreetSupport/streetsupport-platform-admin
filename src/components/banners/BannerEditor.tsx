@@ -592,7 +592,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Upload file or provide link to file">
               <div className="flex gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
+                  <Input
                     type="radio"
                     name="resourceFileMode"
                     value={ResourceFileMode.UPLOAD}
@@ -603,7 +603,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   <span className="text-sm text-brand-k">Upload file</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
+                  <Input
                     type="radio"
                     name="resourceFileMode"
                     value={ResourceFileMode.MANUAL}
@@ -634,7 +634,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       >
                         Choose File
                       </label>
-                      <input
+                      <Input
                         type="file"
                         id="resource-file"
                         accept={RESOURCE_FILE_ACCEPT_STRING}

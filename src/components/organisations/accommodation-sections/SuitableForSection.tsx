@@ -1,5 +1,6 @@
 'use client';
 
+import { Input } from '@/components/ui/Input';
 import { IAccommodationFormData } from "@/types";
 
 interface SuitableForSectionProps {
@@ -19,7 +20,7 @@ interface CheckboxRowProps {
 function CheckboxRow({ label, field, value, onChange, disabled = false }: CheckboxRowProps) {
   return (
     <div className="flex items-center py-2">
-      <input
+      <Input
         type="checkbox"
         id={field}
         checked={value || false}

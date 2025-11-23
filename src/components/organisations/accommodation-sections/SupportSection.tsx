@@ -1,6 +1,7 @@
 'use client';
 
 import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
 import { IAccommodationFormData, SUPPORT_OFFERED_OPTIONS, SupportOfferedType } from '@/types/organisations/IAccommodation';
 
 interface SupportSectionProps {
@@ -27,7 +28,7 @@ export function SupportSection({ formData, onChange, viewMode = false }: Support
         <div className="space-y-2 bg-gray-50 p-4 rounded-md">
           {SUPPORT_OFFERED_OPTIONS.map((option) => (
             <div key={option.value} className="flex items-center">
-              <input
+              <Input
                 type="checkbox"
                 id={`support-${option.value}`}
                 checked={safeFormData.SupportOffered?.includes(option.value) || false}

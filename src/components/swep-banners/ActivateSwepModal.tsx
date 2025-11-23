@@ -157,7 +157,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
                 <FormField label="Activation Type">
                   <div className="space-y-2">
                     <label className="flex items-center">
-                      <input
+                      <Input
                         type="radio"
                         value="immediate"
                         checked={activationType === 'immediate'}
@@ -169,7 +169,7 @@ export default function ActivateSwepModal({ swep, isOpen, onClose, onActivate }:
                       </span>
                     </label>
                     <label className="flex items-center">
-                      <input
+                      <Input
                         type="radio"
                         value="scheduled"
                         checked={activationType === 'scheduled'}
