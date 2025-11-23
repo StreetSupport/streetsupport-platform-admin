@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { LocationLogoFormData, validateLocationLogo, transformErrorPath } from '@/schemas/locationLogoSchema';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';

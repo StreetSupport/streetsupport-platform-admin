@@ -7,6 +7,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { OrganisationForm, OrganisationFormRef } from './OrganisationForm';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { IOrganisationFormData } from '@/types/organisations/IOrganisation';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddOrganisationModalProps {
@@ -21,7 +22,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const formRef = useRef<OrganisationFormRef>(null);
-  const [initialFormData, setInitialFormData] = useState<any>(null);
+  const [initialFormData, setInitialFormData] = useState<IOrganisationFormData | null>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     setValidationErrors(errors);

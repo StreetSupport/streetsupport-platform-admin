@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
@@ -11,11 +11,13 @@ import toast from 'react-hot-toast';
 interface AdminDetailsSectionProps {
   organisation: IOrganisation;
   onUpdate?: (updatedOrg: IOrganisation) => void;
+  onClose?: () => void;
 }
 
 export function AdminDetailsSection({ 
   organisation, 
   onUpdate,
+  onClose,
 }: AdminDetailsSectionProps) {
   const [selectedEmail, setSelectedEmail] = useState<string>(
     organisation.Administrators?.find(admin => admin.IsSelected)?.Email || ''
@@ -26,7 +28,7 @@ export function AdminDetailsSection({
   const [localAdministrators, setLocalAdministrators] = useState(organisation.Administrators || []);
 
   // Sync local administrators and selectedEmail when organisation updates
-  React.useEffect(() => {
+  useEffect(() => {
     if (organisation.Administrators && organisation.Administrators.length > 0) {
       setLocalAdministrators(organisation.Administrators);
       const currentlySelected = organisation.Administrators.find(admin => admin.IsSelected)?.Email || '';
@@ -87,17 +89,24 @@ export function AdminDetailsSection({
         setLocalAdministrators(updatedOrg.Administrators);
       }
       
+      // Update the organization with the new administrator selection
+      const updatedOrgWithAdmins = {
+        ...updatedOrg,
+        Administrators: updatedOrg.Administrators && updatedOrg.Administrators.length > 0 
+          ? updatedOrg.Administrators 
+          : updatedAdmins
+      };
+      
       if (onUpdate) {
-        // Merge updated administrators into the org object
-        onUpdate({
-          ...updatedOrg,
-          Administrators: updatedOrg.Administrators && updatedOrg.Administrators.length > 0 
-            ? updatedOrg.Administrators 
-            : updatedAdmins
-        });
+        onUpdate(updatedOrgWithAdmins);
       }
       
       toast.success('Administrator updated successfully');
+      
+      // Close the modal after successful update
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error updating administrator:', error);
       errorToast.generic('Failed to update administrator');
@@ -130,6 +139,11 @@ export function AdminDetailsSection({
       }
       
       toast.success('Information confirmed as up to date');
+      
+      // Close the modal after successful confirmation
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error confirming information:', error);
       errorToast.generic('Failed to confirm information');

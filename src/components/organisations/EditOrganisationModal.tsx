@@ -6,11 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import OrganisationTab, { OrganisationTabRef } from './tabs/OrganisationTab';
 
-type TriggerCancelOptions = {
-  title?: string;
-  message?: string;
-  confirmLabel?: string;
-};
 import ServicesTab from './tabs/ServicesTab';
 import AccommodationsTab from './tabs/AccommodationsTab';
 

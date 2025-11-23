@@ -66,7 +66,7 @@ export default function AdviceManagement() {
         limit: limit.toString(),
       });
 
-      if (searchTerm) params.append('search', searchTerm);
+      if (searchInput?.trim()) params.append('search', searchInput.trim());
       if (locationFilter) params.append('location', locationFilter);
 
       const response = await authenticatedFetch(`/api/advice?${params.toString()}`);

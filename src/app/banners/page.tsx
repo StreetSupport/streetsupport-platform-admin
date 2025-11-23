@@ -73,7 +73,7 @@ export default function BannersListPage() {
         limit: limit.toString(),
       });
       
-      if (searchTerm) params.append('search', searchTerm);
+      if (searchInput?.trim()) params.append('search', searchInput.trim());
       if (templateFilter) params.append('templateType', templateFilter);
       if (statusFilter) params.append('isActive', statusFilter);
       if (locationFilter) params.append('location', locationFilter);

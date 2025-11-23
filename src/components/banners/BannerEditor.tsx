@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { MediaUpload, MediaArrayUpload } from '@/components/ui/MediaUpload';
@@ -190,7 +190,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     };
   };
 
-
+  
   const [formData, setFormData] = useState<IBannerFormData>(() => {
     const defaults = getDefaultFormData();
 
@@ -231,13 +231,12 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     };
   });
 
+  // Store original data from formData for cancel comparison
+  // Use useRef to store the initial data without re-running
+  const originalDataRef = useRef(JSON.parse(JSON.stringify(formData)));
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
-  // Store original data from formData for cancel comparison
-  const [originalData, setOriginalData] = useState<IBannerFormData>(() => {
-    return JSON.parse(JSON.stringify(formData));
-  });
 
   useEffect(() => {
     onDataChange(formData);
@@ -416,11 +415,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   // Cancel functionality - revert to original data (edit) or defaults (create)
   const handleCancel = () => {
     // Helper to check if object contains any File objects
-    const hasFileObjects = (obj: any): boolean => {
+    const hasFileObjects = (obj: unknown): boolean => {
       if (obj instanceof File) return true;
       if (Array.isArray(obj)) return obj.some(hasFileObjects);
       if (obj && typeof obj === 'object') {
-        return Object.values(obj).some(hasFileObjects);
+        return Object.values(obj as Record<string, unknown>).some(hasFileObjects);
       }
       return false;
     };
@@ -432,10 +431,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     }
     
     // Check if images were removed (had value in original, null in current)
-    const imageFields = ['Logo', 'BackgroundImage', 'MainImage'];
+    const imageFields = ['Logo', 'BackgroundImage', 'MainImage'] as const;
     for (const field of imageFields) {
-      const originalValue = (originalData as any)?.[field];
-      const currentValue = (formData as any)?.[field];
+      const originalValue = originalDataRef.current[field];
+      const currentValue = formData[field];
       if (originalValue && !currentValue) {
         setShowConfirmModal(true);
         return;
@@ -443,7 +442,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     }
     
     // No file changes, compare other data
-    if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
+    if (JSON.stringify(formData) !== JSON.stringify(originalDataRef.current)) {
       setShowConfirmModal(true);
     } else {
       // No changes, just close/revert
@@ -457,7 +456,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     setShowConfirmModal(false);
     
     // Restore the original data
-    setFormData(JSON.parse(JSON.stringify(originalData)));
+    setFormData(JSON.parse(JSON.stringify(originalDataRef.current)));
     
     if (onCancel) {
       onCancel();
@@ -1112,7 +1111,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       : '#000000'}
                     onChange={(e) => {
                       const hex = e.target.value;
-                      const opacity = formData.Background.Overlay?.Opacity ?? 0.5;
                       updateFormData('Background.Overlay.Colour', hex);
                     }}
                     className="h-10"

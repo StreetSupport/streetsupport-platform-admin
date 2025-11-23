@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { IAccommodation } from '@/types/organisations/IAccommodation';
+import { IAccommodation, IAccommodationFormData } from '@/types/organisations/IAccommodation';
 import { AccommodationForm, AccommodationFormRef } from './AccommodationForm';
 import { successToast, errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -39,7 +39,7 @@ export function AddAccommodationModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
-  const [initialFormData, setInitialFormData] = useState<any>(null);
+  const [initialFormData, setInitialFormData] = useState<IAccommodationFormData | null>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     // Transform client-side validation paths to user-friendly names

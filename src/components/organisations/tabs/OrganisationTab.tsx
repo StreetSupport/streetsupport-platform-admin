@@ -260,6 +260,7 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
                 setCurrentOrganisation(updatedOrg);
                 onOrganisationUpdated();
               }}
+              onClose={onClose}
             />
           </div>
 

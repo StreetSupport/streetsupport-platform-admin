@@ -64,7 +64,7 @@ export default function SwepManagement() {
         limit: limit.toString(),
       });
 
-      if (searchTerm) params.append('search', searchTerm);
+      if (searchInput?.trim()) params.append('search', searchInput.trim());
       if (isActiveFilter) params.append('isActive', isActiveFilter);
       if (locationFilter) params.append('location', locationFilter);
 

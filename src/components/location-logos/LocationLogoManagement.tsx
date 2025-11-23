@@ -65,7 +65,7 @@ export default function LocationLogoManagement() {
         sortOrder: 'desc'
       });
 
-      if (searchTerm) params.append('search', searchTerm);
+      if (searchInput?.trim()) params.append('search', searchInput.trim());
       if (locationFilter) params.append('location', locationFilter);
 
       const response = await authenticatedFetch(`/api/location-logos?${params.toString()}`);

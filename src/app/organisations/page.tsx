@@ -132,8 +132,8 @@ export default function OrganisationsPage() {
           page: currentPage.toString(),
           limit: limit.toString(),
         });
-        
-        if (searchName) params.append('search', searchName);
+
+        if (nameInput?.trim()) params.append('search', nameInput.trim());
         if (isVerifiedFilter) params.append('isVerified', isVerifiedFilter);
         if (isPublishedFilter) params.append('isPublished', isPublishedFilter);
         if (locationFilter) params.append('location', locationFilter);
@@ -158,7 +158,8 @@ export default function OrganisationsPage() {
   };
 
   const handleSearchClick = () => {
-    setSearchName(nameInput.trim());
+    const trimmedSearch = nameInput.trim();
+    setSearchName(trimmedSearch);
     setCurrentPage(1);
   };
   

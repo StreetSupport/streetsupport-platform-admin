@@ -101,7 +101,7 @@ export default function UsersPage() {
         limit: limit.toString(),
       });
       
-      if (searchEmail) params.append('search', searchEmail);
+      if (emailInput?.trim()) params.append('search', emailInput.trim());
       if (roleFilter) params.append('role', roleFilter);
       if (locationFilter) params.append('location', locationFilter);
       
