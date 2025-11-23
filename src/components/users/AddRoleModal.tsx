@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSession } from 'next-auth/react';
 import { errorToast } from '@/utils/toast';
@@ -194,7 +193,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               {/* Super Administrator */}
               {isSuperAdmin && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
-                  <Input
+                  <input
                     type="radio"
                     id="role-super-admin"
                     className="radio-field"
@@ -213,7 +212,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               {/* Location Administrator */}
               {(isSuperAdmin || isCityAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
-                  <Input
+                  <input
                     type="radio"
                     id="role-location-admin"
                     className="radio-field"
@@ -231,7 +230,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
 
               {/* Organisation Administrator - Always show */}
               <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
-                <Input
+                <input
                   type="radio"
                   id="role-org-admin"
                   className="radio-field"
@@ -249,7 +248,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               {/* Volunteer Administrator */}
               {(isSuperAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
-                  <Input
+                  <input
                     type="radio"
                     id="role-volunteer-admin"
                     className="radio-field"
@@ -268,7 +267,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
               {/* SWEP Administrator */}
               {(isSuperAdmin || isCityAdmin) && (
                 <label className="flex items-center p-3 hover:bg-brand-i rounded-md cursor-pointer transition-colors">
-                  <Input
+                  <input
                     type="radio"
                     id="role-swep-admin"
                     className="radio-field"
@@ -303,7 +302,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                         key={location.Key}
                         className="flex items-center p-3 hover:bg-brand-i cursor-pointer border-b border-brand-q last:border-b-0"
                       >
-                        <Input
+                        <input
                           type="checkbox"
                           id={`location-${location.Key}`}
                           className="checkbox-field"
