@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { FormField } from '@/components/ui/FormField';
+import { Select } from '@/components/ui/Select';
 import { Trash } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RESOURCE_FILE_ACCEPT_STRING } from '@/types';
@@ -391,15 +392,15 @@ export default function ResourceEditPage() {
                       </FormField>
 
                       <FormField label="Type" required>
-                        <select
+                        <Select
                           value={linkList.Type}
                           onChange={(e) => updateLinkList(listIndex, 'Type', e.target.value as LinkListType)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-a focus:border-brand-a"
-                        >
-                          <option value={LinkListType.LINK}>Link</option>
-                          <option value={LinkListType.CARD_LINK}>Card Link</option>
-                          <option value={LinkListType.FILE_LINK}>File Link</option>
-                        </select>
+                          options={[
+                            { value: LinkListType.LINK, label: 'Link' },
+                            { value: LinkListType.CARD_LINK, label: 'Card Link' },
+                            { value: LinkListType.FILE_LINK, label: 'File Link' }
+                          ]}
+                        />
                       </FormField>
 
                       <FormField label="Priority (1-10)" required>

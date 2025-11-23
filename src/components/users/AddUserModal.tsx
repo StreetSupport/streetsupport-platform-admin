@@ -247,7 +247,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="sm"
                   onClick={() => setIsRoleModalOpen(true)}
                 >
@@ -262,18 +262,21 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
                   {roleDisplays.map((role) => (
                     <div
                       key={role.id}
-                      className="flex items-center justify-between p-3 bg-brand-q rounded-md"
+                      className="flex items-center justify-between p-4 bg-brand-i rounded-md"
                     >
                       <span className="text-base text-brand-k font-medium">
                         {role.label}
                       </span>
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleRemoveRole(role.id)}
                         className="p-2 hover:bg-brand-g hover:bg-opacity-10 rounded-full transition-colors"
                         aria-label={`Remove ${role.label}`}
                       >
                         <Trash2 className="w-4 h-4 text-brand-g" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -289,7 +292,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
 
           {/* Footer - fixed at bottom */}
           <div className="border-t border-brand-q p-4 sm:p-6">
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <div className="flex flex-row items-center justify-end gap-3">
               <Button variant="outline" 
                 onClick={handleCancel}
               >

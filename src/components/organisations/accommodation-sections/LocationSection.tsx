@@ -2,6 +2,7 @@
 
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { IAccommodationFormData } from '@/types';
 
 interface LocationSectionProps {
@@ -87,21 +88,15 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
       </div>
 
       <FormField label="Associated Location" required>
-        <select
+        <Select
           id="associated-location"
           name="associatedLocation"
           value={formData.AssociatedCityId}
           onChange={(e) => onChange('Address.AssociatedCityId', e.target.value)}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          options={availableCities.map(city => ({ value: city.Key, label: city.Name }))}
+          placeholder="Select a location"
           disabled={viewMode}
-        >
-          <option value="">Select a location</option>
-          {availableCities.map((city) => (
-            <option key={city._id} value={city.Key}>
-              {city.Name}
-            </option>
-          ))}
-        </select>
+        />
       </FormField>
     </div>
   );

@@ -33,6 +33,7 @@ import { $setBlocksType } from '@lexical/selection';
 import { ListNode, ListItemNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND } from '@lexical/list';
 import { LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import DOMPurify from 'dompurify';
+import { Button } from './Button';
 
 export interface RichTextEditorProps {
   value: string;
@@ -107,138 +108,161 @@ function ToolbarPlugin({ disabled }: { disabled: boolean }) {
   return (
     <div className="border-b border-gray-300 p-2 flex flex-wrap gap-1 bg-gray-50">
       {/* Headings */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => formatHeading('h1')}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50 text-sm"
+        className="px-3 py-1 text-sm"
         title="Heading 1"
       >
         H1
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => formatHeading('h2')}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50 text-sm"
+        className="px-3 py-1 text-sm"
         title="Heading 2"
       >
         H2
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => formatHeading('h3')}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50 text-sm"
+        className="px-3 py-1 text-sm"
         title="Heading 3"
       >
         H3
-      </button>
+      </Button>
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
 
       {/* Text Formatting */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleBold}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Bold"
       >
         <strong>B</strong>
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleItalic}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Italic"
       >
         <em>I</em>
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleUnderline}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Underline"
       >
         <u>U</u>
-      </button>
+      </Button>
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleBulletList}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Bullet List"
       >
         • List
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleNumberedList}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Numbered List"
       >
         1. List
-      </button>
+      </Button>
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleLink}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Add Link"
       >
         🔗 Link
-      </button>
+      </Button>
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleUndo}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Undo"
       >
         ↶
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={handleRedo}
         disabled={disabled}
-        className="px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+        className="px-3 py-1"
         title="Redo"
       >
         ↷
-      </button>
+      </Button>
     </div>
   );
 }
 
-// Plugin to set initial content
+// Plugin to set initial content and respond to external value changes
 function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
   const [editor] = useLexicalComposerContext();
-  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [lastValue, setLastValue] = React.useState<string | null>(null);
 
   useEffect(() => {
-    if (!isInitialized && initialHtml) {
+    // Update editor content on initial load or when initialHtml changes externally
+    if (initialHtml !== lastValue) {
       editor.update(() => {
         const parser = new DOMParser();
-        const dom = parser.parseFromString(initialHtml, 'text/html');
+        const dom = parser.parseFromString(initialHtml || '<p></p>', 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
@@ -260,9 +284,9 @@ function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
           root.append($createParagraphNode());
         }
       });
-      setIsInitialized(true);
+      setLastValue(initialHtml);
     }
-  }, [editor, initialHtml, isInitialized]);
+  }, [editor, initialHtml, lastValue]);
 
   return null;
 }

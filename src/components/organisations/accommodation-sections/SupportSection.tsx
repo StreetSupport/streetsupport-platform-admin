@@ -1,7 +1,7 @@
 'use client';
 
 import { FormField } from '@/components/ui/FormField';
-import { Input } from '@/components/ui/Input';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { IAccommodationFormData, SUPPORT_OFFERED_OPTIONS, SupportOfferedType } from '@/types/organisations/IAccommodation';
 
 interface SupportSectionProps {
@@ -27,19 +27,14 @@ export function SupportSection({ formData, onChange, viewMode = false }: Support
       <FormField label="Support Offered">
         <div className="space-y-2 bg-gray-50 p-4 rounded-md">
           {SUPPORT_OFFERED_OPTIONS.map((option) => (
-            <div key={option.value} className="flex items-center">
-              <Input
-                type="checkbox"
-                id={`support-${option.value}`}
-                checked={safeFormData.SupportOffered?.includes(option.value) || false}
-                onChange={() => handleSupportToggle(option.value)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                disabled={viewMode}
-              />
-              <label htmlFor={`support-${option.value}`} className="ml-2 block text-sm text-gray-700">
-                {option.label}
-              </label>
-            </div>
+            <Checkbox
+              key={option.value}
+              id={`support-${option.value}`}
+              checked={safeFormData.SupportOffered?.includes(option.value) || false}
+              onChange={() => handleSupportToggle(option.value)}
+              disabled={viewMode}
+              label={option.label}
+            />
           ))}
         </div>
       </FormField>
@@ -50,7 +45,7 @@ export function SupportSection({ formData, onChange, viewMode = false }: Support
           value={safeFormData.SupportInfo || ''}
           onChange={(e) => onChange('SupportProvidedInfo.SupportInfo', e.target.value)}
           rows={4}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent sm:text-sm"
           placeholder={viewMode ? '' : 'Provide details about support services available'}
           disabled={viewMode}
         />

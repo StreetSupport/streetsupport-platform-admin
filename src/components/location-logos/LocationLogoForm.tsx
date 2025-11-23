@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { FormField } from '@/components/ui/FormField';
+import { Select } from '@/components/ui/Select';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { MediaUpload } from '@/components/ui/MediaUpload';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -194,21 +195,15 @@ export default function LocationLogoForm({
 
       {/* Location */}
       <FormField label="Location" required>
-        <select
+        <Select
           id="LocationSlug"
           name="LocationSlug"
           value={formData.LocationSlug}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-a focus:border-brand-a disabled:bg-gray-100 disabled:cursor-not-allowed"
+          options={locations.map(location => ({ value: location.Key, label: location.Name }))}
+          placeholder="Select a location"
           disabled={saving}
-        >
-          <option value="">Select a location</option>
-          {locations.map((location) => (
-            <option key={location.Key} value={location.Key}>
-              {location.Name}
-            </option>
-          ))}
-        </select>
+        />
         <p className="text-xs text-brand-f mt-1">
           The location/city where this supporter is active
         </p>

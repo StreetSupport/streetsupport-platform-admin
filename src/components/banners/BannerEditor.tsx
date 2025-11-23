@@ -1044,18 +1044,15 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <label className="block text-sm font-medium text-gray-700 mb-2">Background Type <span className="text-brand-g">*</span></label>
             <div className="grid grid-cols-3 gap-2">
               {BACKGROUND_TYPES.map(type => (
-                <button
+                <Button
                   key={type.value}
                   type="button"
+                  variant={formData.Background.Type === type.value ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => updateFormData('Background.Type', type.value)}
-                  className={`btn-base btn-sm ${
-                    formData.Background.Type === type.value
-                      ? 'btn-primary'
-                      : 'btn-secondary'
-                  }`}
                 >
                   {type.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -1227,9 +1224,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Location" required>
-              <select
+              <Select
                 id="locationSlug"
-                className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
                 value={formData.LocationSlug}
                 onChange={(e) => {
                   const selectedLocationSlug = e.target.value;
@@ -1241,12 +1237,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                     updateFormData('LocationName', selectedLocation.Name);
                   }
                 }}
-              >
-                <option value="">Select a location...</option>
-                {cities.map(city => (
-                  <option key={city.Key} value={city.Key}>{city.Name}</option>
-                ))}
-              </select>
+                options={cities.map(city => ({ value: city.Key, label: city.Name }))}
+                placeholder="Select a location..."
+              />
             </FormField>
             
             <FormField label="Priority (1-10)" required>

@@ -1,6 +1,7 @@
 'use client';
 
-import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { IAccommodationFormData } from "@/types";
 
 interface SuitableForSectionProps {
@@ -19,18 +20,14 @@ interface CheckboxRowProps {
 
 function CheckboxRow({ label, field, value, onChange, disabled = false }: CheckboxRowProps) {
   return (
-    <div className="flex items-center py-2">
-      <Input
-        type="checkbox"
+    <div className="py-2">
+      <Checkbox
         id={field}
         checked={value || false}
         onChange={(e) => onChange(field, e.target.checked)}
-        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
         disabled={disabled}
+        label={label}
       />
-      <label htmlFor={field} className="ml-2 block text-sm text-gray-700">
-        {label}
-      </label>
     </div>
   );
 }

@@ -286,7 +286,7 @@ export default function EditUserModal({
                   <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="primary"
                     size="sm"
                     onClick={() => setIsRoleModalOpen(true)}
                   >
@@ -318,8 +318,10 @@ export default function EditUserModal({
                               {role.label}
                             </span>
                             <div className="relative group">
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                   if (canActuallyRemove) {
                                     handleRemoveRole(role.id);
@@ -329,16 +331,16 @@ export default function EditUserModal({
                                   }
                                 }}
                                 disabled={!canActuallyRemove}
-                                className={`p-2 rounded-full transition-colors ${
+                                className={`p-2 rounded-full ${
                                   canActuallyRemove
-                                    ? 'hover:bg-brand-g hover:bg-opacity-10 cursor-pointer' 
-                                    : 'opacity-40 cursor-not-allowed'
+                                    ? 'hover:bg-brand-g hover:bg-opacity-10 text-brand-g' 
+                                    : 'opacity-40'
                                 }`}
                                 aria-label={`Remove ${role.label}`}
                                 title={tooltipText}
                               >
-                                <Trash2 className="w-4 h-4 text-brand-g" />
-                              </button>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                               {/* Tooltip */}
                               {!canActuallyRemove && tooltipText && (
                                 <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50">
@@ -365,10 +367,10 @@ export default function EditUserModal({
             </div>
 
             {/* Footer - fixed at bottom */}
-            <div className="border-t border-brand-q p-4 sm:p-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <div className="border-t border-brand-q p-4 sm:p-6 flex flex-row items-center justify-end gap-3">
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 onClick={handleCancel}
                 disabled={isSubmitting}
               >

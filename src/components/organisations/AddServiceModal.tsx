@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
+import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { OpeningTimesManager } from '@/components/organisations/OpeningTimesManager';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
-import { FormField } from '@/components/ui/FormField';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { IServiceCategory } from '@/types/organisations/IServiceCategory';
@@ -19,6 +19,7 @@ import { IGroupedServiceFormData, validateGroupedService, transformErrorPath } f
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { decodeText } from '@/utils/htmlDecode';
+import { Textarea } from '../ui/Textarea';
 
 interface AddServiceModalProps {
   isOpen: boolean;
@@ -514,20 +515,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                   <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Category</h4>
                   <div className="space-y-4">
                     <FormField label="Service Category" required>
-                      <select
+                      <Select
                         id="service-category"
                         value={formData.CategoryId}
                         onChange={(e) => handleCategoryChange(e.target.value)}
-                        className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
+                        options={categories.map(category => ({ value: category._id, label: category.Name }))}
+                        placeholder="Select a category..."
                         disabled={viewMode}
-                      >
-                        <option value="" className="text-brand-k">Select a category...</option>
-                        {categories.map(category => (
-                          <option key={category._id} value={category._id} className="text-brand-k">
-                            {category.Name}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </FormField>
 
                     {selectedCategory && selectedCategory.SubCategories.length > 0 && (
@@ -620,18 +615,15 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                       <>
                         {!viewMode && (
                           <FormField label="Use Existing Address">
-                            <select
+                            <Select
                               id="use-existing-address"
                               onChange={(e) => handleAddressSelect(e.target.value)}
-                              className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white"
-                            >
-                              <option value="" className="text-brand-k">Select an existing address...</option>
-                              {organisation.Addresses.map((address, index) => (
-                                <option key={index} value={index.toString()} className="text-brand-k">
-                                  {address.Street} - {address.Postcode}
-                                </option>
-                              ))}
-                            </select>
+                              options={organisation.Addresses.map((address, index) => ({
+                                value: index.toString(),
+                                label: `${address.Street} - ${address.Postcode}`
+                              }))}
+                              placeholder="Select an existing address..."
+                            />
                             <p className="text-xs text-brand-f mt-1">
                               Selecting an existing address will auto-populate the fields below including opening times
                             </p>

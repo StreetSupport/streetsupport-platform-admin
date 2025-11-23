@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -170,8 +171,12 @@ export default function AdviceEditPage() {
   };
 
   const confirmCancel = () => {
+    // Revert to original data
+    if (originalData) {
+      setFormData(JSON.parse(JSON.stringify(originalData)));
+      setValidationErrors([]);
+    }
     setShowCancelModal(false);
-    router.push(`/advice/${id}`);
   };
 
   const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
@@ -220,20 +225,16 @@ export default function AdviceEditPage() {
 
               {/* Location Select */}
               <FormField label="Location" required>
-                <select
+                <Select
                   id="location"
                   value={formData.LocationKey}
                   onChange={(e) => setFormData({ ...formData, LocationKey: e.target.value })}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option value="">Select a location</option>
-                  {canAccessGeneralAdvice && <option value="general">General Advice</option>}
-                  {locations.map((city) => (
-                    <option key={city.Key} value={city.Key}>
-                      {city.Name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    ...(canAccessGeneralAdvice ? [{ value: 'general', label: 'General Advice' }] : []),
+                    ...locations.map(city => ({ value: city.Key, label: city.Name }))
+                  ]}
+                  placeholder="Select a location"
+                />
               </FormField>
 
               {/* Sort Position */}
@@ -294,10 +295,11 @@ export default function AdviceEditPage() {
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
         onConfirm={confirmCancel}
-        title="Discard Changes?"
-        message="You have unsaved changes. Are you sure you want to leave without saving?"
-        confirmLabel="Discard Changes"
-        variant="danger"
+        title="Close without saving?"
+        message="You may lose unsaved changes."
+        variant="warning"
+        confirmLabel="Discard changes"
+        cancelLabel="Continue Editing"
       />
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
+import { Select } from '@/components/ui/Select';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
 import toast from 'react-hot-toast';
@@ -165,23 +166,16 @@ export function AdminDetailsSection({
       <div className="mb-6">
         <FormField label="Administrator">
           <div className="relative">
-            <select
+            <Select
               id="administrator"
               value={selectedEmail}
               onChange={(e) => handleAdministratorChange(e.target.value)}
               disabled={isUpdatingAdmin}
-              className="w-full px-4 py-2 border border-brand-f/30 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent disabled:bg-brand-q disabled:cursor-not-allowed text-brand-k"
-            >
-              {localAdministrators && localAdministrators.length > 0 ? (
-                localAdministrators.map((admin, index) => (
-                  <option key={index} value={admin.Email}>
-                    {admin.Email}
-                  </option>
-                ))
-              ) : (
-                <option value="">No administrators available</option>
-              )}
-            </select>
+              options={localAdministrators && localAdministrators.length > 0 
+                ? localAdministrators.map((admin, index) => ({ value: admin.Email, label: admin.Email }))
+                : [{ value: '', label: 'No administrators available' }]
+              }
+            />
             {isUpdatingAdmin && (
               <div className="absolute right-10 top-1/2 -translate-y-1/2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-a"></div>
