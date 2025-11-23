@@ -52,10 +52,6 @@ const nextConfig = {
     },
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
   // Production optimizations
   ...(process.env.NODE_ENV === 'production' && {
     output: 'standalone', // Optimize for deployment

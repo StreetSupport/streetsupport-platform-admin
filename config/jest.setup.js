@@ -23,13 +23,3 @@ jest.mock('next/router', () => ({
     };
   },
 }));
-
-// Mock Auth0
-jest.mock('@auth0/nextjs-auth0/client', () => ({
-  useUser: () => ({
-    user: null,
-    error: null,
-    isLoading: false,
-  }),
-  UserProvider: ({ children }) => children,
-}));

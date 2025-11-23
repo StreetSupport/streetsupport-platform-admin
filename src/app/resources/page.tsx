@@ -89,7 +89,7 @@ export default function ResourcesPage() {
 
   // Get public website URL
   const getPublicResourceUrl = (key: string) => {
-    return `${process.env.NEXT_PUBLIC_ADMIN_URL}/resources/${key}`;
+    return `${process.env.NEXT_PUBLIC_WEB_URL}/resources/${key}`;
   };
 
   // Organize resources by section

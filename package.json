@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "node ./scripts/fetch-prebuild.js",
-    "build": "next build",
+    "build": "npm run test:ci -- --passWithNoTests && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --config ./config/jest.config.cjs",
