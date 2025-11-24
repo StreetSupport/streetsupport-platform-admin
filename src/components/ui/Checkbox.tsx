@@ -1,7 +1,6 @@
 'use client';
 
 import { InputHTMLAttributes } from 'react';
-import { Input } from './Input';
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;

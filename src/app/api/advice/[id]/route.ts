@@ -3,7 +3,6 @@ import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { sendError, sendForbidden, sendInternalError, proxyResponse, sendNotFound } from '@/utils/apiResponses';
-import { notFound } from 'next/navigation';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
@@ -34,7 +33,6 @@ const getHandler: AuthenticatedApiHandler<RouteParams> = async (req: NextRequest
     const data = await response.json();
 
     if (!response.ok) {
-      debugger
       if (response.status === 404) {
         return sendNotFound();
       }

@@ -1,6 +1,5 @@
 'use client';
 
-import { FormField } from '@/components/ui/FormField';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { IAccommodationFormData } from "@/types";
 

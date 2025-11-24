@@ -172,7 +172,7 @@ export function AdminDetailsSection({
               onChange={(e) => handleAdministratorChange(e.target.value)}
               disabled={isUpdatingAdmin}
               options={localAdministrators && localAdministrators.length > 0 
-                ? localAdministrators.map((admin, index) => ({ value: admin.Email, label: admin.Email }))
+                ? localAdministrators.map((admin) => ({ value: admin.Email, label: admin.Email }))
                 : [{ value: '', label: 'No administrators available' }]
               }
             />
