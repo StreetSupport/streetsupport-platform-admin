@@ -19,6 +19,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { FormField } from '@/components/ui/FormField';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { redirectToNotFound } from '@/utils/navigation';
 
 interface ValidationError {
   Path: string;
@@ -90,16 +91,22 @@ export default function AdviceEditPage() {
   };
 
   const fetchAdvice = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       const response = await authenticatedFetch(`/api/advice/${id}`);
+      const responseData = await response.json();
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch advice');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+        
+        throw new Error(responseData.error || 'Failed to fetch advice');
       }
       
-      const responseData = await response.json();
       const data = responseData.data || responseData;
 
       const initialFormData = {
@@ -117,7 +124,9 @@ export default function AdviceEditPage() {
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError, sendNotFound } from '@/utils/apiResponses';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
@@ -32,6 +32,10 @@ const getHandler: AuthenticatedApiHandler<RouteParams> = async (req: NextRequest
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return sendNotFound();
+      }
+
       return sendError(response.status, data.error || 'Failed to fetch resource');
     }
 

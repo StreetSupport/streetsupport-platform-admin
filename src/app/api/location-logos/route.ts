@@ -4,6 +4,7 @@ import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { getUserLocationSlugs } from '@/utils/locationUtils';
 import { UserAuthClaims } from '@/types/auth';
+import { proxyResponse, sendError, sendForbidden, sendInternalError } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
@@ -12,10 +13,7 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/location-logos', HTTP_METHODS.GET)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     // Forward query parameters
@@ -43,20 +41,15 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
 
     const data = await response.json();
 
+
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to fetch location logos' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to fetch location logo');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching location logos:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch location logos' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to fetch location logo');
   }
 };
 
@@ -65,10 +58,7 @@ const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, a
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/location-logos', HTTP_METHODS.POST)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const formData = await req.formData();
@@ -84,19 +74,13 @@ const postHandler: AuthenticatedApiHandler = async (req: NextRequest, context, a
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to create location logo' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to create location logo');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error creating location logo:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to create location logo' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to create location logo');
   }
 };
 

@@ -7,6 +7,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ActivateBannerModal from '@/components/banners/ActivateBannerModal';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
+import { redirectToNotFound } from '@/utils/navigation';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -39,34 +40,39 @@ export default function BannerViewPage() {
 
   const fetchBanner = useCallback(async () => {
     if (!id || !isAuthorized) return;
+    let redirected = false;
+
     try {
       setLoading(true);
       setError(null);
       
       const response = await authenticatedFetch(`/api/banners/${id}`);
+      const data = await response.json();
       
       if (!response.ok) {
-        if (response.status === 404) {
-          setError('Banner not found');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
           return;
         }
-        throw new Error('Failed to fetch banner');
+        throw new Error(data.error || 'Failed to fetch banner');
       }
 
-      const data = await response.json();
-      setBanner(data.data);
+      const bannerData = data.data || data;
+      setBanner(bannerData);
       // Set banner title for breadcrumbs
-      if (data.data?.Title) {
-        setBannerTitle(data.data.Title);
+      if (bannerData?.Title) {
+        setBannerTitle(bannerData.Title);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load banner';
       setError(message);
       errorToast.generic(message);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
-  }, [id, isAuthorized, setBannerTitle]);
+  }, [id, isAuthorized, router, setBannerTitle]);
 
   useEffect(() => {
     if (isAuthorized) {

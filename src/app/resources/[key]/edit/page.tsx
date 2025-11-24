@@ -22,6 +22,7 @@ import { Select } from '@/components/ui/Select';
 import { Trash } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RESOURCE_FILE_ACCEPT_STRING } from '@/types';
+import { redirectToNotFound } from '@/utils/navigation';
 
 interface ValidationError {
   Path: string;
@@ -71,16 +72,22 @@ export default function ResourceEditPage() {
   }, [isAuthorized, key]);
 
   const fetchResource = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       const response = await authenticatedFetch(`/api/resources/${key}`);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch resource');
-      }
-      
       const responseData = await response.json();
+      
+      if (!response.ok) {
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        throw new Error(responseData.error || 'Failed to fetch resource');
+      }
       
       // Extract the actual resource data from the API response
       // API returns { success: true, data: actualResource }
@@ -103,7 +110,9 @@ export default function ResourceEditPage() {
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

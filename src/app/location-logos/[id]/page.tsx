@@ -15,6 +15,7 @@ import { successToast, errorToast } from '@/utils/toast';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ILocationLogo } from '@/types/ILocationLogo';
+import { redirectToNotFound } from '@/utils/navigation';
 
 export default function ViewLocationLogoPage() {
   const params = useParams();
@@ -46,16 +47,22 @@ export default function ViewLocationLogoPage() {
   }, [isAuthorized, id]);
 
   const fetchLogo = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       const response = await authenticatedFetch(`/api/location-logos/${id}`);
+      const data = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch location logo');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        throw new Error(data.error || 'Failed to fetch location logo');
       }
 
-      const data = await response.json();
       const logoData = data.data || data;
       setLogo(logoData);
       setLogoTitle(logoData.DisplayName);
@@ -64,7 +71,9 @@ export default function ViewLocationLogoPage() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load location logo';
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

@@ -20,6 +20,7 @@ import { validateSwepBanner, transformErrorPath } from '@/schemas/swepBannerSche
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { redirectToNotFound } from '@/utils/navigation';
 
 export default function SwepEditPage() {
   // Check authorization FIRST before any other logic
@@ -66,17 +67,24 @@ export default function SwepEditPage() {
   }, [locationSlug]);
 
   const fetchSwep = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       setError(null);
       const response = await authenticatedFetch(`/api/swep-banners/${locationSlug}`);
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch SWEP banner');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        throw new Error(data.error || 'Failed to fetch SWEP banner');
       }
 
-      const data = await response.json();
       const swepData = data.data || data;
       setSwep(swepData);
       
@@ -100,7 +108,9 @@ export default function SwepEditPage() {
       setError(errorMessage);
       errorToast.load('SWEP banner', errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

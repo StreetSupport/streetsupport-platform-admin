@@ -15,6 +15,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { redirectToNotFound } from '@/utils/navigation';
 
 export default function AdviceViewPage() {
   const params = useParams();
@@ -66,17 +67,23 @@ export default function AdviceViewPage() {
   };
 
   const fetchAdvice = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       const response = await authenticatedFetch(`/api/advice/${id}`);
+      const data = await response.json();
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch advice');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        throw new Error(data.error || 'Failed to fetch advice');
       }
       
-      const responseData = await response.json();
-      const adviceData = responseData.data || responseData;
+      const adviceData = data.data || data;
       setAdvice(adviceData);
       setAdviceTitle(adviceData.Title);
     } catch (err) {
@@ -84,7 +91,9 @@ export default function AdviceViewPage() {
       setError(errorMessage);
       errorToast.generic(errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

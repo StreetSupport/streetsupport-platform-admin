@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError, sendNotFound } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
@@ -20,12 +20,16 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      return sendError(response.status, errorData.error || 'Failed to fetch banner');
+      if (response.status === 404) {
+        return sendNotFound();
+      }
+
+      return sendError(response.status, data.error || 'Failed to fetch banner');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching banner:', error);

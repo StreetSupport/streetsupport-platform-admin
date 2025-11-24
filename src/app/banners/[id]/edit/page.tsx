@@ -16,6 +16,7 @@ import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { redirectToNotFound } from '@/utils/navigation';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -89,37 +90,42 @@ export default function EditBannerPage() {
 
   // Fetch banner data function
   const fetchBanner = useCallback(async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       setError(null);
       const response = await authenticatedFetch(`/api/banners/${bannerId}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch banner');
-      }
-      
       const result = await response.json();
-      if (result.success && result.data) {
-        const banner = result.data as IBanner;
-        
-        // Transform banner data for form
-        const formData = transformBannerToFormData(banner);
-        setInitialFormData(formData);
-        setBannerData(formData);
-        // Set banner title for breadcrumbs
-        setBannerTitle(banner.Title);
-      } else {
-        throw new Error(result.message || 'Banner not found');
+
+      if (!response.ok || !result.success || !result.data) {
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        const errorMessage = (result && (result.error || result.message)) || 'Failed to fetch banner';
+        throw new Error(errorMessage);
       }
+
+      const banner = result.data as IBanner;
+      
+      // Transform banner data for form
+      const formData = transformBannerToFormData(banner);
+      setInitialFormData(formData);
+      setBannerData(formData);
+      // Set banner title for breadcrumbs
+      setBannerTitle(banner.Title);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load banner';
       setError(message);
       errorToast.generic(message);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
-  }, [bannerId, setBannerTitle]);
+  }, [bannerId, router, setBannerTitle]);
 
   // Fetch banner data only if authorized
   useEffect(() => {

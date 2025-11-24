@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
@@ -11,6 +11,7 @@ import { formatSwepActivePeriod, parseSwepBody } from '@/utils/swep';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { errorToast } from '@/utils/toast';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { redirectToNotFound } from '@/utils/navigation';
 
 export default function SwepViewPage() {
   // Check authorization FIRST before any other logic
@@ -21,6 +22,7 @@ export default function SwepViewPage() {
   });
 
   const params = useParams();
+  const router = useRouter();
   const locationSlug = params.locationSlug as string;
 
   const [swepData, setSwepData] = useState<ISwepBanner | null>(null);
@@ -35,17 +37,24 @@ export default function SwepViewPage() {
   }, [locationSlug, isAuthorized]);
 
   const fetchSwepData = async () => {
+    let redirected = false;
+
     try {
       setLoading(true);
       setError(null);
       const response = await authenticatedFetch(`/api/swep-banners/${locationSlug}`);
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch SWEP banner');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        throw new Error(data.error || 'Failed to fetch SWEP banner');
       }
 
-      const data = await response.json();
       const swepBanner = data.data || data;
       setSwepData(swepBanner);
     } catch (err) {
@@ -53,7 +62,9 @@ export default function SwepViewPage() {
       setError(errorMessage);
       errorToast.load('SWEP banner', errorMessage);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 

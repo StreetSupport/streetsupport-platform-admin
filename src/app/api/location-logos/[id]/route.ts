@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { proxyResponse, sendError, sendForbidden, sendInternalError, sendNotFound } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
@@ -10,10 +10,7 @@ const getHandler: AuthenticatedApiHandler<{ id: string }> = async (req, context,
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/location-logos', HTTP_METHODS.GET)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const { id } = await context.params;
@@ -28,19 +25,17 @@ const getHandler: AuthenticatedApiHandler<{ id: string }> = async (req, context,
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to fetch location logo' },
-        { status: response.status }
-      );
+      if (response.status === 404) {
+        return sendNotFound();
+      }
+
+      return sendError(response.status, data.error || 'Failed to fetch location logo');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching location logo:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch location logo' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to fetch location logo');
   }
 };
 
@@ -49,10 +44,7 @@ const putHandler: AuthenticatedApiHandler<{ id: string }> = async (req, context,
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/location-logos', HTTP_METHODS.PUT)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const { id } = context.params;
@@ -69,19 +61,13 @@ const putHandler: AuthenticatedApiHandler<{ id: string }> = async (req, context,
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to update location logo' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to update location logo');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error updating location logo:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update location logo' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to update location logo');
   }
 };
 
@@ -90,10 +76,7 @@ const deleteHandler: AuthenticatedApiHandler<{ id: string }> = async (req, conte
   try {
     // Check RBAC permissions
     if (!hasApiAccess(auth.session.user.authClaims, '/api/location-logos', HTTP_METHODS.DELETE)) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden' },
-        { status: 403 }
-      );
+      return sendForbidden();
     }
 
     const { id } = context.params;
@@ -109,19 +92,13 @@ const deleteHandler: AuthenticatedApiHandler<{ id: string }> = async (req, conte
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || 'Failed to delete location logo' },
-        { status: response.status }
-      );
+      return sendError(response.status, data.error || 'Failed to delete location logo');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error deleting location logo:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete location logo' },
-      { status: 500 }
-    );
+    return sendInternalError('Failed to delete location logo');
   }
 };
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { proxyResponse, sendError, sendForbidden, sendInternalError } from '@/utils/apiResponses';
+import { proxyResponse, sendError, sendForbidden, sendInternalError, sendNotFound } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
@@ -28,10 +28,14 @@ const getHandler: AuthenticatedApiHandler<{ locationSlug: string }> = async (req
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return sendNotFound();
+      }
+
       return sendError(response.status, data.error || 'Failed to fetch SWEP banner');
     }
 
-    return NextResponse.json(data);
+    return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching SWEP banner:', error);
     return sendForbidden();
