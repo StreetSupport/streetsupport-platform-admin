@@ -1,0 +1,1563 @@
+
+@import "tailwindcss";
+@import "../styles/banner-cards.css";
+
+@theme {
+  --color-brand-a: #38ae8e;
+  --color-brand-b: #0b9b75;
+  --color-brand-c: #086049;
+  --color-brand-d: #ffa200;
+  --color-brand-e: #ffde00;
+  --color-brand-f: #8d8d8d;
+  --color-brand-g: #a90000;
+  --color-brand-h: #5a497f;
+  --color-brand-i: #f6e9d2;
+  --color-brand-j: #e1c116;
+  --color-brand-k: #48484a;
+  --color-brand-l: #29272a;
+  --color-brand-m: #101011;
+  --color-brand-n: #9886bf;
+  --color-brand-p: #086149;
+  --color-brand-q: #f3f3f3;
+  --color-brand-r: #0A8564;
+  --color-brand-s: #E1B500;
+}
+
+/* West Midlands specific styles */
+.block--west-mids-header {
+  background: linear-gradient(135deg, var(--color-brand-a) 0%, var(--color-brand-d) 100%);
+  color: white;
+  padding: 4rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.block--west-mids-locations {
+  padding: 3rem 0;
+  background-color: white;
+}
+
+.west-mids-location {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.btn--west-mids-locations {
+  background-color: var(--color-brand-i);
+  color: var(--color-brand-l);
+  border: 2px solid transparent;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.btn--west-mids-locations:hover {
+  background-color: var(--color-brand-a);
+  color: white;
+  border-color: var(--color-brand-a);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.block--wmca-taskforce {
+  background-color: var(--color-brand-g);
+}
+
+.block--change-into-action {
+  padding: 4rem 0;
+  background-color: white;
+}
+
+.block__change-into-action {
+  max-width: 400px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.home__copy--change-into-action {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.block--alternative-giving-campaign {
+  padding: 4rem 0;
+  background-color: var(--color-brand-q);
+}
+
+.block__alternative-giving-campaign {
+  max-width: 400px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+/* Loading animations */
+@keyframes loading-border {
+  0% {
+    border-color: var(--color-brand-a);
+    box-shadow: 0 0 5px rgba(56, 174, 142, 0.3);
+  }
+  25% {
+    border-color: var(--color-brand-b);
+    box-shadow: 0 0 10px rgba(11, 155, 117, 0.5);
+  }
+  50% {
+    border-color: var(--color-brand-a);
+    box-shadow: 0 0 15px rgba(56, 174, 142, 0.7);
+  }
+  75% {
+    border-color: var(--color-brand-b);
+    box-shadow: 0 0 10px rgba(11, 155, 117, 0.5);
+  }
+  100% {
+    border-color: var(--color-brand-a);
+    box-shadow: 0 0 5px rgba(56, 174, 142, 0.3);
+  }
+}
+
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Loading card styles */
+.loading-card {
+  position: relative;
+  border: 2px solid var(--color-brand-a) !important;
+  animation: loading-border 2s ease-in-out infinite, loading-pulse 1.5s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.loading-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(56, 174, 142, 0.1),
+    transparent
+  );
+  background-size: 200px 100%;
+  animation: loading-shimmer 1.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.loading-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Button System - Using Brand Colors Only */
+
+/* Base button styles */
+.btn-base {
+  @apply inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-a focus:ring-offset-2 focus:ring-offset-brand-q disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer;
+}
+
+/* Button Types */
+.btn-primary {
+  /* @apply bg-brand-a text-white hover:bg-brand-b active:bg-brand-c; */
+  @apply bg-brand-a text-white hover:bg-brand-b hover:text-white active:bg-brand-c active:text-white transition-colors duration-200;
+}
+
+.btn-secondary {
+  @apply bg-brand-q text-brand-a border border-brand-a hover:bg-brand-i active:bg-brand-i;
+}
+
+.btn-success {
+  @apply bg-brand-b text-white hover:bg-brand-c hover:text-white active:bg-brand-p active:text-white;
+}
+
+.btn-warning {
+  @apply bg-brand-j text-white hover:bg-brand-s hover:text-white active:bg-brand-s active:text-white;
+}
+
+.btn-danger {
+  /*   @apply bg-brand-g text-white hover:bg-red-700 active:bg-red-800; */
+  @apply bg-brand-g text-white hover:bg-red-700 hover:text-white active:bg-red-800 active:text-white;
+}
+
+.btn-neutral {
+  @apply bg-brand-f text-white hover:bg-brand-k hover:text-white active:bg-brand-l active:text-white;
+}
+
+.btn-tertiary {
+  @apply bg-transparent text-brand-k border border-brand-k hover:bg-brand-q active:bg-brand-i;
+}
+
+/* Find Help CTA Button */
+.btn-find-help {
+  @apply bg-brand-d text-white hover:bg-brand-s active:bg-brand-s;
+}
+
+/* Button Sizes */
+.btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+.btn-md {
+  @apply px-4 py-2 text-sm;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+.btn-icon {
+  @apply p-2;
+}
+
+/* Disabled state override */
+.btn-base:disabled {
+  @apply bg-brand-q text-brand-f border-brand-f;
+}
+
+/* Loading state */
+.btn-loading {
+  @apply relative;
+}
+
+.btn-loading::before {
+  content: '';
+  @apply absolute inset-0 bg-current opacity-10 rounded-md;
+}
+
+/* Typography System */
+.heading-1 {
+  @apply text-4xl lg:text-5xl font-bold text-brand-k leading-tight mb-4;
+}
+
+.heading-2 {
+  @apply text-3xl lg:text-4xl font-bold text-brand-k leading-tight mb-3;
+}
+
+.heading-3 {
+  @apply text-2xl lg:text-3xl font-bold text-brand-k leading-tight mb-3;
+}
+
+.heading-4 {
+  @apply text-xl lg:text-2xl font-semibold text-brand-k leading-tight mb-2;
+}
+
+.heading-5 {
+  @apply text-lg lg:text-xl font-semibold text-brand-k leading-tight mb-2;
+}
+
+.heading-6 {
+  @apply text-base lg:text-lg font-semibold text-brand-k leading-tight mb-2;
+}
+
+.text-lead {
+  @apply text-lg lg:text-xl text-brand-l leading-relaxed mb-4;
+}
+
+.text-body {
+  @apply text-base text-brand-l leading-relaxed mb-3;
+}
+
+.text-small {
+  @apply text-sm text-brand-f leading-relaxed;
+}
+
+.text-caption {
+  @apply text-xs text-brand-f leading-relaxed;
+}
+
+/* Card System */
+.card {
+  /* @apply bg-white border border-brand-q rounded-lg shadow-sm transition-all duration-300; */
+  @apply bg-white border border-brand-q rounded-md shadow-sm transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] cursor-pointer;
+}
+
+.card-featured {
+  @apply shadow-md border-brand-a;
+}
+
+.card-compact {
+  @apply p-4;
+}
+
+.card-header {
+  /* @apply p-6 pb-4 border-b border-brand-q; */
+  @apply p-6 pb-4;
+}
+
+.card-content {
+  /* @apply p-6; */
+  @apply px-6 pb-4;
+}
+
+.card-footer {
+  @apply px-6 py-4 bg-brand-q border-t border-brand-q flex justify-between items-center gap-3;
+}
+
+.card-title {
+  @apply text-lg font-semibold text-brand-k mb-2;
+}
+
+.card-description {
+  @apply text-sm text-brand-l leading-relaxed;
+}
+
+/* Card Grid System */
+.card-grid {
+  @apply grid gap-6;
+}
+
+.card-grid.cols-1 {
+  @apply grid-cols-1;
+}
+
+.card-grid.cols-2 {
+  @apply grid-cols-1 md:grid-cols-2;
+}
+
+.card-grid.cols-3 {
+  @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+}
+.card-grid.cols-4 {
+  @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+/* Navigation System */
+.nav-container {
+  @apply bg-brand-q;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 3px -1px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+}
+
+.nav-links {
+  @apply flex items-center space-x-8;
+}
+
+.nav-link {
+  @apply text-brand-k hover:text-brand-a transition-colors duration-200 font-medium cursor-pointer;
+}
+
+.nav-link-active {
+  @apply text-brand-a border-b-2 border-brand-a;
+}
+
+.dropdown-panel {
+  @apply absolute top-full left-0 w-64 bg-white border border-brand-q rounded-md shadow-lg z-50;
+}
+
+.dropdown-item {
+  @apply block px-4 py-2 text-sm text-brand-l hover:bg-brand-i hover:text-brand-k transition-colors duration-200;
+}
+
+.mobile-menu {
+  @apply lg:hidden bg-white border-t border-brand-q;
+}
+
+.mobile-nav-link {
+  @apply block px-4 py-2 text-brand-k hover:bg-brand-i transition-colors duration-200 cursor-pointer;
+}
+
+/* Service Tags */
+.service-tag {
+  @apply inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium gap-1;
+}
+
+.service-tag.emergency {
+  @apply bg-brand-g text-white;
+}
+
+.service-tag.verified {
+  @apply bg-white text-brand-b border border-brand-b;
+}
+
+.service-tag.open {
+  @apply bg-brand-b text-white;
+}
+
+.service-tag.closed {
+  @apply bg-brand-f text-white;
+}
+
+.service-tag.limited {
+  @apply bg-brand-j text-brand-k;
+}
+
+/* Layout and Spacing */
+.section-spacing {
+  /* @apply py-8 lg:py-12; */
+  @apply py-12 lg:py-16;
+}
+
+.page-container {
+  /* @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full; */
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.content-container {
+  @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.narrow-container {
+  @apply max-w-2xl mx-auto;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: 0;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 768px) {
+  .hero-section {
+    min-height: 420px;
+    background-size: 110%;
+    background-position: center bottom;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-section {
+    background-size: cover;
+    background-position: center bottom;
+  }
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, rgba(56, 174, 142, 0.75) 0%, rgba(11, 155, 117, 0.8) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 20;
+  text-align: left;
+  color: white;
+  padding: 0 1rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Homepage hero content stays centered */
+.hero-content-homepage {
+  text-align: center;
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  .hero-content {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-content {
+    padding: 0 2rem;
+  }
+}
+
+.hero-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  line-height: 1.25;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 640px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.625;
+  opacity: 0.95;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 640px) {
+  .hero-subtitle {
+    font-size: 1.05rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 162, 0, 0.95);
+  color: white;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  .hero-cta {
+    padding: 0.75rem 1.75rem;
+    font-size: 1.05rem;
+  }
+}
+
+.hero-cta:hover {
+  background: rgba(225, 181, 22, 0.95);
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hero-cta:focus {
+  background: rgba(225, 181, 22, 0.95);
+  outline: none;
+  box-shadow: 0 0 0 2px #38ae8e;
+}
+
+/* Location-Specific Hero Banner Styling */
+/* 
+LOCATION CUSTOMIZATION GUIDE:
+Each location banner can be customized using the pattern: .hero-location-{slug}
+
+Available CSS properties for customization:
+- background-position: Controls image positioning (left/center/right + top/center/bottom)
+- background-size: Controls image scaling (cover, contain, or percentage like 110%)
+- opacity: Controls image transparency (0.0 - 1.0)
+
+Examples:
+.hero-location-manchester {
+  background-position: center bottom;  // Centers horizontally, aligns to bottom
+  background-size: cover;             // Fills entire area, may crop
+}
+
+.hero-location-birmingham {
+  background-position: left center;   // Aligns to left, centers vertically  
+  background-size: 110%;             // Scales image to 110% (slight zoom)
+}
+
+.hero-location-glasgow {
+  background-position: center top;    // Centers horizontally, aligns to top
+  background-size: contain;          // Shows entire image, may show gaps
+  opacity: 0.8;                     // Makes image 80% opaque
+}
+
+Location slug mappings (found in /src/app/[slug]/page.tsx):
+- bournemouth → bournemouth-pier-tile
+- wigan-leigh → wigan-and-leigh
+- All other locations use their slug directly
+
+Responsive breakpoints:
+- Base (mobile): Default styles
+- @media (min-width: 768px): Tablet adjustments
+- @media (min-width: 1024px): Desktop adjustments
+*/
+
+/* Base location overlay styles - fallback for all locations */
+.hero-location-overlay {
+  background-size: 0;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 98%;
+  left: 0;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .hero-location-overlay {
+    background-size: 70%;
+  }
+}
+
+/* Individual location customizations - adjust as needed for each location */
+
+.hero-location-birmingham {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-birmingham {
+    background-size: 75%;
+    width: 100%;
+    height: 96%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-manchester {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-manchester {
+    background-size: 70%;
+    width: 100%;
+    height: 99.5%;
+    bottom: 5px;
+  }
+}
+
+.hero-location-leeds {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-leeds {
+    background-size: 70%;
+    width: 100%;
+    height: 99%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-liverpool {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-liverpool {
+    background-size: 60%;
+    width: 100%;
+    height: 97%;
+    bottom: 6px;
+  }
+}
+
+.hero-location-glasgow {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-glasgow {
+    background-size: 75%;
+    width: 100%;
+    height: 98%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-edinburgh {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-edinburgh {
+    background-size: 85%;
+    width: 100%;
+    height: 135%;
+    bottom: 7px;
+  }
+}
+
+.hero-location-nottingham {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-nottingham {
+    background-size: 70%;
+    width: 100%;
+    height: 96%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-brighton-and-hove {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-brighton-and-hove {
+    background-size: 50%;
+    width: 100%;
+    height: 99%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-blackpool {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-blackpool {
+    background-size: 45%;
+    width: 100%;
+    height: 98%;
+    bottom: 12px;
+  }
+}
+
+.hero-location-bolton {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-bolton {
+    background-size: 70%;
+    width: 100%;
+    height: 99%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-bournemouth {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-bournemouth {
+    background-size: 75%;
+    width: 100%;
+    height: 85%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-bradford {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-bradford {
+    background-size: 70%;
+    width: 100%;
+    height: 85%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-bury {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-bury {
+    background-size: 80%;
+    width: 100%;
+    height: 99%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-cambridgeshire {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-cambridgeshire {
+    background-size: 60%;
+    width: 100%;
+    height: 96%;
+    bottom: 7px;
+  }
+}
+
+.hero-location-chelmsford {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-chelmsford {
+    background-size: 70%;
+    width: 100%;
+    height: 96%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-coventry {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-coventry {
+    background-size: 70%;
+    width: 100%;
+    height: 98%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-derbyshire {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-derbyshire {
+    background-size: 75%;
+    width: 100%;
+    height: 98%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-dudley {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-dudley {
+    background-size: 70%;
+    width: 100%;
+    height: 94%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-exeter {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-exeter {
+    background-size: 75%;
+    width: 100%;
+    height: 85%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-luton {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-luton {
+    background-size: 80%;
+    width: 100%;
+    height: 96%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-oldham {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-oldham {
+    background-size: 75%;
+    width: 100%;
+    height: 100%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-portsmouth {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-portsmouth {
+    background-size: 80%;
+    width: 100%;
+    height: 87%;
+    bottom: 7px;
+  }
+}
+
+.hero-location-reading {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-reading {
+    background-size: 50%;
+    width: 100%;
+    height: 105%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-rochdale {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-rochdale {
+    background-size: 75%;
+    width: 100%;
+    height: 106%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-salford {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-salford {
+    background-size: 55%;
+    width: 100%;
+    height: 115%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-sandwell {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-sandwell {
+    background-size: 80%;
+    width: 100%;
+    height: 98%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-solihull {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-solihull {
+    background-size: 75%;
+    width: 100%;
+    height: 98%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-southampton {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-southampton {
+    background-size: 90%;
+    width: 100%;
+    height: 97%;
+    bottom: 7px;
+  }
+}
+
+.hero-location-stockport {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-stockport {
+    background-size: 75%;
+    width: 100%;
+    height: 96%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-tameside {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-tameside {
+    background-size: 60%;
+    width: 100%;
+    height: 98%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-trafford {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-trafford {
+    background-size: 60%;
+    width: 100%;
+    height: 103%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-wakefield {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-wakefield {
+    background-size: 70%;
+    width: 100%;
+    height: 120%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-walsall {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-walsall {
+    background-size: 80%;
+    width: 100%;
+    height: 98%;
+    bottom: 8px;
+  }
+}
+
+.hero-location-wigan-and-leigh {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-wigan-and-leigh {
+    background-size: 60%;
+    width: 100%;
+    height: 99%;
+    bottom: 10px;
+  }
+}
+
+.hero-location-wolverhampton {
+  background-size: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-location-wolverhampton {
+    background-size: 60%;
+    width: 100%;
+    height: 98%;
+    bottom: 8px;
+  }
+}
+
+/* SWEP Banner Styles */
+.swep-banner {
+  position: relative;
+  z-index: 40;
+}
+
+.swep-banner a {
+  position: relative;
+  z-index: 41;
+}
+
+/* Remove default marker in Chrome, Safari, Edge */
+.custom-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Remove default marker in Firefox */
+.custom-accordion summary {
+  list-style: none;
+}
+
+/* Global link styling */
+a {
+  @apply text-brand-a hover:text-brand-b transition-colors duration-200;
+}
+
+/* Override for nav links which have their own styling */
+.nav-link {
+  @apply text-brand-k hover:text-brand-a transition-colors duration-200 font-medium cursor-pointer;
+}
+
+/* Override for button links to ensure white text */
+a.inline-flex[class*="bg-brand-"] {
+  @apply !text-white;
+}
+a.inline-flex[class*="bg-brand-"]:hover {
+  @apply !text-white;
+}
+a.inline-flex[class*="bg-brand-"]:active {
+  @apply !text-white;
+}
+
+/* Hamburger Menu Animation */
+.hamburger-icon {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.hamburger-line {
+  width: 18px;
+  height: 2px;
+  background-color: var(--color-brand-k);
+  border-radius: 1px;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform-origin: center;
+}
+
+.hamburger-line:nth-child(1) {
+  transform-origin: top left;
+}
+
+.hamburger-line:nth-child(3) {
+  transform-origin: bottom left;
+}
+
+.hamburger-line.open:nth-child(1) {
+  transform: rotate(45deg) translate(1px, 1px);
+}
+
+.hamburger-line.open:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-line.open:nth-child(3) {
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+/* Mobile Menu Animations */
+.mobile-menu-container {
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu-closed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.mobile-menu-open {
+  max-height: 100vh;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobile-menu {
+  background: linear-gradient(135deg, rgba(246, 233, 210, 0.95) 0%, rgba(246, 233, 210, 1) 100%);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-brand-j);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Enhanced Mobile Navigation Links */
+.mobile-nav-link {
+  @apply block px-4 py-3 text-brand-k hover:bg-brand-i hover:text-brand-a transition-all duration-200 rounded-md mx-2 font-medium min-h-[48px] flex items-center text-base cursor-pointer;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.mobile-nav-link:hover {
+  border-left-color: var(--color-brand-a);
+  background: linear-gradient(90deg, rgba(56, 174, 142, 0.1) 0%, rgba(246, 233, 210, 0.8) 100%);
+  transform: translateX(2px);
+}
+
+.mobile-nav-link:active {
+  transform: translateX(0px);
+  background: var(--color-brand-i);
+}
+
+/* Mobile Dropdown Animations */
+.mobile-locations-menu,
+.mobile-about-menu {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 80vh;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Locations Dropdown Enhancements */
+.mobile-locations-menu {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-a) var(--color-brand-q);
+}
+
+.mobile-locations-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mobile-locations-menu::-webkit-scrollbar-track {
+  background: var(--color-brand-q);
+  border-radius: 3px;
+}
+
+.mobile-locations-menu::-webkit-scrollbar-thumb {
+  background: var(--color-brand-a);
+  border-radius: 3px;
+}
+
+.mobile-locations-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-b);
+}
+
+/* Mobile Dropdown Items */
+.mobile-menu .mobile-nav-link + div {
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+}
+
+.mobile-menu .mobile-nav-link + div a {
+  @apply hover:bg-white transition-all duration-200 rounded;
+  color: black !important;
+  border-left: 2px solid transparent;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.mobile-menu .mobile-nav-link + div a:hover {
+  color: var(--color-brand-a) !important;
+  border-left-color: var(--color-brand-a);
+  transform: translateX(4px);
+}
+
+/* Override global link styling for mobile about dropdown */
+.mobile-menu #mobile-about-menu a {
+  color: black !important;
+}
+
+.mobile-menu #mobile-about-menu a:hover {
+  color: var(--color-brand-a) !important;
+}
+
+/* Additional specificity override */
+nav .mobile-menu #mobile-about-menu li a {
+  color: black !important;
+}
+
+nav .mobile-menu #mobile-about-menu li a:hover {
+  color: var(--color-brand-a) !important;
+}
+
+/* Mobile Locations Specific Styling */
+.mobile-locations-menu a {
+  transition: all 0.2s ease-out;
+}
+
+.mobile-locations-menu a:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(56, 174, 142, 0.1);
+}
+
+/* Mobile Select Dropdown Fixes */
+@media (max-width: 767px) {
+  select {
+    /* Fix mobile dropdown positioning */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/path%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  /* Prevent iOS zoom on select focus */
+  select:focus {
+    font-size: 16px;
+  }
+
+  /* Fix select option text on mobile */
+  select option {
+    font-size: 16px;
+    padding: 8px 12px;
+    color: black;
+    background-color: white;
+  }
+
+  /* Improve filter panel layout on mobile */
+  .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+    gap: 1rem;
+  }
+
+  .grid.grid-cols-1.md\\:grid-cols-3 {
+    gap: 1rem;
+  }
+}
+
+/* Ensure proper select styling across all devices */
+select {
+  cursor: pointer;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Loading border animation for service cards */
+@keyframes loading-border {
+  0% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 0deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  12.5% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 45deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  25% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 90deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  37.5% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 135deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  50% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 180deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  62.5% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 225deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  75% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 270deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  87.5% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 315deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+  100% {
+    background-image: 
+      linear-gradient(white, white),
+      conic-gradient(from 360deg, #10b981 0deg, #10b981 60deg, rgba(16, 185, 129, 0.3) 90deg, transparent 120deg, transparent 240deg, rgba(16, 185, 129, 0.3) 270deg, #10b981 300deg, #10b981 360deg);
+  }
+}
+
+/* Prose Styling */
+.prose {
+  @apply text-brand-l leading-relaxed;
+}
+
+.prose h1 {
+  @apply text-2xl font-bold text-brand-k mt-8 mb-4 first:mt-0;
+}
+
+.prose h2 {
+  @apply text-xl font-bold text-brand-k mt-6 mb-3 first:mt-0;
+}
+
+.prose h3 {
+  @apply text-lg font-semibold text-brand-k mt-5 mb-2 first:mt-0;
+}
+
+.prose h4 {
+  @apply text-base font-semibold text-brand-k mt-4 mb-2 first:mt-0;
+}
+
+.prose p {
+  @apply mb-4 last:mb-0;
+}
+
+.prose ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+
+.prose ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+
+.prose li {
+  @apply text-brand-l;
+}
+
+.prose a {
+  @apply text-brand-a hover:text-brand-b underline transition-colors duration-200;
+}
+
+.prose strong {
+  @apply font-semibold text-brand-k;
+}
+
+.prose em {
+  @apply italic;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-brand-a pl-4 py-2 my-4 bg-brand-i rounded-r-md;
+}
+
+.prose code {
+  @apply bg-brand-q px-2 py-1 rounded text-sm font-mono text-brand-k;
+}
+
+.prose pre {
+  @apply bg-brand-q p-4 rounded-md overflow-x-auto mb-4;
+}
+
+.prose hr {
+  @apply border-t border-brand-q my-6;
+}
+
+/* Custom Select Dropdown - Cross-browser compatibility */
+.custom-select {
+  /* Remove default styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Ensure consistent height and line height */
+  min-height: 48px;
+  line-height: 1.5;
+  
+  /* Add custom dropdown arrow */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L11 1" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 48px;
+  
+  /* Force consistent styling on Safari */
+  -webkit-border-radius: 0.375rem;
+  border-radius: 0.375rem;
+  
+  /* Ensure proper cursor */
+  cursor: pointer;
+}
+
+/* Safari-specific fixes for focus state */
+.custom-select:focus {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Maintain custom arrow on focus */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L11 1" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+/* Tooltip responsive styling */
+@media (max-width: 640px) {
+  .tooltip-content {
+    max-width: 250px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* .form-input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent transition-shadow;
+} */
+
+/* .form-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+} */
+
+/* .table {
+  @apply w-full border-collapse;
+}
+
+.table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b-2 border-gray-200 bg-gray-50;
+}
+
+.table td {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-800 border-b border-gray-200;
+}
+
+.table tbody tr:hover {
+  @apply bg-gray-50;
+}
+
+.section-spacing {
+  @apply py-8 lg:py-12;
+} */
+
+.padding-top-zero {
+  padding-top: 0;
+}

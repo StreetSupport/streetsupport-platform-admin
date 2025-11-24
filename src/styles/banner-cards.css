@@ -1,0 +1,233 @@
+/* Banner Card Styles - Following Street Support Design System */
+
+/* Base card styles */
+.card {
+  background: white;
+  border: 1px solid var(--color-brand-q, #f3f3f3);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.card-compact {
+  /* Compact spacing for list views */
+}
+
+.loading-card {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Banner thumbnail styles */
+.banner-thumbnail {
+  position: relative;
+  height: 128px;
+  /* background: linear-gradient(135deg, var(--color-brand-a, #38ae8e) 0%, var(--color-brand-b, #0b9b75) 100%); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Service tags - following public website pattern */
+.service-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.service-tag.verified {
+  background-color: var(--color-brand-b, #0b9b75);
+  color: white;
+}
+
+.service-tag.inactive {
+  background-color: var(--color-brand-f, #8d8d8d);
+  color: white;
+}
+
+.service-tag.urgent {
+  background-color: var(--color-brand-g, #a90000);
+  color: white;
+}
+
+.service-tag.urgent.low {
+  background-color: var(--color-brand-j, #e1c116);
+  color: var(--color-brand-k, #48484a);
+}
+
+.service-tag.urgent.medium {
+  background-color: var(--color-brand-d, #ffa200);
+  color: white;
+}
+
+.service-tag.urgent.high {
+  background-color: var(--color-brand-g, #a90000);
+  color: white;
+}
+
+.service-tag.urgent.critical {
+  background-color: var(--color-brand-m, #101011);
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+.service-tag.priority {
+  background-color: var(--color-brand-h, #5a497f);
+  color: white;
+}
+
+.service-tag.template-type {
+  background-color: var(--color-brand-i, #f6e9d2);
+  color: var(--color-brand-k, #48484a);
+  border: 1px solid var(--color-brand-f, #8d8d8d);
+}
+
+.service-tag.location {
+  background-color: var(--color-brand-q, #f3f3f3);
+  color: var(--color-brand-l, #29272a);
+  border: 1px solid var(--color-brand-f, #8d8d8d);
+}
+
+.service-tag.cta {
+  background-color: var(--color-brand-a, #38ae8e);
+  color: white;
+  font-size: 0.625rem;
+}
+
+.service-tag.cta-more {
+  background-color: var(--color-brand-f, #8d8d8d);
+  color: white;
+  font-size: 0.625rem;
+}
+
+/* Template-specific stats styling */
+.template-stats {
+  background-color: var(--color-brand-q, #f3f3f3);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.template-stats.giving-campaign {
+  border-left: 4px solid var(--color-brand-b, #0b9b75);
+}
+
+.template-stats.partnership-charter {
+  border-left: 4px solid var(--color-brand-h, #5a497f);
+}
+
+.template-stats.resource-project {
+  border-left: 4px solid var(--color-brand-d, #ffa200);
+}
+
+/* Progress bar for donation goals */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-brand-q, #f3f3f3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--color-brand-b, #0b9b75);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Pulse animation for critical urgency */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .banner-thumbnail {
+    height: 96px;
+  }
+  
+  .service-tag {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+  
+  .template-stats {
+    padding: 0.5rem;
+  }
+}
+
+/* Focus states for accessibility */
+.card:focus-within {
+  outline: 2px solid var(--color-brand-a, #38ae8e);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+    border-color: var(--color-brand-k, #48484a);
+  }
+  
+  .service-tag {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  
+  .card:hover {
+    transform: none;
+  }
+  
+  .progress-bar-fill {
+    transition: none;
+  }
+  
+  .service-tag.urgent.critical {
+    animation: none;
+  }
+}

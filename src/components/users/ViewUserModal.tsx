@@ -1,0 +1,193 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { X, Calendar, MapPin, Shield, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { IUser } from '@/types/IUser';
+import { parseAuthClaims, hasGenericSwepAdmin } from '@/lib/userService';
+import { formatRoleDisplay, formatClaimDisplay } from '@/constants/roles';
+
+interface ViewUserModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: IUser | null;
+}
+
+export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalProps) {
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  // Check for generic SwepAdmin when modal opens
+  useEffect(() => {
+    if (isOpen && user && hasGenericSwepAdmin(user.AuthClaims)) {
+      setShowWarningModal(true);
+    } else if (!isOpen) {
+      // Reset warning modal state when view modal closes
+      setShowWarningModal(false);
+    }
+  }, [isOpen, user]);
+
+  if (!isOpen || !user) return null;
+
+  const formatDate = (date: Date | string): string => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Parse auth claims to get roles
+  const { roles, specificClaims } = parseAuthClaims(user.AuthClaims);
+
+  // Get email as string
+  const email = typeof user.Email === 'string' ? user.Email : '';
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-brand-q">
+            <h2 className="heading-4">User Details</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="p-2"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Content - scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            {/* Email Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-brand-f">
+                <Mail className="w-4 h-4" />
+                <span className="font-semibold">Email Address</span>
+              </div>
+              <div className="p-4 bg-brand-q rounded-lg">
+                <p className="text-base text-brand-k break-all">{email}</p>
+              </div>
+            </div>
+            
+            {/* Status Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-brand-f">
+                <span className="font-semibold">Status</span>
+              </div>
+              <div className="flex gap-2">
+                <span className={`service-tag ${(user.IsActive ?? true) ? 'verified' : 'inactive'}`}>
+                  {(user.IsActive ?? true) ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            </div>
+
+            {/* Roles Section */}
+            {roles.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-brand-f">
+                  <Shield className="w-4 h-4" />
+                  <span className="font-semibold">Roles</span>
+                </div>
+                <div className="p-4 bg-brand-q rounded-lg">
+                  <div className="flex flex-wrap gap-2">
+                    {roles.map((role, index) => (
+                      <span 
+                        key={index} 
+                        className={`service-tag ${
+                          role === 'SuperAdmin' ? 'urgent' : 
+                          role === 'CityAdmin' ? 'verified' : 
+                          'template-type'
+                        }`}
+                      >
+                        {formatRoleDisplay(role)}
+                      </span>
+                    ))}
+                    {specificClaims.map((claim, index) => (
+                      <span key={`claim-${index}`} className="service-tag location">
+                        {formatClaimDisplay(claim)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Associated Provider Locations */}
+            {user.AssociatedProviderLocationIds.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-brand-f">
+                  <MapPin className="w-4 h-4" />
+                  <span className="font-semibold">Associated Provider Locations</span>
+                </div>
+                <div className="p-4 bg-brand-q rounded-lg">
+                  <div className="flex flex-wrap gap-2">
+                    {user.AssociatedProviderLocationIds.map((location, index) => (
+                      <span 
+                        key={index} 
+                        className="text-sm text-brand-k bg-white px-3 py-1.5 rounded border border-brand-f"
+                      >
+                        {location}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Dates Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-brand-f">
+                <Calendar className="w-4 h-4" />
+                <span className="font-semibold">Activity Information</span>
+              </div>
+              <div className="p-4 bg-brand-q rounded-lg space-y-3">
+                <div>
+                  <p className="text-xs text-brand-f mb-1">Created</p>
+                  <p className="text-base text-brand-k">{formatDate(user.DocumentCreationDate)}</p>
+                </div>
+                {user.DocumentModifiedDate && (
+                  <div>
+                    <p className="text-xs text-brand-f mb-1">Last Modified</p>
+                    <p className="text-base text-brand-k">{formatDate(user.DocumentModifiedDate)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer - fixed at bottom */}
+          <div className="border-t border-brand-q p-4 sm:p-6 flex items-center justify-end">
+            <Button variant="primary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Warning Modal for Generic SwepAdmin */}
+      <ConfirmModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        onConfirm={() => setShowWarningModal(false)}
+        title="Role Configuration Required"
+        message="You should add more specific location role for your Swep Administrator"
+        variant="warning"
+        confirmLabel="OK"
+        cancelLabel=""
+      />
+    </>
+  );
+}
