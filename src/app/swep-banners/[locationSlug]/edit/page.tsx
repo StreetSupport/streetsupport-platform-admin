@@ -42,6 +42,7 @@ export default function SwepEditPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<ISwepBannerFormData>({
@@ -209,6 +210,7 @@ export default function SwepEditPage() {
       setImagePreview(swep?.Image || null);
       setImageRemoved(false);
       setValidationErrors([]);
+      setEditorResetKey(prev => prev + 1); // Force editor remount
     }
     setShowConfirmModal(false);
   };
@@ -360,6 +362,7 @@ export default function SwepEditPage() {
           placeholder="Enter the SWEP banner body content..."
           required
           minHeight="300px"
+          resetKey={editorResetKey}
         />
 
         {/* Emergency Contact Section */}

@@ -49,6 +49,7 @@ export default function ResourceEditPage() {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [hasUploadedFiles, setHasUploadedFiles] = useState(false); // Track if any files were uploaded
+  const [editorResetKey, setEditorResetKey] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -211,6 +212,7 @@ export default function ResourceEditPage() {
     // Revert to original data (deep clone to avoid reference issues)
     setFormData(JSON.parse(JSON.stringify(originalData)));
     setValidationErrors([]);
+    setEditorResetKey(prev => prev + 1); // Force editor remount
     setShowCancelModal(false);
     setHasUploadedFiles(false); // Reset file upload tracking
   };
@@ -346,6 +348,7 @@ export default function ResourceEditPage() {
                 onChange={(value) => setFormData({ ...formData, Body: value })}
                 placeholder="Enter the main resource content..."
                 minHeight="400px"
+                resetKey={editorResetKey}
               />
             </div>
 

@@ -46,6 +46,7 @@ export interface RichTextEditorProps {
   label?: string;
   required?: boolean;
   helpText?: string;
+  resetKey?: string | number; // Change this key to force editor reset (e.g., when Cancel is clicked)
 }
 
 // Sanitize content
@@ -252,21 +253,23 @@ function ToolbarPlugin({ disabled }: { disabled: boolean }) {
   );
 }
 
-// Plugin to set initial content and respond to external value changes
+// Plugin to set initial content only on mount
 function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
   const [editor] = useLexicalComposerContext();
-  const [lastValue, setLastValue] = React.useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
   useEffect(() => {
-    // Update editor content on initial load or when initialHtml changes externally
-    if (initialHtml !== lastValue) {
+    // Only set initial content once on mount
+    if (!isInitialized) {
+      setIsInitialized(true);
+      
       editor.update(() => {
         const parser = new DOMParser();
         const dom = parser.parseFromString(initialHtml || '<p></p>', 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
-        
+
         // Only append valid nodes (ElementNode or DecoratorNode)
         nodes.forEach((node) => {
           if ($isElementNode(node) || $isDecoratorNode(node)) {
@@ -278,16 +281,15 @@ function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
             root.append(paragraph);
           }
         });
-        
+
         // If no nodes were added, add an empty paragraph
         if (root.getChildrenSize() === 0) {
           root.append($createParagraphNode());
         }
       });
-      setLastValue(initialHtml);
     }
-  }, [editor, initialHtml, lastValue]);
-
+  }, [editor, isInitialized, initialHtml]);
+  
   return null;
 }
 
@@ -314,6 +316,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   label,
   required = false,
   helpText,
+  resetKey,
 }) => {
   const initialConfig = {
     namespace: 'RichTextEditor',
@@ -360,7 +363,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </label>
       )}
 
-      <LexicalComposer initialConfig={initialConfig}>
+      <LexicalComposer key={resetKey} initialConfig={initialConfig}>
         <div className={`border rounded-md ${error ? 'border-red-500' : 'border-gray-300'} ${disabled ? 'opacity-60' : ''}`}>
           <ToolbarPlugin disabled={disabled} />
           

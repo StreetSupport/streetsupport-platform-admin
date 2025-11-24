@@ -47,6 +47,7 @@ export default function AdviceEditPage() {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const { setAdviceTitle } = useBreadcrumb();
 
   // Form state
@@ -175,6 +176,7 @@ export default function AdviceEditPage() {
     if (originalData) {
       setFormData(JSON.parse(JSON.stringify(originalData)));
       setValidationErrors([]);
+      setEditorResetKey(prev => prev + 1); // Force editor remount
     }
     setShowCancelModal(false);
   };
@@ -257,6 +259,7 @@ export default function AdviceEditPage() {
                   placeholder="Enter the advice content..."
                   minHeight="400px"
                   required
+                  resetKey={editorResetKey}
                 />
               </div>
 
