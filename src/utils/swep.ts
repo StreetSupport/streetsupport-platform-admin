@@ -17,7 +17,7 @@ export function formatSwepActivePeriod(swepData: ISwepBanner): string {
     month: 'long',
     year: 'numeric'
   };
-  
+var test = 5;
   const now = new Date();
   now.setHours(0, 0, 0, 0); // Normalize to start of day for date comparison
 
