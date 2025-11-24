@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { OrganisationForm, OrganisationFormRef } from './OrganisationForm';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
+import { IOrganisationFormData } from '@/types/organisations/IOrganisation';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 
 interface AddOrganisationModalProps {
@@ -21,6 +22,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const formRef = useRef<OrganisationFormRef>(null);
+  const [initialFormData, setInitialFormData] = useState<IOrganisationFormData | null>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     setValidationErrors(errors);
@@ -91,9 +93,25 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
       toastUtils.dismiss(toastId);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create organisation';
       setError(errorMessage);
-      errorToast.create('organisation', errorMessage);
+      errorToast.generic(errorMessage);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Check if form data has changed (including nested properties)
+    if (!formRef.current) {
+      onClose();
+      return;
+    }
+    
+    const currentFormData = formRef.current.getFormData();
+    
+    if (initialFormData && JSON.stringify(currentFormData) !== JSON.stringify(initialFormData)) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
     }
   };
 
@@ -101,6 +119,14 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
     setShowConfirmModal(false);
     onClose();
   };
+
+  // Store initial form data when modal opens
+  useEffect(() => {
+    if (isOpen && formRef.current) {
+      const formData = formRef.current.getFormData();
+      setInitialFormData(JSON.parse(JSON.stringify(formData)));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -148,7 +174,7 @@ export function AddOrganisationModal({ isOpen, onClose, onSuccess }: AddOrganisa
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowConfirmModal(true)}
+                onClick={handleCancel}
                 disabled={saving}
                 className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
               >

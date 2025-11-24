@@ -18,14 +18,15 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     
     // Allowed remote image sources (domains is deprecated)
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'streetsupportstoragestag.blob.core.windows.net',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns: process.env.BLOB_STORAGE_HOSTNAME
+      ? [
+        {
+          protocol: 'https',
+          hostname: process.env.BLOB_STORAGE_HOSTNAME,
+          pathname: '/**',
+        },
+      ]
+      : [],
     
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
@@ -51,10 +52,6 @@ const nextConfig = {
     },
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
   // Production optimizations
   ...(process.env.NODE_ENV === 'production' && {
     output: 'standalone', // Optimize for deployment

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import AddRoleModal from './AddRoleModal';
 import { IUser } from '@/types/IUser';
@@ -30,6 +32,7 @@ export default function EditUserModal({
 }: EditUserModalProps) {
   const { data: session } = useSession();
   const [roleDisplays, setRoleDisplays] = useState<RoleDisplay[]>([]);
+  const [originalRoleDisplays, setOriginalRoleDisplays] = useState<RoleDisplay[]>([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -49,6 +52,7 @@ export default function EditUserModal({
         (role.id !== ROLES.CITY_ADMIN && role.id !== ROLES.SWEP_ADMIN && role.id !== ROLES.ORG_ADMIN)
       );
       setRoleDisplays(filteredDisplays);
+      setOriginalRoleDisplays(JSON.parse(JSON.stringify(filteredDisplays)));
       
       // Check for generic SwepAdmin when modal opens
       if (hasGenericSwepAdmin(user.AuthClaims)) {
@@ -59,6 +63,19 @@ export default function EditUserModal({
       setShowWarningModal(false);
     }
   }, [user, isOpen]);
+
+  // Check if roles have been changed
+  const hasChanges = () => {
+    return JSON.stringify(roleDisplays) !== JSON.stringify(originalRoleDisplays);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges()) {
+      setShowConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
 
   if (!isOpen || !user) return null;
 
@@ -242,7 +259,7 @@ export default function EditUserModal({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowConfirmModal(true)}
+                onClick={handleCancel}
                 className="p-2"
                 title="Close"
               >
@@ -253,23 +270,23 @@ export default function EditUserModal({
             {/* Content - scrollable */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
               {/* Email (Read-only) */}
-              <div>
-                <label className="block text-sm font-semibold text-brand-k mb-2">
-                  Email
-                </label>
-                <div className="p-3 bg-brand-q rounded-lg text-brand-f text-sm">
-                  {email}
-                </div>
+              <FormField label="Email" required>
+                <Input
+                  type="text"
+                  value={email}
+                  readOnly
+                  className="p-3 bg-brand-q rounded-lg text-brand-f text-sm"
+                />
                 <p className="text-xs text-brand-f mt-1">Email cannot be changed</p>
-              </div>
+              </FormField>
 
               {/* Roles */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="field-label">Roles</label>
+                  <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="primary"
                     size="sm"
                     onClick={() => setIsRoleModalOpen(true)}
                   >
@@ -301,8 +318,10 @@ export default function EditUserModal({
                               {role.label}
                             </span>
                             <div className="relative group">
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                   if (canActuallyRemove) {
                                     handleRemoveRole(role.id);
@@ -312,16 +331,16 @@ export default function EditUserModal({
                                   }
                                 }}
                                 disabled={!canActuallyRemove}
-                                className={`p-2 rounded-full transition-colors ${
+                                className={`p-2 rounded-full ${
                                   canActuallyRemove
-                                    ? 'hover:bg-brand-g hover:bg-opacity-10 cursor-pointer' 
-                                    : 'opacity-40 cursor-not-allowed'
+                                    ? 'hover:bg-brand-g hover:bg-opacity-10 text-brand-g' 
+                                    : 'opacity-40'
                                 }`}
                                 aria-label={`Remove ${role.label}`}
                                 title={tooltipText}
                               >
-                                <Trash2 className="w-4 h-4 text-brand-g" />
-                              </button>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                               {/* Tooltip */}
                               {!canActuallyRemove && tooltipText && (
                                 <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50">
@@ -348,11 +367,11 @@ export default function EditUserModal({
             </div>
 
             {/* Footer - fixed at bottom */}
-            <div className="border-t border-brand-q p-4 sm:p-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <div className="border-t border-brand-q p-4 sm:p-6 flex flex-row items-center justify-end gap-3">
               <Button
                 type="button"
-                variant="secondary"
-                onClick={() => setShowConfirmModal(true)}
+                variant="outline"
+                onClick={handleCancel}
                 disabled={isSubmitting}
               >
                 Cancel

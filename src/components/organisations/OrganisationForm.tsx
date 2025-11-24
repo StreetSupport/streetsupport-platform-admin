@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { FormField } from '@/components/ui/FormField';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { IOrganisationFormData, IAddressFormData, ORGANISATION_TAGS } from '@/types/organisations/IOrganisation';
@@ -211,10 +212,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
         <h4 className="heading-4 border-b border-brand-q pb-3">General Details</h4>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lg:col-span-2">
-            <label htmlFor="org-name" className="block text-sm font-medium text-brand-k mb-2">
-              Name <span className="text-brand-g">*</span>
-            </label>
+          <FormField label="Name" required className="lg:col-span-2">
             <Input
               id="org-name"
               value={formData.Name}
@@ -222,12 +220,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               placeholder={viewMode ? '' : 'Organisation name'}
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-brand-k mb-2">
-              Associated Locations <span className="text-brand-g">*</span>
-            </label>
+          <FormField label="Associated Locations" required className="lg:col-span-2">
             <MultiSelect
               options={locations?.map(location => ({
                 value: location.Key,
@@ -238,12 +233,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               placeholder={viewMode ? '' : (locations.length === 0 ? "Loading locations..." : "Select locations...")}
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div className="lg:col-span-2">
-            <label htmlFor="org-short-description" className="block text-sm font-medium text-brand-k mb-2">
-              Short Description <span className="text-brand-g">*</span>
-            </label>
+          <FormField label="Short Description" required className="lg:col-span-2">
             <Textarea
               id="org-short-description"
               value={formData.ShortDescription}
@@ -252,12 +244,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               rows={2}
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div className="lg:col-span-2">
-            <label htmlFor="org-description" className="block text-sm font-medium text-brand-k mb-2">
-              Description <span className="text-brand-g">*</span>
-            </label>
+          <FormField label="Description" required className="lg:col-span-2">
             <Textarea
               id="org-description"
               value={formData.Description}
@@ -266,7 +255,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               rows={4}
               disabled={viewMode}
             />
-          </div>
+          </FormField>
         </div>
 
         {/* Tags Section */}
@@ -292,10 +281,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
         <h4 className="heading-4 border-b border-brand-q pb-3">Contact Information</h4>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="org-telephone" className="block text-sm font-medium text-brand-k mb-2">
-              Telephone
-            </label>
+          <FormField label="Telephone">
             <Input
               id="org-telephone"
               value={formData.Telephone}
@@ -304,12 +290,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="tel"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="org-email" className="block text-sm font-medium text-brand-k mb-2">
-              Email
-            </label>
+          <FormField label="Email">
             <Input
               id="org-email"
               value={formData.Email}
@@ -318,12 +301,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="email"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="org-website" className="block text-sm font-medium text-brand-k mb-2">
-              Website
-            </label>
+          <FormField label="Website">
             <Input
               id="org-website"
               value={formData.Website}
@@ -332,12 +312,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="url"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="org-facebook" className="block text-sm font-medium text-brand-k mb-2">
-              Facebook
-            </label>
+          <FormField label="Facebook">
             <Input
               id="org-facebook"
               value={formData.Facebook}
@@ -346,12 +323,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="url"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="org-twitter" className="block text-sm font-medium text-brand-k mb-2">
-              Twitter
-            </label>
+          <FormField label="Twitter">
             <Input
               id="org-twitter"
               value={formData.Twitter}
@@ -360,12 +334,9 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="url"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="org-bluesky" className="block text-sm font-medium text-brand-k mb-2">
-              Bluesky
-            </label>
+          <FormField label="Bluesky">
             <Input
               id="org-bluesky"
               value={formData.Bluesky}
@@ -374,7 +345,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               type="url"
               disabled={viewMode}
             />
-          </div>
+          </FormField>
         </div>
       </div>
 

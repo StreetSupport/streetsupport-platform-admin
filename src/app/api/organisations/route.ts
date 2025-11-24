@@ -16,10 +16,10 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
 
     // Forward query parameters
     const searchParams = req.nextUrl.searchParams;
-    
+
     // Add location filtering for CityAdmin users when dropdown is empty (showing all their locations)
     const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
-    const locationSlugs = getUserLocationSlugs(userAuthClaims, true);
+    const locationSlugs = getUserLocationSlugs(userAuthClaims);
     const selectedLocation = searchParams.get('location');
     
     // If CityAdmin with specific locations AND no location selected in dropdown

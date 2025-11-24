@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import BackLink from '@/components/common/BackLink';
 import { IBanner } from '@/types/banners/IBanner';
 
 interface BannerPageHeaderProps {
@@ -24,17 +23,9 @@ export function BannerPageHeader({
   isDeleting,
 }: BannerPageHeaderProps) {
   const id = banner?._id;
-  const title = pageType === 'new' ? 'Create New Banner' : banner?.Title || 'Banner';
 
   return (
-    <div className="page-container border-b border-brand-q">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
-        <div>
-          <BackLink href="/banners" text="Back to Banners" />
-          <h1 className="heading-4">{title}</h1>
-        </div>
-
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2">
             {pageType === 'view' && banner && (
               <>
                 <Button
@@ -53,9 +44,6 @@ export function BannerPageHeader({
                     <Eye className="w-4 h-4 mr-2" />
                   )}
                   {banner.IsActive ? 'Deactivate' : 'Activate'}
-                   <span className={`ml-2 px-2 py-1 rounded-full text-white text-xs ${banner.IsActive ? 'bg-brand-b' : 'bg-brand-f'}`}>
-                    {banner.IsActive ? 'Active' : 'Inactive'}
-                  </span>
                 </Button>
 
                 <Link href={`/banners/${id}/edit`}>
@@ -82,8 +70,6 @@ export function BannerPageHeader({
                 </Button>
               </>
             )}
-          </div>
         </div>
-      </div>
   );
 }

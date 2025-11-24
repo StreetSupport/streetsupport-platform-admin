@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
+import { FormField } from '@/components/ui/FormField';
+import { Select } from '@/components/ui/Select';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
 import toast from 'react-hot-toast';
@@ -10,11 +12,13 @@ import toast from 'react-hot-toast';
 interface AdminDetailsSectionProps {
   organisation: IOrganisation;
   onUpdate?: (updatedOrg: IOrganisation) => void;
+  onClose?: () => void;
 }
 
 export function AdminDetailsSection({ 
   organisation, 
   onUpdate,
+  onClose,
 }: AdminDetailsSectionProps) {
   const [selectedEmail, setSelectedEmail] = useState<string>(
     organisation.Administrators?.find(admin => admin.IsSelected)?.Email || ''
@@ -25,7 +29,7 @@ export function AdminDetailsSection({
   const [localAdministrators, setLocalAdministrators] = useState(organisation.Administrators || []);
 
   // Sync local administrators and selectedEmail when organisation updates
-  React.useEffect(() => {
+  useEffect(() => {
     if (organisation.Administrators && organisation.Administrators.length > 0) {
       setLocalAdministrators(organisation.Administrators);
       const currentlySelected = organisation.Administrators.find(admin => admin.IsSelected)?.Email || '';
@@ -86,17 +90,24 @@ export function AdminDetailsSection({
         setLocalAdministrators(updatedOrg.Administrators);
       }
       
+      // Update the organization with the new administrator selection
+      const updatedOrgWithAdmins = {
+        ...updatedOrg,
+        Administrators: updatedOrg.Administrators && updatedOrg.Administrators.length > 0 
+          ? updatedOrg.Administrators 
+          : updatedAdmins
+      };
+      
       if (onUpdate) {
-        // Merge updated administrators into the org object
-        onUpdate({
-          ...updatedOrg,
-          Administrators: updatedOrg.Administrators && updatedOrg.Administrators.length > 0 
-            ? updatedOrg.Administrators 
-            : updatedAdmins
-        });
+        onUpdate(updatedOrgWithAdmins);
       }
       
       toast.success('Administrator updated successfully');
+      
+      // Close the modal after successful update
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error updating administrator:', error);
       errorToast.generic('Failed to update administrator');
@@ -129,6 +140,11 @@ export function AdminDetailsSection({
       }
       
       toast.success('Information confirmed as up to date');
+      
+      // Close the modal after successful confirmation
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error confirming information:', error);
       errorToast.generic('Failed to confirm information');
@@ -148,36 +164,28 @@ export function AdminDetailsSection({
 
       {/* Administrator Dropdown */}
       <div className="mb-6">
-        <label htmlFor="administrator" className="block text-sm font-semibold text-brand-k mb-2">
-          Administrator
-        </label>
-        <div className="relative">
-          <select
-            id="administrator"
-            value={selectedEmail}
-            onChange={(e) => handleAdministratorChange(e.target.value)}
-            disabled={isUpdatingAdmin}
-            className="w-full px-4 py-2 border border-brand-f/30 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent disabled:bg-brand-q disabled:cursor-not-allowed text-brand-k"
-          >
-            {localAdministrators && localAdministrators.length > 0 ? (
-              localAdministrators.map((admin, index) => (
-                <option key={index} value={admin.Email}>
-                  {admin.Email}
-                </option>
-              ))
-            ) : (
-              <option value="">No administrators available</option>
+        <FormField label="Administrator">
+          <div className="relative">
+            <Select
+              id="administrator"
+              value={selectedEmail}
+              onChange={(e) => handleAdministratorChange(e.target.value)}
+              disabled={isUpdatingAdmin}
+              options={localAdministrators && localAdministrators.length > 0 
+                ? localAdministrators.map((admin) => ({ value: admin.Email, label: admin.Email }))
+                : [{ value: '', label: 'No administrators available' }]
+              }
+            />
+            {isUpdatingAdmin && (
+              <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-a"></div>
+              </div>
             )}
-          </select>
+          </div>
           {isUpdatingAdmin && (
-            <div className="absolute right-10 top-1/2 -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-a"></div>
-            </div>
+            <p className="text-xs text-brand-f mt-1">Updating administrator...</p>
           )}
-        </div>
-        {isUpdatingAdmin && (
-          <p className="text-xs text-brand-f mt-1">Updating administrator...</p>
-        )}
+        </FormField>
       </div>
 
       {/* Days Since Last Update */}
@@ -203,7 +211,7 @@ export function AdminDetailsSection({
             </p>
           )}
           {warningLevel === 'warning' && (
-            <p className="text-xs text-brand-j mt-1">
+            <p className="text-xs text-amber-700 mt-1">
               ⚠️ Reminder sent. Organisation will be unverified in {100 - daysSinceUpdate} days without action
             </p>
           )}

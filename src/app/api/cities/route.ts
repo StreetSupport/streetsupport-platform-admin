@@ -19,7 +19,7 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     const restrictVolunteerAdmin = req.nextUrl.searchParams.get('restrictVolunteerAdmin') === 'true';
     const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
     const locationSlugs = getUserLocationSlugs(userAuthClaims, restrictVolunteerAdmin);
-    
+        
     // Build query string
     let url = `${API_BASE_URL}/api/cities`;
     
@@ -43,6 +43,8 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     if (!response.ok) {
       return sendError(response.status, data.error || 'Failed to fetch cities');
     }
+
+    data.data.sort((a: { Name: string }, b: { Name: string }) => a.Name.localeCompare(b.Name));
 
     return proxyResponse(data);
   } catch (error) {

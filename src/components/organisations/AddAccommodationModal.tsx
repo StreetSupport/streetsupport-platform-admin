@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { IAccommodation } from '@/types/organisations/IAccommodation';
+import { IAccommodation, IAccommodationFormData } from '@/types/organisations/IAccommodation';
 import { AccommodationForm, AccommodationFormRef } from './AccommodationForm';
 import { successToast, errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -39,6 +39,7 @@ export function AddAccommodationModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<IAccommodationFormData | null>(null);
 
   const handleValidationChange = (errors: ValidationError[]) => {
     // Transform client-side validation paths to user-friendly names
@@ -94,7 +95,7 @@ export function AddAccommodationModal({
           errorToast.validation();
         } else {
           setErrorMessage(data.error || 'Failed to save accommodation');
-          errorToast.create('accommodation', data.error);
+          errorToast.generic(data.error);
         }
         return;
       }
@@ -117,11 +118,25 @@ export function AddAccommodationModal({
     }
     setValidationErrors([]);
     setErrorMessage('');
+    setInitialFormData(null);
     onClose();
   };
 
-  const handleCancelClick = () => {
-    setShowConfirmModal(true);
+  const handleCancel = () => {
+    // Check if form data has changed
+    if (!formRef.current) {
+      handleClose();
+      return;
+    }
+    
+    const currentFormData = formRef.current.getFormData();
+    const initialData = initialFormData || (isEditMode ? accommodation : null);
+    
+    if (initialData && JSON.stringify(currentFormData) !== JSON.stringify(initialData)) {
+      setShowConfirmModal(true);
+    } else {
+      handleClose();
+    }
   };
 
   const confirmCancel = () => {
@@ -129,12 +144,20 @@ export function AddAccommodationModal({
     handleClose();
   };
 
+  // Store initial form data when modal opens
+  useEffect(() => {
+    if (isOpen && formRef.current) {
+      const formData = formRef.current.getFormData();
+      setInitialFormData(JSON.parse(JSON.stringify(formData)));
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" onClick={handleCancelClick} />
+      <div className="fixed inset-0 bg-opacity-10 backdrop-blur-xs z-40" onClick={handleCancel} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
@@ -145,7 +168,7 @@ export function AddAccommodationModal({
               {viewMode ? 'View Accommodation' : (isEditMode ? 'Edit Accommodation' : 'Add Accommodation')}
             </h3>
             <button
-              onClick={viewMode ? onClose : handleCancelClick}
+              onClick={viewMode ? onClose : handleCancel}
               className="text-brand-f hover:text-brand-k transition-colors"
             >
               <X className="w-6 h-6" />
@@ -179,7 +202,7 @@ export function AddAccommodationModal({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleCancelClick}
+                    onClick={handleCancel}
                     disabled={isSubmitting}
                     className="w-full sm:w-auto sm:min-w-24 order-2 sm:order-1"
                   >

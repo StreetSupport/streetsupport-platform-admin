@@ -4,17 +4,24 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
-import { withAuthorization } from '@/components/auth/withAuthorization';
-import { validateBannerForm } from '@/schemas/bannerSchema';
+import { useAuthorization } from '@/hooks/useAuthorization';
+import { validateBannerForm, transformErrorPath } from '@/schemas/bannerSchema';
 import toastUtils, { successToast, errorToast, loadingToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// import type { IAccentGraphic } from '@/types';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PageHeader } from '@/components/ui/PageHeader';
 
-function NewBannerPage() {
+export default function NewBannerPage() {
+  // Check authorization FIRST before any other logic
+  const { isChecking, isAuthorized } = useAuthorization({
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    requiredPage: '/banners',
+    autoRedirect: true
+  });
+
   const router = useRouter();
   const [bannerData, setBannerData] = useState<IBannerFormData | null>(null);
   const [saving, setSaving] = useState(false);
@@ -30,7 +37,12 @@ function NewBannerPage() {
       // Client-side validation using Zod
       const validation = validateBannerForm(data);
       if (!validation.success) {
-        setValidationErrors(validation.errors);
+        // Transform error paths for better user-friendly messages
+        const transformedErrors = validation.errors.map(error => ({
+          ...error,
+          path: transformErrorPath(error.path)
+        }));
+        setValidationErrors(transformedErrors);
         toastUtils.dismiss(toastId);
         errorToast.validation('Please fix the validation errors below');
         return;
@@ -61,20 +73,6 @@ function NewBannerPage() {
             }
           }
         }
-        // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-        // else if (key === 'AccentGraphic' && value && typeof value === 'object') {
-        //   const accentGraphic = value as (Partial<IAccentGraphic> & { File?: File });
-        //   // Handle AccentGraphic with metadata
-        //   if (accentGraphic.File instanceof File) {
-        //     // 1. AccentGraphic object with File and metadata
-        //     formData.append('newfile_AccentGraphic', accentGraphic.File);
-            
-        //     // 2. Send the complete AccentGraphic metadata (excluding the File property)
-        //     const accentGraphicMetadata = { ...accentGraphic };
-        //     delete accentGraphicMetadata.File; // Remove the File object from metadata
-        //     formData.append('newmetadata_AccentGraphic', JSON.stringify(accentGraphicMetadata));
-        //   }
-        // } 
         else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
           // Handle nested PartnershipCharter with PartnerLogos
           const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
@@ -136,27 +134,38 @@ function NewBannerPage() {
       successToast.create('Banner');
       const newId = result?.data?._id || result?._id || result?.data?.id || result?.id;
       router.push(newId ? `/banners/${newId}` : '/banners');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create banner';
       toastUtils.dismiss(toastId);
-      errorToast.create('banner', errorMessage);
+      errorToast.generic(message);
     } finally {
       setSaving(false);
     }
   };
 
+  // Show loading while checking authorization
+  if (isChecking) {
+    return <LoadingSpinner />;
+  }
+
+  // Don't render anything if not authorized (redirect handled by hook)
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-brand-q">
+        <PageHeader title="Create New Banner" />
         <BannerPageHeader pageType="new" />
 
-        <div className="page-container section-spacing padding-top-zero">
-          {/* Full-width Preview at Top */}
-          <div className="mb-8">
-            {bannerData && (
-              <BannerPreview data={bannerData} />
-            )}
-          </div>
+        {/* Full-width Preview at Top - Outside page-container */}
+        <div className="mb-10">
+          {bannerData && (
+            <BannerPreview data={bannerData} />
+          )}
+        </div>
 
+        <div className="page-container section-spacing padding-top-zero">
           <div className="space-y-6">
             <BannerEditor
               initialData={{}}
@@ -170,8 +179,3 @@ function NewBannerPage() {
     </div>
   );
 }
-
-export default withAuthorization(NewBannerPage, {
-  allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
-  requiredPage: '/banners'
-});

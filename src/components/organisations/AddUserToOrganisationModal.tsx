@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { HTTP_METHODS } from '@/constants/httpMethods';
@@ -107,7 +108,7 @@ export default function AddUserToOrganisationModal({
       toastUtils.dismiss(toastId);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
       setGeneralError(errorMessage);
-      errorToast.create('user', errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 
@@ -153,10 +154,7 @@ export default function AddUserToOrganisationModal({
           )}
 
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-brand-k mb-2">
-                Email <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Email" required>
               <Input
                 id="email"
                 type="email"
@@ -164,12 +162,11 @@ export default function AddUserToOrganisationModal({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@example.com"
                 className={validationErrors.find(e => e.Path === 'Email') ? 'border-brand-g' : ''}
-                autoComplete="email"
               />
               <p className="text-xs text-brand-f mt-1">
                 User will be invited to create an account with this email
               </p>
-            </div>
+            </FormField>
 
             <div className="bg-brand-i rounded-lg p-4">
               <p className="text-sm text-brand-k mb-2">

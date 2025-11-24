@@ -1,30 +1,10 @@
 import { z } from 'zod';
-import { ValidationResult, createValidationResult } from './validationHelpers';
+import { ValidationResult, createValidationResult, preprocessNullableString, timeStringToNumber } from './validationHelpers';
 import { isValidPostcodeFormat } from '../utils/postcodeValidation';
 import { OrganisationTag } from '@/types/organisations/IOrganisation';
 
 // Time validation helper
 const timeStringSchema = z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format');
-
-// Convert time string (HH:MM) to number (HHMM)
-export function timeStringToNumber(timeStr: string): number {
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  return hours * 100 + minutes;
-}
-
-// We don't use it now. Maybe we need it for Edit Organisations
-// Convert number (HHMM) to time string (HH:MM)
-export function timeNumberToString(timeNum: number): string {
-  const hours = Math.floor(timeNum / 100);
-  const minutes = timeNum % 100;
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-}
-
-// Preprocessing helper to convert null/undefined to empty string
-const preprocessNullableString = (val: unknown) => {
-  if (val === null || val === undefined) return '';
-  return val;
-};
 
 // Nested schemas for organisation components
 export const LocationCoordinatesSchema = z.object({

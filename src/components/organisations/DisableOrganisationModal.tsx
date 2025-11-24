@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { FormField } from '@/components/ui/FormField';
 import { X } from 'lucide-react';
 
 interface DisableOrganisationModalProps {
@@ -102,10 +104,7 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
               </p>
 
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="disablingDate" className="block text-sm font-medium text-brand-k mb-2">
-                    Disabling Date <span className="text-brand-g">*</span>
-                  </label>
+                <FormField label="Disabling Date" required>
                   <Input
                     id="disablingDate"
                     type="date"
@@ -120,12 +119,9 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
                   <p className="text-xs text-brand-f mt-1">
                     Select today to disable immediately, or a future date to schedule disabling
                   </p>
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="staffName" className="block text-sm font-medium text-brand-k mb-2">
-                    Staff Name <span className="text-brand-g">*</span>
-                  </label>
+                <FormField label="Staff Name" required>
                   <Input
                     id="staffName"
                     type="text"
@@ -137,13 +133,10 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
                   {errors.staffName && (
                     <p className="text-xs text-brand-g mt-1">{errors.staffName}</p>
                   )}
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="reason" className="block text-sm font-medium text-brand-k mb-2">
-                    Reason for Disabling <span className="text-brand-g">*</span>
-                  </label>
-                  <textarea
+                <FormField label="Reason for Disabling" required>
+                  <Textarea
                     id="reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
@@ -156,7 +149,7 @@ export const DisableOrganisationModal: React.FC<DisableOrganisationModalProps> =
                   {errors.reason && (
                     <p className="text-xs text-brand-g mt-1">{errors.reason}</p>
                   )}
-                </div>
+                </FormField>
               </div>
             </div>
 

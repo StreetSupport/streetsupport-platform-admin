@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-import type { IMediaAsset /*, IAccentGraphic*/, IResourceFile } from '@/types';
+import { IBannerFormData, BannerTemplateType, LayoutStyle } from '@/types/banners/IBanner';
+import { BackgroundType, CTAVariant, type IMediaAsset, type IResourceFile } from '@/types';
 import { GivingCampaignBanner } from './GivingCampaignBanner';
 import { PartnershipCharterBanner } from './PartnershipCharterBanner';
 import { ResourceProjectBanner } from './ResourceProjectBanner';
@@ -18,8 +17,6 @@ const isMediaAsset = (asset: unknown): asset is IMediaAsset => {
   return !!asset && typeof asset === 'object' && 'Url' in (asset as Record<string, unknown>);
 };
 
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// type AccentGraphicFileMeta = { File: File; Alt?: string; Position?: string; Opacity?: number };
 type MediaAssetFileMeta = { File: File; Width?: number; Height?: number };
 const isMediaAssetFileMeta = (value: unknown): value is MediaAssetFileMeta => {
   return (
@@ -29,15 +26,6 @@ const isMediaAssetFileMeta = (value: unknown): value is MediaAssetFileMeta => {
     (value as { File?: unknown }).File instanceof File
   );
 };
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// const isAccentGraphicFileMeta = (value: unknown): value is AccentGraphicFileMeta => {
-//   return (
-//     !!value &&
-//     typeof value === 'object' &&
-//     'File' in (value as Record<string, unknown>) &&
-//     (value as { File?: unknown }).File instanceof File
-//   );
-// };
 
 const isResourceFile = (file: unknown): file is IResourceFile => {
   // File has 'name'; our resource metadata does not
@@ -68,38 +56,6 @@ function transformToPublicFormat(data: IBannerFormData) {
     return undefined;
   };
 
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // const processAccentGraphic = (
-  //   graphic: IAccentGraphic | AccentGraphicFileMeta | File | null | undefined
-  // ): { url: string; alt: string; position: string; opacity: number } | undefined => {
-  //   if (graphic instanceof File) {
-  //     return {
-  //       url: URL.createObjectURL(graphic),
-  //       alt: graphic.name,
-  //       position: 'top-right',
-  //       opacity: 0.6,
-  //     };
-  //   }
-  //   if (isAccentGraphicFileMeta(graphic)) {
-  //     return {
-  //       url: URL.createObjectURL(graphic.File),
-  //       alt: graphic.Alt || graphic.File.name,
-  //       position: graphic.Position?.toLowerCase() || 'top-right',
-  //       opacity: graphic.Opacity ?? 0.6,
-  //     };
-  //   }
-  //   if (graphic && typeof graphic === 'object' && 'Url' in (graphic as Record<string, unknown>)) {
-  //     const g = graphic as IAccentGraphic;
-  //     return {
-  //       url: g.Url || '',
-  //       alt: g.Alt || '',
-  //       position: g.Position?.toLowerCase() || 'top-right',
-  //       opacity: g.Opacity ?? 0.6,
-  //     };
-  //   }
-  //   return undefined;
-  // };
-
   // Determine background image URL from BackgroundImage (File or IMediaAsset)
   const bgImage = processMediaAsset(data.BackgroundImage);
   const backgroundType = data.Background?.Type?.toLowerCase() || 'solid';
@@ -119,7 +75,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     return {
       label: btn.Label || '',
       url,
-      variant: btn.Variant?.toLowerCase() || 'primary',
+      variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
       external: btn.External || false
     };
   }) || [];
@@ -135,7 +91,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     ctaButtons: ctaButtons,
     background: {
       type: backgroundType,
-      value: backgroundType === 'image' ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
+      value: backgroundType === BackgroundType.IMAGE ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
       backgroundImage: bgImage,
       overlay: data.Background?.Overlay ? {
         colour: data.Background.Overlay.Colour || 'rgba(0,0,0,0.5)',
@@ -143,9 +99,7 @@ function transformToPublicFormat(data: IBannerFormData) {
       } : undefined
     },
     textColour: data.TextColour?.toLowerCase() || 'white',
-    layoutStyle: data.LayoutStyle?.toLowerCase() || 'split',
-    // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-    // accentGraphic: processAccentGraphic(data.AccentGraphic),
+    layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
     showDates: data.ShowDates || false,
     startDate: data.StartDate,
     endDate: data.EndDate,

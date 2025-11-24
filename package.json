@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "node ./scripts/fetch-prebuild.js",
-    "build": "next build",
+    "build": "npm run test:ci -- --passWithNoTests && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --config ./config/jest.config.cjs",
@@ -17,8 +17,17 @@
     "test:e2e:debug": "playwright test --config=./config/playwright.config.ts --debug"
   },
   "dependencies": {
+    "@lexical/link": "^0.38.2",
+    "@lexical/list": "^0.38.2",
+    "@lexical/react": "^0.38.2",
+    "@lexical/rich-text": "^0.38.2",
+    "@lexical/selection": "^0.38.2",
+    "@lexical/utils": "^0.38.2",
     "@sentry/nextjs": "^10.15.0",
+    "@types/dompurify": "^3.0.5",
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.0",
+    "lexical": "^0.38.2",
     "lucide-react": "^0.511.0",
     "next": "15.3.2",
     "next-auth": "^4.24.11",

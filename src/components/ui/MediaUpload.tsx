@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from './Button';
 import { FileUpload } from './FileUpload';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
@@ -14,6 +15,7 @@ interface MediaUploadProps {
   maxSize?: number;
   label?: string;
   description?: string;
+  required?: boolean;
   multiple?: boolean;
 }
 
@@ -66,7 +68,8 @@ export function MediaUpload({
   accept = "image/*", 
   maxSize = 5 * 1024 * 1024,
   label,
-  description 
+  description,
+  required = false
 }: MediaUploadProps) {
   const [dragOver, setDragOver] = useState(false);
 
@@ -92,7 +95,10 @@ export function MediaUpload({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
       {description && (
         <p className="text-xs text-gray-500">{description}</p>
       )}
@@ -103,11 +109,14 @@ export function MediaUpload({
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
                 {accept.includes('image') ? (
-                  <img 
-                    src={getPreviewUrl(value)} 
-                    alt={getDisplayName(value)}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
+                  <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                    <Image 
+                      src={getPreviewUrl(value)} 
+                      alt={getDisplayName(value)}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                     <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -120,9 +129,9 @@ export function MediaUpload({
                 </p>
                 <p className="text-xs text-gray-500">
                   {(() => {
-                    if (value instanceof File) return `${(value.size / 1024).toFixed(1)} KB`;
-                    if (isFileWrapper(value)) return `${(value.File.size / 1024).toFixed(1)} KB`;
-                    if (isMediaAsset(value) && typeof value.Size === 'number') return `${(value.Size / 1024).toFixed(1)} KB`;
+                    if (value instanceof File && value.size > 0) return `${(value.size / 1024).toFixed(1)} KB`;
+                    if (isFileWrapper(value) && value.File.size > 0) return `${(value.File.size / 1024).toFixed(1)} KB`;
+                    if (isMediaAsset(value) && typeof value.Size === 'number' && value.Size > 0) return `${(value.Size / 1024).toFixed(1)} KB`;
                     return '';
                   })()}
                 </p>
@@ -193,11 +202,14 @@ export function MediaArrayUpload({
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {accept.includes('image') ? (
-                      <img 
-                        src={getPreviewUrl(item)} 
-                        alt={getDisplayName(item)}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                        <Image 
+                          src={getPreviewUrl(item)} 
+                          alt={getDisplayName(item)}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                         <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -210,9 +222,9 @@ export function MediaArrayUpload({
                     </p>
                     <p className="text-xs text-gray-500">
                       {(() => {
-                        if (item instanceof File) return `${(item.size / 1024).toFixed(1)} KB`;
-                        if (isFileWrapper(item)) return `${(item.File.size / 1024).toFixed(1)} KB`;
-                        if (isMediaAsset(item) && typeof item.Size === 'number') return `${(item.Size / 1024).toFixed(1)} KB`;
+                        if (item instanceof File && item.size > 0) return `${(item.size / 1024).toFixed(1)} KB`;
+                        if (isFileWrapper(item) && item.File.size > 0) return `${(item.File.size / 1024).toFixed(1)} KB`;
+                        if (isMediaAsset(item) && typeof item.Size === 'number' && item.Size > 0) return `${(item.Size / 1024).toFixed(1)} KB`;
                         return '';
                       })()}
                     </p>

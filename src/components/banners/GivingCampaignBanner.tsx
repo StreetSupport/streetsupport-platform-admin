@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import type { PublicBackground, PublicCTAButton } from '@/types/banners/PreviewTypes';
+import { CTAVariant, LayoutStyle, UrgencyLevel } from '@/types';
 
 // Banner utility functions adapted for admin preview
 function generateBackgroundClasses(background: PublicBackground): string {
@@ -55,11 +56,11 @@ function generateTextColourClasses(textColour: string): string {
 
 function generateLayoutClasses(layoutStyle: string): string {
   switch (layoutStyle) {
-    case 'split':
+    case LayoutStyle.SPLIT:
       return 'grid md:grid-cols-2 gap-8 items-center';
-    case 'full-width':
+    case LayoutStyle.FULL_WIDTH:
       return 'text-center';
-    case 'card':
+    case LayoutStyle.CARD:
       return 'max-w-4xl mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8';
     default:
       return '';
@@ -67,25 +68,25 @@ function generateLayoutClasses(layoutStyle: string): string {
 }
 
 function generateCTAClasses(button: PublicCTAButton, textColour: string): string {
-  const { variant = 'primary' } = button;
+  const { variant = CTAVariant.PRIMARY } = button;
   let baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
   
   switch (variant) {
-    case 'primary':
+    case CTAVariant.PRIMARY:
       if (textColour === 'white') {
         baseClasses += ' bg-white text-gray-900 hover:bg-gray-100 focus:ring-white';
       } else {
         baseClasses += ' bg-brand-a text-white hover:bg-brand-b focus:ring-brand-a';
       }
       break;
-    case 'secondary':
+    case CTAVariant.SECONDARY:
       if (textColour === 'white') {
         baseClasses += ' bg-white/20 text-white border border-white/40 hover:bg-white/30 focus:ring-white';
       } else {
         baseClasses += ' bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500';
       }
       break;
-    case 'outline':
+    case CTAVariant.OUTLINE:
       if (textColour === 'white') {
         baseClasses += ' border-2 border-white text-white hover:bg-white hover:text-gray-900 focus:ring-white';
       } else {
@@ -97,33 +98,15 @@ function generateCTAClasses(button: PublicCTAButton, textColour: string): string
   return baseClasses;
 }
 
-// TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-// function generateAccentGraphicClasses(position?: string): string {
-//   switch (position) {
-//     case 'top-left':
-//       return 'absolute top-4 left-4 z-10';
-//     case 'top-right':
-//       return 'absolute top-4 right-4 z-10';
-//     case 'bottom-left':
-//       return 'absolute bottom-4 left-4 z-10';
-//     case 'bottom-right':
-//       return 'absolute bottom-4 right-4 z-10';
-//     case 'center':
-//       return 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0';
-//     default:
-//       return 'absolute top-4 right-4 z-10';
-//   }
-// }
-
 function generateUrgencyClasses(urgencyLevel: string): string {
   switch (urgencyLevel) {
-    case 'critical':
+    case UrgencyLevel.CRITICAL:
       return 'bg-red-600 text-white animate-pulse';
-    case 'high':
+    case UrgencyLevel.HIGH:
       return 'bg-red-500 text-white';
-    case 'medium':
+    case UrgencyLevel.MEDIUM:
       return 'bg-yellow-500 text-gray-900';
-    case 'low':
+    case UrgencyLevel.LOW:
       return 'bg-green-500 text-white';
     default:
       return 'bg-blue-500 text-white';
@@ -153,8 +136,6 @@ interface GivingCampaignBannerProps {
   background: { type: string; value: string; overlay?: { colour: string; opacity: number } };
   textColour: string;
   layoutStyle: string;
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // accentGraphic?: { url: string; alt: string; position: string; opacity: number };
   showDates?: boolean;
   startDate?: Date;
   endDate?: Date;
@@ -175,8 +156,6 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
   background,
   textColour,
   layoutStyle,
-  // TODO: Uncomment if AccentGraphic is needed. In the other case, remove.
-  // accentGraphic,
   showDates,
   startDate,
   endDate,
@@ -217,32 +196,17 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
         />
       )}
 
-      {/* TODO: Uncomment if AccentGraphic is needed. In the other case, remove. Don't forget about the API part. */}
-      {/* Accent graphic */}
-      {/* {accentGraphic && (
-        <div className={generateAccentGraphicClasses(accentGraphic.position)}>
-          <Image
-            src={accentGraphic.url}
-            alt={accentGraphic.alt}
-            width={100}
-            height={100}
-            className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-            style={{ opacity: accentGraphic.opacity || 0.6 }}
-          />
-        </div>
-      )} */}
-
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className={layoutClasses}>
           {/* Content Section */}
-          <div className={layoutStyle === 'split' ? 'order-2 md:order-1' : ''}>
+          <div className={layoutStyle === LayoutStyle.SPLIT ? 'order-2 md:order-1' : ''}>
             {/* Badge and urgency indicator */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              {urgencyLevel && urgencyLevel !== 'low' && (
+              {urgencyLevel && urgencyLevel !== UrgencyLevel.LOW && (
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${generateUrgencyClasses(urgencyLevel)}`}>
-                  {urgencyLevel === 'critical' && '🚨 Critical'}
-                  {urgencyLevel === 'high' && '⚡ Urgent'}
-                  {urgencyLevel === 'medium' && '📢 Important'}
+                  {urgencyLevel === UrgencyLevel.CRITICAL && '🚨 Critical'}
+                  {urgencyLevel === UrgencyLevel.HIGH && '⚡ Urgent'}
+                  {urgencyLevel === UrgencyLevel.MEDIUM && '📢 Important'}
                 </span>
               )}
               {badgeText && (
@@ -282,7 +246,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
 
             {/* Description */}
             {description && (
-              <p className="text-lg sm:text-xl mb-6 opacity-80 leading-relaxed max-w-2xl">
+              <p className={`text-lg sm:text-xl mb-6 opacity-80 leading-relaxed max-w-2xl ${layoutStyle === LayoutStyle.FULL_WIDTH ? 'mx-auto' : ''}`}>
                 {description}
               </p>
             )}
@@ -380,7 +344,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
           </div>
 
           {/* Media Section */}
-          {layoutStyle === 'split' && image && image.url && (
+          {layoutStyle === LayoutStyle.SPLIT && image && image.url && (
             <div className="order-1 md:order-2 h-full">
               <div className="relative h-full flex items-center justify-center">
                 <Image
@@ -394,7 +358,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'split' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.SPLIT && (!image || !image.url) && (
             <div className="order-1 md:order-2">
               <div className="relative rounded-lg overflow-hidden h-full">
                 <div className="flex items-center justify-center w-full h-full">
@@ -410,7 +374,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'full-width' && image && image.url && (
+          {layoutStyle === LayoutStyle.FULL_WIDTH && image && image.url && (
             <div className="mt-8 max-w-4xl mx-auto">
               <div className="relative">
                 <Image
@@ -424,7 +388,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'full-width' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.FULL_WIDTH && (!image || !image.url) && (
             <div className="mt-8 max-w-4xl mx-auto">
               <div className="relative rounded-lg overflow-hidden">
                 <div className="flex items-center justify-center w-full h-full">
@@ -442,7 +406,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
           )}
 
           {/* Card layout media */}
-          {layoutStyle === 'card' && image && image.url && (
+          {layoutStyle === LayoutStyle.CARD && image && image.url && (
             <div className="mt-6">
               <div className="relative">
                 <Image
@@ -456,7 +420,7 @@ export const GivingCampaignBanner: React.FC<GivingCampaignBannerProps> = ({
               </div>
             </div>
           )}
-          {layoutStyle === 'card' && (!image || !image.url) && (
+          {layoutStyle === LayoutStyle.CARD && (!image || !image.url) && (
             <div className="mt-6">
               <div className="relative rounded-lg overflow-hidden">
                 <div className="flex items-center justify-center w-full h-full">

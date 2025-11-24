@@ -3,10 +3,13 @@ import { useState, useEffect } from 'react';
 import '@/styles/pagination.css';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Pagination } from '@/components/ui/Pagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { Search, Plus } from 'lucide-react';
+import { FiltersSection } from '@/components/ui/FiltersSection';
+import { Plus } from 'lucide-react';
 import { IUser } from '@/types/IUser';
 import UserCard from '@/components/users/UserCard';
 import AddUserModal from '@/components/users/AddUserModal';
@@ -17,6 +20,8 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { ROLES, getRoleOptions } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
 import { ICity } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ResultsSummary } from '@/components/ui/ResultsSummary';
 
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
@@ -96,7 +101,7 @@ export default function UsersPage() {
         limit: limit.toString(),
       });
       
-      if (searchEmail) params.append('search', searchEmail);
+      if (emailInput?.trim()) params.append('search', emailInput.trim());
       if (roleFilter) params.append('role', roleFilter);
       if (locationFilter) params.append('location', locationFilter);
       
@@ -124,11 +129,6 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
   
-  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchClick();
-    }
-  };
 
   const handleRoleFilter = (value: string) => {
     setRoleFilter(value);
@@ -233,11 +233,7 @@ export default function UsersPage() {
 
   // Show loading while checking authorization
   if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized (redirect handled by hook)
@@ -247,122 +243,82 @@ export default function UsersPage() {
 
   return (
     <div className="min-h-screen bg-brand-q">
-        {/* Header */}
-        <div className="nav-container">
-          <div className="page-container">
-            <div className="flex items-center justify-between h-16">
-              <h1 className="heading-4">Users</h1>
-              <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add User
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PageHeader 
+          title="Users"
+          actions={
+            <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add User
+            </Button>
+          }
+        />
 
         <div className="page-container section-spacing padding-top-zero">
           {/* Filters */}
-          <div className="bg-white rounded-lg border border-brand-q p-6 mb-6 mt-[5px]">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-f w-4 h-4" />
-                    <Input
-                      type="email"
-                      placeholder="Search by email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      onKeyPress={handleSearchKeyPress}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Button
-                    variant="primary"
-                    onClick={handleSearchClick}
-                    className="whitespace-nowrap"
-                  >
-                    Search
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <select
-                  id="role-filter"
-                  value={roleFilter}
-                  onChange={(e) => handleRoleFilter(e.target.value)}
-                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-                >
-                  <option value="">All Roles</option>
-                  {availableRoles.map(role => (
-                    <option key={role.value} value={role.value} className="text-brand-k">
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  id="location-filter"
-                  value={locationFilter}
-                  onChange={(e) => handleLocationFilter(e.target.value)}
-                  className="block w-full px-3 py-2 border border-brand-q rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-brand-k bg-white min-w-48"
-                >
-                  <option value="" className="text-brand-k">All Locations</option>
-                  {locations.map(city => (
-                    <option key={city.Key} value={city.Key} className="text-brand-k">{city.Name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          <FiltersSection
+            searchPlaceholder="Search by email"
+            searchValue={emailInput}
+            onSearchChange={setEmailInput}
+            onSearchSubmit={handleSearchClick}
+            filters={[
+              {
+                id: 'role-filter',
+                value: roleFilter,
+                onChange: handleRoleFilter,
+                placeholder: 'All Roles',
+                options: availableRoles.map(role => ({
+                  label: role.label,
+                  value: role.value
+                }))
+              },
+              {
+                id: 'location-filter',
+                value: locationFilter,
+                onChange: handleLocationFilter,
+                placeholder: 'All Locations',
+                options: locations.map(city => ({
+                  label: city.Name,
+                  value: city.Key
+                }))
+              }
+            ]}
+          />
 
           {/* Results Summary */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-base text-brand-f">
-              {loading ? '' : `${total} user${total !== 1 ? 's' : ''} found`}
-            </p>
-          </div>
+          <ResultsSummary Loading={loading} Total={total} ItemName="user" />
 
           {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-            </div>
-          )}
+          {loading && <LoadingSpinner />}
 
           {/* Error State */}
           {error && !loading && (
-            <div className="text-center py-12">
-              <h2 className="heading-5 mb-4 text-brand-g">Error Loading Users</h2>
-              <p className="text-base text-brand-f mb-6">{error}</p>
-              <Button variant="primary" onClick={fetchUsers}>
-                Try Again
-              </Button>
-            </div>
+            <ErrorState
+              title="Error Loading Users"
+              message={error}
+              onRetry={fetchUsers}
+            />
           )}
 
           {/* Empty State */}
           {!loading && !error && users.length === 0 && (
-            <div className="text-center py-12">
-              <h2 className="heading-5 mb-4">No Users Found</h2>
-              <div className="text-base text-brand-f mb-6 space-y-2">
-                {searchEmail ? (
-                  <>
-                    <p>No users match your current search.</p>
-                    <p className="text-sm">Search requires a complete email address (e.g., name@example.com).</p>
-                  </>
+            <EmptyState
+              title="No Users Found"
+              message={
+                searchEmail ? (
+                    <p>No users match your current search. Try adjusting your search criteria.</p>
                 ) : roleFilter || locationFilter ? (
                   <p>No users match your current filters. Try adjusting your search criteria.</p>
                 ) : (
                   <p>Get started by adding your first user.</p>
-                )}
-              </div>
-              <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add User
-              </Button>
-            </div>
+                )
+              }
+              action={{
+                label: 'Add User',
+                icon: <Plus className="w-4 h-4 mr-2" />,
+                onClick: () => setIsAddModalOpen(true),
+                variant: 'primary'
+              }}
+            />
           )}
 
           {/* Users Grid */}

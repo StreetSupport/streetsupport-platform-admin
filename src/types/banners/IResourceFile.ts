@@ -1,13 +1,13 @@
 import { ResourceType } from './IBanner';
 
 export interface IResourceFile {
-  FileUrl?: string;
-  FileName?: string;
-  ResourceType?: ResourceType;
+  FileUrl: string;
+  FileName: string;
+  ResourceType: ResourceType;
   DownloadCount?: number;
-  LastUpdated?: Date;
-  FileSize?: string;
-  FileType?: string;
+  LastUpdated: Date;
+  FileSize: string;
+  FileType: string;
 }
 
 // Supported file types for resource projects
@@ -24,6 +24,10 @@ export const SUPPORTED_RESOURCE_FILE_TYPES = {
   
   // Archives
   'application/zip': { extension: 'ZIP', description: 'ZIP Archive' },
+  // Images
+  'image/jpeg': { extension: 'JPG', description: 'JPEG Image' },
+  'image/jpg': { extension: 'JPG', description: 'JPEG Image' },
+  'image/png': { extension: 'PNG', description: 'PNG Image' },
 } as const;
 
 export const RESOURCE_FILE_ACCEPT_STRING = Object.keys(SUPPORTED_RESOURCE_FILE_TYPES).join(',');

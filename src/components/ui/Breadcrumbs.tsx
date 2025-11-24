@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { getHomePageForUser } from "@/lib/roleHomePages";
-import { authenticatedFetch } from "@/utils/authenticatedFetch";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 
 function toTitleCase(slug: string) {
+  // Special case for SWEP
+  if (slug === "swep-banners") {
+    return "SWEP";
+  }
+  
   return slug
     .split("-")
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
@@ -16,16 +21,19 @@ function toTitleCase(slug: string) {
 
 export type Crumb = { href?: string; label: string; current?: boolean };
 
-export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
+export default function Breadcrumbs({ 
+  items: itemsProp
+}: { 
+  items?: Crumb[]; 
+}) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { bannerTitle, adviceTitle, logoTitle } = useBreadcrumb();
   
   const segments = useMemo(
     () => (pathname || "/").split("?")[0].split("#")[0].split("/").filter(Boolean),
     [pathname]
   );
-
-  const [bannerTitle, setBannerTitle] = useState<string | null>(null);
 
   // Determine home page URL based on user roles
   const homePageUrl = useMemo(() => {
@@ -56,44 +64,68 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
     return items;
   }, [segments, homePageUrl]);
 
-  // Enrich breadcrumbs for banner routes: /banners/[id] and /banners/[id]/edit
-  useEffect(() => {
-    const isBannerRoute = segments[0] === "banners" && segments.length >= 2;
-    const id = isBannerRoute ? segments[1] : null;
-    if (!isBannerRoute || !id) {
-      setBannerTitle(null);
-      return;
-    }
-
-    // TODO: update this logic to avoid this request
-    let aborted = false;
-    // Fetch banner title and support both response shapes
-    (async () => {
-      try {
-        // Skip fetching when creating a new banner or when id isn't a MongoDB ObjectId
-        const isNewRoute = id === "new";
-        const looksLikeObjectId = /^[a-fA-F0-9]{24}$/.test(id);
-        if (isNewRoute || !looksLikeObjectId) {
-          return;
-        }
-        const res = await authenticatedFetch(`/api/banners/${id}`);
-        if (!res.ok) return;
-        const json = await res.json();
-        const banner = json?.data ?? json; // handle {data: banner} or banner
-        const title = banner?.Title as string | undefined;
-        if (!aborted && title) setBannerTitle(title);
-      } catch {
-        // ignore failures and keep default ID-based crumb
-      }
-    })();
-
-    return () => {
-      aborted = true;
-    };
-  }, [segments]);
+  // Use bannerTitle from context (set by banner pages to avoid duplicate API call)
 
   const computedItems: Crumb[] = useMemo(() => {
     if (itemsProp && itemsProp.length > 0) return itemsProp;
+
+    // Special handling for SWEP banner routes - exclude 'Edit' from breadcrumbs
+    if (segments[0] === "swep-banners" && segments.length >= 2) {
+      const locationSlug = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/swep-banners", label: "SWEP" },
+        { href: isEdit ? `/swep-banners/${locationSlug}` : undefined, label: toTitleCase(locationSlug), current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for SWEP banners
+      return items;
+    }
+
+    // Special handling for resources routes - exclude 'Edit' from breadcrumbs
+    if (segments[0] === "resources" && segments.length >= 2) {
+      const resourceKey = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/resources", label: "Resources" },
+        { href: isEdit ? `/resources/${resourceKey}` : undefined, label: toTitleCase(resourceKey), current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for resources
+      return items;
+    }
+
+    // Special handling for advice routes - show title instead of ID
+    // Exclude 'Edit' from breadcrumbs (same as SWEP and Resources)
+    if (segments[0] === "advice" && segments.length >= 2 && adviceTitle) {
+      const id = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/advice", label: "Advice" },
+        { href: isEdit ? `/advice/${id}` : undefined, label: adviceTitle, current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for advice (consistent with SWEP and Resources)
+      return items;
+    }
+
+    // Special handling for location-logos routes - show display name instead of ID
+    // Exclude 'Edit' from breadcrumbs (consistent with other routes)
+    if (segments[0] === "location-logos" && segments.length >= 2 && logoTitle) {
+      const id = segments[1];
+      const isEdit = segments[2] === "edit";
+      
+      const items: Crumb[] = [
+        { href: homePageUrl, label: "Home" },
+        { href: "/location-logos", label: "Location Logos" },
+        { href: isEdit ? `/location-logos/${id}` : undefined, label: logoTitle, current: true },
+      ];
+      // Note: We don't add "Edit" breadcrumb for location logos (consistent with other routes)
+      return items;
+    }
 
     // If not a banner route or no fetched title, fall back to base items
     if (!(segments[0] === "banners" && segments.length >= 2) || !bannerTitle) {
@@ -108,9 +140,8 @@ export default function Breadcrumbs({ items: itemsProp }: { items?: Crumb[] }) {
       { href: "/banners", label: "Banners" },
       { href: isEdit ? `/banners/${id}` : undefined, label: bannerTitle, current: !isEdit },
     ];
-    if (isEdit) items.push({ label: "Edit", current: true });
     return items;
-  }, [itemsProp, baseItems, bannerTitle, segments, homePageUrl]);
+  }, [itemsProp, baseItems, bannerTitle, adviceTitle, logoTitle, segments, homePageUrl]);
 
   return (
     <div className="bg-brand-n py-4">

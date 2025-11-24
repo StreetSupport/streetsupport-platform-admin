@@ -241,7 +241,7 @@ const OrganisationCard = React.memo(function OrganisationCard({
           }`}>
             <p className={`text-xs font-medium ${
               warningLevel === 'expired' ? 'text-brand-g' :
-              warningLevel === 'warning' ? 'text-brand-j' :
+              warningLevel === 'warning' ? 'text-amber-700' :
               'text-blue-700'
             }`}>
               {warningLevel === 'expired' && (

@@ -3,16 +3,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import ActivateBannerModal from '@/components/banners/ActivateBannerModal';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
+import { redirectToNotFound } from '@/utils/navigation';
 import { IBanner, IBannerFormData, BannerTemplateType } from '@/types/banners/IBanner';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function BannerViewPage() {
   // Check authorization FIRST
@@ -32,39 +35,55 @@ export default function BannerViewPage() {
   const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const { setBannerTitle } = useBreadcrumb();
 
   const fetchBanner = useCallback(async () => {
     if (!id || !isAuthorized) return;
+    let redirected = false;
+
     try {
       setLoading(true);
       setError(null);
       
       const response = await authenticatedFetch(`/api/banners/${id}`);
+      const data = await response.json();
       
       if (!response.ok) {
-        if (response.status === 404) {
-          setError('Banner not found');
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
           return;
         }
-        throw new Error('Failed to fetch banner');
+        throw new Error(data.error || 'Failed to fetch banner');
       }
 
-      const data = await response.json();
-      setBanner(data.data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load banner';
-      setError(errorMessage);
-      errorToast.generic(errorMessage);
+      const bannerData = data.data || data;
+      setBanner(bannerData);
+      // Set banner title for breadcrumbs
+      if (bannerData?.Title) {
+        setBannerTitle(bannerData.Title);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load banner';
+      setError(message);
+      errorToast.generic(message);
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
-  }, [id, isAuthorized]);
+  }, [id, isAuthorized, router, setBannerTitle]);
 
   useEffect(() => {
     if (isAuthorized) {
       fetchBanner();
     }
-  }, [isAuthorized, fetchBanner]);
+    
+    // Cleanup: Clear banner title when component unmounts
+    return () => {
+      setBannerTitle(null);
+    };
+  }, [isAuthorized, fetchBanner, setBannerTitle]);
 
   const handleDelete = async () => {
     if (!banner) return;
@@ -90,27 +109,32 @@ export default function BannerViewPage() {
       toastUtils.dismiss(toastId);
       successToast.delete('Banner');
       router.push('/banners');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete banner';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete banner';
       toastUtils.dismiss(toastId);
-      errorToast.delete('banner', errorMessage);
+      errorToast.generic(message);
     } finally {
       setDeleting(false);
     }
   };
 
-  const handleToggleActive = async () => {
+  const handleToggleActive = async (bannerId: string, isActive: boolean, startDate?: Date, endDate?: Date) => {
     if (!banner) return;
 
     const toastId = loadingToast.update('banner status');
     setToggling(true);
     
     try {
-      const response = await authenticatedFetch(`/api/banners/${id}/toggle`, {
+      const response = await authenticatedFetch(`/api/banners/${bannerId}`, {
         method: HTTP_METHODS.PATCH,
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          IsActive: isActive,
+          StartDate: startDate,
+          EndDate: endDate
+        })
       });
 
       if (!response.ok) {
@@ -123,13 +147,18 @@ export default function BannerViewPage() {
       
       toastUtils.dismiss(toastId);
       successToast.update('Banner status');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update banner status';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update banner status';
       toastUtils.dismiss(toastId);
-      errorToast.update('banner status', errorMessage);
+      errorToast.generic(message);
+      throw error; // Re-throw for modal error handling
     } finally {
       setToggling(false);
     }
+  };
+
+  const handleOpenActivateModal = () => {
+    setShowActivateModal(true);
   };
   
   // Transform IBanner to IBannerFormData for preview
@@ -158,19 +187,13 @@ export default function BannerViewPage() {
     return d.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
 
-  // Show loading while checking authorization
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-      </div>
-    );
+  // Show loading while checking authorization or fetching data
+  if (isChecking || loading) {
+    return <LoadingSpinner />;
   }
 
   // Don't render anything if not authorized
@@ -178,71 +201,40 @@ export default function BannerViewPage() {
     return null;
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-brand-q">
-          <div className="nav-container">
-            <div className="page-container">
-              <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4"></h1>
-              </div>
-            </div>
-          </div>
-          <div className="page-container section-spacing padding-top-zero">
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-a"></div>
-            </div>
-          </div>
-      </div>
-    );
-  }
-
   if (error || !banner) {
     return (
-      <div className="min-h-screen bg-brand-q">
-          <div className="nav-container">
-            <div className="page-container">
-              <div className="flex items-center justify-between h-16">
-                <h1 className="heading-4">Banner Not Found</h1>
-              </div>
-            </div>
-          </div>
-          <div className="page-container section-spacing padding-top-zero">
-            <div className="text-center py-12">
-              <h2 className="heading-3 mb-4">Banner Not Found</h2>
-              <p className="text-base text-brand-f mb-6">
-                {error || 'The banner you are looking for does not exist or has been deleted.'}
-              </p>
-              <Link href="/banners">
-                <Button variant="primary">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Banners
-                </Button>
-              </Link>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <ErrorState
+          title="Error Loading Banner"
+          message={error || 'Banner Not Found'}
+          onRetry={fetchBanner}
+        />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-brand-q">
-        <BannerPageHeader 
-          pageType='view'
-          banner={banner}
-          onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
-          isToggling={toggling}
-          isDeleting={deleting}
+        <PageHeader 
+          title="View Banner"
+          actions={
+            <BannerPageHeader 
+              pageType='view'
+              banner={banner}
+              onDelete={handleDelete}
+              onToggleActive={handleOpenActivateModal}
+              isToggling={toggling}
+              isDeleting={deleting}
+            />
+          }
         />
 
-        <div className="page-container section-spacing padding-top-zero">
-          
-          {/* Banner Preview */}
-          <div className="mb-8">
-            <BannerPreview data={transformForPreview(banner)} />
-          </div>
+        {/* Full-width Preview at Top - Outside page-container */}
+        <div className="mb-8">
+          <BannerPreview data={transformForPreview(banner)} />
+        </div>
 
+        <div className="page-container section-spacing padding-top-zero">
           {/* Banner Details */}
           <div className="bg-white rounded-lg border border-brand-q p-6">
             <h2 className="heading-5 mb-6">Banner Details</h2>
@@ -293,7 +285,7 @@ export default function BannerViewPage() {
                   {banner.LocationSlug && (
                     <div>
                       <dt className="text-small font-medium text-brand-k">Location</dt>
-                      <dd className="text-base text-brand-l">{banner.LocationSlug}</dd>
+                      <dd className="text-base text-brand-l">{banner.LocationName}</dd>
                     </div>
                   )}
                 </dl>
@@ -486,6 +478,14 @@ export default function BannerViewPage() {
             variant="danger"
             confirmLabel="Delete"
             cancelLabel="Cancel"
+          />
+
+          {/* Activate/Deactivate Modal */}
+          <ActivateBannerModal
+            banner={banner}
+            isOpen={showActivateModal}
+            onClose={() => setShowActivateModal(false)}
+            onActivate={handleToggleActive}
           />
       </div>
     </div>

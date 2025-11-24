@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import './globals.css';
+import '@/styles/rich-text-editor.css';
 
 import Footer from '@/components/partials/Footer';
 import NextAuthProvider from '@/components/auth/NextAuthProvider';
@@ -7,9 +8,10 @@ import ProtectedLayout from '@/components/auth/ProtectedLayout';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import Nav from '@/components/partials/Nav';
 import { Toaster } from 'react-hot-toast';
+import { BreadcrumbProvider } from '@/contexts/BreadcrumbContext';
 
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -31,6 +33,22 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png' }
+    ],
+  },
+  other: {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  }
 };
 
 export default function RootLayout({
@@ -42,7 +60,8 @@ export default function RootLayout({
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className={`h-full`}>
         <NextAuthProvider>
-          <ProtectedLayout>
+          <BreadcrumbProvider>
+            <ProtectedLayout>
             <div className="flex flex-col min-h-screen">
               {/* <Header /> */}
               <Nav/>
@@ -54,7 +73,9 @@ export default function RootLayout({
               </div>
               <Footer />
             </div>
-            <Toaster
+            </ProtectedLayout>
+          </BreadcrumbProvider>
+          <Toaster
               position="top-right"
               toastOptions={{
                 duration: 4000,
@@ -97,7 +118,6 @@ export default function RootLayout({
                 },
               }}
             />
-          </ProtectedLayout>
         </NextAuthProvider>
       </body>
     </html>

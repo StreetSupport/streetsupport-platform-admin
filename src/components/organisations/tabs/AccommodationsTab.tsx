@@ -9,6 +9,7 @@ import { IAccommodation } from '@/types/organisations/IAccommodation';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { AddAccommodationModal } from '../AddAccommodationModal';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface AccommodationsTabProps {
   organisation: IOrganisation;
@@ -141,9 +142,7 @@ const AccommodationsTab: React.FC<AccommodationsTabProps> = ({ organisation, vie
 
           {/* Accommodations List */}
           {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-brand-f">Loading accommodations...</p>
-            </div>
+            <LoadingSpinner />
           ) : accommodations.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-brand-f mb-4">No accommodations found for this organisation.</p>

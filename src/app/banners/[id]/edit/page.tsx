@@ -1,20 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { BannerEditor, IBannerFormData } from '@/components/banners/BannerEditor';
 import { BannerPreview } from '@/components/banners/BannerPreview';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { validateBannerForm } from '@/schemas/bannerSchema';
+import { validateBannerForm, transformErrorPath } from '@/schemas/bannerSchema';
 import { successToast, errorToast, loadingToast, toastUtils } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { BannerPageHeader } from '@/components/banners/BannerPageHeader';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { IBanner, IMediaAsset } from '@/types';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
 import { ROLES } from '@/constants/roles';
 import { HTTP_METHODS } from '@/constants/httpMethods';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { redirectToNotFound } from '@/utils/navigation';
 
 // Helper function to transform IBanner to IBannerFormData
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
@@ -32,6 +34,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     Priority: banner.Priority,
     TrackingContext: banner.TrackingContext,
     LocationSlug: banner.LocationSlug || '',
+    LocationName: banner.LocationName || '',
     BadgeText: banner.BadgeText || '',
     StartDate: banner.StartDate ? new Date(banner.StartDate) : undefined,
     EndDate: banner.EndDate ? new Date(banner.EndDate) : undefined,
@@ -56,8 +59,11 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     
     ResourceProject: banner.ResourceProject ? {
       ...banner.ResourceProject,
-      // Keep existing ResourceFile as IResourceFile
-      ResourceFile: banner.ResourceProject.ResourceFile || null
+      // Keep existing ResourceFile as IResourceFile with proper Date conversion
+      ResourceFile: banner.ResourceProject.ResourceFile ? {
+        ...banner.ResourceProject.ResourceFile,
+        LastUpdated: new Date(banner.ResourceProject.ResourceFile.LastUpdated)
+      } : null
     } : undefined,
   };
 }
@@ -80,46 +86,60 @@ export default function EditBannerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Array<{ path: string; message: string; code: string }>>([]);
+  const { setBannerTitle } = useBreadcrumb();
+
+  // Fetch banner data function
+  const fetchBanner = useCallback(async () => {
+    let redirected = false;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await authenticatedFetch(`/api/banners/${bannerId}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.success || !result.data) {
+        if (redirectToNotFound(response, router)) {
+          redirected = true;
+          return;
+        }
+
+        const errorMessage = (result && (result.error || result.message)) || 'Failed to fetch banner';
+        throw new Error(errorMessage);
+      }
+
+      const banner = result.data as IBanner;
+      
+      // Transform banner data for form
+      const formData = transformBannerToFormData(banner);
+      setInitialFormData(formData);
+      setBannerData(formData);
+      // Set banner title for breadcrumbs
+      setBannerTitle(banner.Title);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load banner';
+      setError(message);
+      errorToast.generic(message);
+    } finally {
+      if (!redirected) {
+        setLoading(false);
+      }
+    }
+  }, [bannerId, router, setBannerTitle]);
 
   // Fetch banner data only if authorized
   useEffect(() => {
     if (!isAuthorized) return;
 
-    const fetchBanner = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await authenticatedFetch(`/api/banners/${bannerId}`);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch banner');
-        }
-        
-        const result = await response.json();
-        if (result.success && result.data) {
-          const banner = result.data as IBanner;
-          
-          // Transform banner data for form
-          const formData = transformBannerToFormData(banner);
-          setInitialFormData(formData);
-          setBannerData(formData);
-        } else {
-          throw new Error(result.message || 'Banner not found');
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to load banner';
-        setError(errorMessage);
-        errorToast.load(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (bannerId) {
       fetchBanner();
     }
-  }, [isAuthorized, bannerId, router]);
+    
+    // Cleanup: Clear banner title when component unmounts
+    return () => {
+      setBannerTitle(null);
+    };
+  }, [isAuthorized, bannerId, setBannerTitle, fetchBanner]);
 
   const handleSave = async (data: IBannerFormData) => {
   const toastId = loadingToast.update('banner');
@@ -131,7 +151,12 @@ export default function EditBannerPage() {
     // Client-side validation using Zod
     const validation = validateBannerForm(data);
     if (!validation.success) {
-      setValidationErrors(validation.errors);
+      // Transform error paths for better user-friendly messages
+      const transformedErrors = validation.errors.map(error => ({
+        ...error,
+        path: transformErrorPath(error.path)
+      }));
+      setValidationErrors(transformedErrors);
       toastUtils.dismiss(toastId);
       errorToast.validation('Please fix the validation errors below');
       return;
@@ -237,22 +262,18 @@ export default function EditBannerPage() {
     toastUtils.dismiss(toastId);
     successToast.update('Banner');
     router.push(`/banners/${bannerId}`);
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update banner';
     toastUtils.dismiss(toastId);
-    errorToast.update('banner', errorMessage);
+    errorToast.generic(message);
   } finally {
     setSaving(false);
   }
 };
 
-// Show loading while checking authorization
-if (isChecking) {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-a"></div>
-    </div>
-  );
+// Show loading while checking authorization or fetching data
+if (isChecking || loading) {
+  return <LoadingSpinner />;
 }
 
 // Don't render anything if not authorized
@@ -260,67 +281,41 @@ if (!isAuthorized) {
   return null;
 }
 
-if (loading) {
-  return (
-    <div className="min-h-screen bg-brand-q flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-a mx-auto mb-4"></div>
-          <p className="text-brand-k">Loading banner...</p>
-        </div>
-    </div>
-  );
-}
-
 if (!bannerData || !initialFormData) {
   return (
-    <div className="min-h-screen bg-brand-q">
-        <div className="nav-container">
-          <div className="page-container">
-            <div className="flex items-center justify-between h-16">
-              <h1 className="heading-4">Banner Not Found</h1>
-            </div>
-          </div>
-        </div>
-        <div className="page-container section-spacing padding-top-zero">
-          <div className="text-center py-12">
-            <h2 className="heading-3 mb-4">Banner Not Found</h2>
-            <p className="text-base text-brand-f mb-6">
-              {error || 'The banner you are looking for does not exist or has been deleted.'}
-            </p>
-            <Link href="/banners">
-              <Button variant="primary">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Banners
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <ErrorState
+        title="Error Loading Banner"
+        message={error || 'Banner Not Found'}
+        onRetry={fetchBanner}
+      />
     </div>
   );
 }
 
 return (
   <div className="min-h-screen bg-brand-q">
-      <BannerPageHeader pageType="edit" />
+    <PageHeader title="Edit Banner" />
+    <BannerPageHeader pageType="edit" />
 
-      <div className="page-container section-spacing padding-top-zero">
-        {/* Full-width Preview at Top */}
-        <div className="mb-8">
-          {bannerData && (
-            <BannerPreview data={bannerData} />
-          )}
-        </div>
+    {/* Full-width Preview at Top - Outside page-container */}
+    <div className="mb-10">
+      {bannerData && (
+        <BannerPreview data={bannerData} />
+      )}
+    </div>
 
-        <div className="space-y-6">
-          <BannerEditor
-            initialData={initialFormData}
-            onDataChange={setBannerData}
-            onSave={handleSave}
-            saving={saving}
-            validationErrors={validationErrors}
-          />
-        </div>
+    <div className="page-container section-spacing padding-top-zero">
+      <div className="space-y-6">
+        <BannerEditor
+          initialData={initialFormData}
+          onDataChange={setBannerData}
+          onSave={handleSave}
+          saving={saving}
+          validationErrors={validationErrors}
+        />
       </div>
+    </div>
   </div>
 );
 }

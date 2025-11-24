@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { withAuth, AuthenticatedApiHandler } from '@/lib/withAuth';
 import { hasApiAccess } from '@/lib/userService';
 import { HTTP_METHODS } from '@/constants/httpMethods';
-import { sendForbidden, sendInternalError, proxyResponse, sendError } from '@/utils/apiResponses';
+import { sendForbidden, sendInternalError, proxyResponse, sendError, sendNotFound } from '@/utils/apiResponses';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
@@ -20,12 +20,16 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      return sendError(response.status, errorData.error || 'Failed to fetch banner');
+      if (response.status === 404) {
+        return sendNotFound();
+      }
+
+      return sendError(response.status, data.error || 'Failed to fetch banner');
     }
 
-    const data = await response.json();
     return proxyResponse(data);
   } catch (error) {
     console.error('Error fetching banner:', error);
@@ -90,6 +94,41 @@ const deleteHandler: AuthenticatedApiHandler = async (req: NextRequest, context,
   }
 };
 
+// PATCH /api/banners/[id] - Update banner activation with optional date range
+const patchHandler: AuthenticatedApiHandler<{ id: string }> = async (req: NextRequest, context, auth) => {
+  try {
+    if (!hasApiAccess(auth.session.user.authClaims, '/api/banners', HTTP_METHODS.PATCH)) {
+      return sendForbidden();
+    }
+
+    const params = await context.params;
+    const { id } = params;
+    const body = await req.json();
+    const url = `${API_BASE_URL}/api/banners/${id}/toggle-active`;
+
+    const response = await fetch(url, {
+      method: HTTP_METHODS.PATCH,
+      headers: {
+        'Authorization': `Bearer ${auth.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return sendError(response.status, data.error || 'Failed to update banner status');
+    }
+
+    return proxyResponse(data);
+  } catch (error) {
+    console.error('Error updating banner status:', error);
+    return sendInternalError();
+  }
+};
+
 export const GET = withAuth(getHandler);
 export const PUT = withAuth(putHandler);
 export const DELETE = withAuth(deleteHandler);
+export const PATCH = withAuth(patchHandler);

@@ -319,7 +319,7 @@ export function hasApiAccess(
   if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
     return true;
   }
-
+  
   // Check role-based API access
   for (const role of userAuthClaims.roles) {
     const permissions = getRolePermissions(role);

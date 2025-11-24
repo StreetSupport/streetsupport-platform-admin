@@ -4,6 +4,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '@/components/ui/Input';
+import { FormField } from '@/components/ui/FormField';
 import AddRoleModal from '@/components/users/AddRoleModal';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -28,7 +29,24 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
   const [generalError, setGeneralError] = useState<string>('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Store initial state for change detection
+  const initialData = { email: '', authClaims: [] };
+
   if (!isOpen) return null;
+
+  // Check if any data has been added
+  const hasChanges = () => {
+    const currentData = { email, authClaims };
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges()) {
+      setShowConfirmModal(true);
+    } else {
+      handleClose();
+    }
+  };
 
   const validateForm = (): boolean => {
     const errors: ValidationError[] = [];
@@ -167,7 +185,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user';
       toastUtils.dismiss(toastId);
       setGeneralError(errorMessage);
-      errorToast.create('user', errorMessage);
+      errorToast.generic(errorMessage);
     }
   };
 
@@ -200,7 +218,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowConfirmModal(true)}
+              onClick={handleCancel}
               className="p-2"
               title="Close"
             >
@@ -211,10 +229,7 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
           {/* Content - scrollable */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {/* Email Input */}
-            <div className="field-group">
-              <label htmlFor="email" className="field-label required">
-                Email <span className="text-brand-g">*</span>
-              </label>
+            <FormField label="Email Address" required>
               <Input
                 type="email"
                 id="email"
@@ -225,14 +240,14 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
                 }}
                 placeholder="user@example.com"
               />
-            </div>
+            </FormField>
 
             {/* Roles Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="field-label">Roles <span className="text-brand-g">*</span></label>
+                <label className="block text-sm font-medium text-gray-700">Roles <span className="text-brand-g">*</span></label>
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="sm"
                   onClick={() => setIsRoleModalOpen(true)}
                 >
@@ -247,18 +262,21 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
                   {roleDisplays.map((role) => (
                     <div
                       key={role.id}
-                      className="flex items-center justify-between p-3 bg-brand-q rounded-md"
+                      className="flex items-center justify-between p-4 bg-brand-i rounded-md"
                     >
                       <span className="text-base text-brand-k font-medium">
                         {role.label}
                       </span>
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleRemoveRole(role.id)}
                         className="p-2 hover:bg-brand-g hover:bg-opacity-10 rounded-full transition-colors"
                         aria-label={`Remove ${role.label}`}
                       >
                         <Trash2 className="w-4 h-4 text-brand-g" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -274,8 +292,10 @@ export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModa
 
           {/* Footer - fixed at bottom */}
           <div className="border-t border-brand-q p-4 sm:p-6">
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowConfirmModal(true)}>
+            <div className="flex flex-row items-center justify-end gap-3">
+              <Button variant="outline" 
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
               <Button variant="primary" onClick={handleCreate}>
