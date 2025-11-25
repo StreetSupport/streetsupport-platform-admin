@@ -592,7 +592,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <FormField label="Upload file or provide link to file">
               <div className="flex gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <Input
+                  <input
                     type="radio"
                     name="resourceFileMode"
                     value={ResourceFileMode.UPLOAD}
@@ -603,7 +603,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   <span className="text-sm text-brand-k">Upload file</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <Input
+                  <input
                     type="radio"
                     name="resourceFileMode"
                     value={ResourceFileMode.MANUAL}
@@ -1197,9 +1197,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       onClick={() => removeCTAButton(index)}
                       title='Remove button'
                       disabled={index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT}
-                      className={index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT ? 'opacity-50 cursor-not-allowed' : ''}
+                      className={index === 0 && formData.TemplateType === BannerTemplateType.RESOURCE_PROJECT ? 'opacity-50 cursor-not-allowed' : 'p-2 hover:bg-brand-g hover:bg-opacity-10 rounded-full transition-colors'}
                     >
-                      <Trash className="h-4 w-4" />
+                      <Trash className="w-4 h-4 text-brand-g" />
                     </Button>
                   </div>
                   <div className="mt-2">
