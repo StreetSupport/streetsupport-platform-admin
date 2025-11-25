@@ -157,7 +157,7 @@ export default function ActivateBannerModal({ banner, isOpen, onClose, onActivat
                 <FormField label="Activation Type">
                   <div className="space-y-2">
                     <label className="flex items-center">
-                      <Input
+                      <input
                         type="radio"
                         value="immediate"
                         checked={activationType === 'immediate'}
@@ -169,7 +169,7 @@ export default function ActivateBannerModal({ banner, isOpen, onClose, onActivat
                       </span>
                     </label>
                     <label className="flex items-center">
-                      <Input
+                      <input
                         type="radio"
                         value="scheduled"
                         checked={activationType === 'scheduled'}
