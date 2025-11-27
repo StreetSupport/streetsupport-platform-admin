@@ -43,7 +43,6 @@ export default function SwepEditPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [editorResetKey, setEditorResetKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<ISwepBannerFormData>({
@@ -201,28 +200,13 @@ export default function SwepEditPage() {
     if (originalData && JSON.stringify(formData) !== JSON.stringify(originalData)) {
       setShowConfirmModal(true);
     } else {
-      // No changes, reset form to defaults
-      if (originalData) {
-        setFormData(originalData);
-        setImageFile(null);
-        setImagePreview(swep?.Image || null);
-        setImageRemoved(false);
-        setValidationErrors([]);
-      }
+      confirmCancel();
     }
   };
 
   const confirmCancel = () => {
-    // Revert to original data
-    if (originalData) {
-      setFormData(originalData);
-      setImageFile(null);
-      setImagePreview(swep?.Image || null);
-      setImageRemoved(false);
-      setValidationErrors([]);
-      setEditorResetKey(prev => prev + 1); // Force editor remount
-    }
     setShowConfirmModal(false);
+    router.push('/swep-banners');
   };
 
   // Show loading while checking authorization or fetching data
@@ -372,7 +356,6 @@ export default function SwepEditPage() {
           placeholder="Enter the SWEP banner body content..."
           required
           minHeight="300px"
-          resetKey={editorResetKey}
         />
 
         {/* Emergency Contact Section */}
@@ -449,7 +432,7 @@ export default function SwepEditPage() {
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Discard changes"
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
       />
     </div>

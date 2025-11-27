@@ -50,7 +50,6 @@ export default function ResourceEditPage() {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [hasUploadedFiles, setHasUploadedFiles] = useState(false); // Track if any files were uploaded
-  const [editorResetKey, setEditorResetKey] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -210,20 +209,13 @@ export default function ResourceEditPage() {
     if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
       setShowCancelModal(true);
     } else {
-      // No changes, reset form to default (deep clone to avoid reference issues)
-      setFormData(JSON.parse(JSON.stringify(originalData)));
-      setValidationErrors([]);
-      setHasUploadedFiles(false);
+      confirmCancel();
     }
   };
 
   const confirmCancel = () => {
-    // Revert to original data (deep clone to avoid reference issues)
-    setFormData(JSON.parse(JSON.stringify(originalData)));
-    setValidationErrors([]);
-    setEditorResetKey(prev => prev + 1); // Force editor remount
     setShowCancelModal(false);
-    setHasUploadedFiles(false); // Reset file upload tracking
+    router.push('/resources');
   };
 
   // LinkList Management Functions
@@ -357,7 +349,6 @@ export default function ResourceEditPage() {
                 onChange={(value) => setFormData({ ...formData, Body: value })}
                 placeholder="Enter the main resource content..."
                 minHeight="400px"
-                resetKey={editorResetKey}
               />
             </div>
 
@@ -554,7 +545,7 @@ export default function ResourceEditPage() {
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Discard changes"
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
       />
     </div>

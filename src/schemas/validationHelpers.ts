@@ -1,5 +1,33 @@
 import { z } from 'zod';
 
+// ============================================================================
+// HTML Content Validation Helpers
+// ============================================================================
+
+/**
+ * Check if HTML content is effectively empty (only contains empty tags like <p></p>)
+ * Used for RichTextEditor validation where empty content produces <p></p>
+ */
+export function isHtmlContentEmpty(html: string): boolean {
+  if (!html || html.trim() === '') return true;
+  
+  // Remove all HTML tags and check if any text content remains
+  const textContent = html
+    .replace(/<[^>]*>/g, '') // Remove all HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .trim();
+  
+  return textContent.length === 0;
+}
+
+/**
+ * Zod refinement for validating non-empty HTML content
+ * Use with .refine() on string fields that accept HTML from RichTextEditor
+ */
+export function validateNonEmptyHtml(value: string): boolean {
+  return !isHtmlContentEmpty(value);
+}
+
 // Shared validation function structure
 export interface ValidationResult<T> {
   success: boolean;

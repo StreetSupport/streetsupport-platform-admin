@@ -271,6 +271,10 @@ export default function EditBannerPage() {
   }
 };
 
+const handleCancel = () => {
+  router.push('/banners');
+};
+
 // Show loading while checking authorization or fetching data
 if (isChecking || loading) {
   return <LoadingSpinner />;
@@ -313,6 +317,7 @@ return (
           onSave={handleSave}
           saving={saving}
           validationErrors={validationErrors}
+          onCancel={handleCancel}
         />
       </div>
     </div>

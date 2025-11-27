@@ -51,6 +51,10 @@ export default function CreateLocationLogoPage() {
     }
   };
 
+  const handleCancel = () => {
+    router.push('/location-logos');
+  };
+
   return (
     <div className="min-h-screen bg-brand-q">
       <PageHeader title="Add New Location Logo" />
@@ -59,7 +63,7 @@ export default function CreateLocationLogoPage() {
         <div className="max-w-3xl mx-auto py-8">
           <LocationLogoForm
             onSubmit={handleSubmit}
-            onCancel={() => {}}
+            onCancel={handleCancel}
             saving={saving}
           />
         </div>

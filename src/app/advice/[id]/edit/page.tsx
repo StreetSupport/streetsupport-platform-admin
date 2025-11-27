@@ -46,9 +46,8 @@ export default function AdviceEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showConfirmModal, setshowConfirmModal] = useState(false);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
-  const [editorResetKey, setEditorResetKey] = useState(0);
   const { setAdviceTitle } = useBreadcrumb();
 
   // Form state
@@ -174,23 +173,16 @@ export default function AdviceEditPage() {
 
   const handleCancel = () => {
     if (JSON.stringify(formData) !== JSON.stringify(originalData)) {
-      setShowCancelModal(true);
+      setshowConfirmModal(true);
     } else {
-      router.push(`/advice/${id}`);
+      router.push(`/advice`);
     }
   };
 
   const confirmCancel = () => {
-    // Revert to original data
-    if (originalData) {
-      setFormData(JSON.parse(JSON.stringify(originalData)));
-      setValidationErrors([]);
-      setEditorResetKey(prev => prev + 1); // Force editor remount
-    }
-    setShowCancelModal(false);
+    setshowConfirmModal(false);
+    router.push('/advice');
   };
-
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
 
   // Show loading while checking authorization or fetching data
   if (isChecking || loading) {
@@ -268,7 +260,6 @@ export default function AdviceEditPage() {
                   placeholder="Enter the advice content..."
                   minHeight="400px"
                   required
-                  resetKey={editorResetKey}
                 />
               </div>
 
@@ -293,7 +284,7 @@ export default function AdviceEditPage() {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={saving || !hasChanges}
+                disabled={saving}
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -304,13 +295,13 @@ export default function AdviceEditPage() {
 
       {/* Cancel Confirmation Modal */}
       <ConfirmModal
-        isOpen={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
+        isOpen={showConfirmModal}
+        onClose={() => setshowConfirmModal(false)}
         onConfirm={confirmCancel}
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Discard changes"
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
       />
     </div>

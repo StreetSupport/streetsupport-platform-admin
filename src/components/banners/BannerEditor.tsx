@@ -43,7 +43,7 @@ interface BannerEditorProps {
   onDataChange: (data: IBannerFormData) => void;
   onSave: (data: IBannerFormData) => void;
   saving?: boolean;
-  onCancel?: () => void;
+  onCancel: () => void;
   errorMessage?: string | null;
   validationErrors?: IValidationError[];
 }
@@ -303,6 +303,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         newData = handleTemplateTypeChange(newTemplateType, newData);
       }
       
+      // Handle background type change: when switching away from IMAGE, reset Background.Value
+      if (path === 'Background.Type') {
+        const newBackgroundType = value as BackgroundType;
+        const previousBackgroundType = (prev as IBannerFormData).Background.Type;
+
+        if (previousBackgroundType === BackgroundType.IMAGE && newBackgroundType !== BackgroundType.IMAGE) {
+          newData.Background.Value = '#38ae8e';
+        }
+      }
+      
       // Walk the path, cloning each branch as we go using indexable records
       let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
       let source: Record<string, unknown> = prev as unknown as Record<string, unknown>;
@@ -399,7 +409,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     setFormData(prev => {
       if ((prev.PartnershipCharter?.PartnerLogos?.length || 0) >= 5) {
         // Optionally, set an error message to inform the user
-        setErrors(e => ({ ...e, PartnerLogos: 'You can only upload a maximum of 5 logos.' }));
+        setErrors(e => ({ ...e, 'Partner Logos': 'You can only upload a maximum of 5 logos.' }));
         return prev;
       }
       return {
@@ -445,22 +455,13 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     if (JSON.stringify(formData) !== JSON.stringify(originalDataRef.current)) {
       setShowConfirmModal(true);
     } else {
-      // No changes, just close/revert
-      if (onCancel) {
-        onCancel();
-      }
+      confirmCancel();
     }
   };
 
   const confirmCancel = () => {
     setShowConfirmModal(false);
-    
-    // Restore the original data
-    setFormData(JSON.parse(JSON.stringify(originalDataRef.current)));
-    
-    if (onCancel) {
-      onCancel();
-    }
+    onCancel();
   };
 
   const cleanTemplateData = (data: IBannerFormData): IBannerFormData => {
@@ -1284,7 +1285,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Discard changes"
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
       />
     </div>

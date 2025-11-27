@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ValidationResult, createValidationResult, preprocessNullableString, preprocessNullableObject } from './validationHelpers';
+import { ValidationResult, createValidationResult, preprocessNullableString, preprocessNullableObject, validateNonEmptyHtml } from './validationHelpers';
 
 // Emergency Contact schema
 const EmergencyContactSchema = z.object({
@@ -12,7 +12,9 @@ const EmergencyContactSchema = z.object({
 export const SwepBannerFormSchema = z.object({
   LocationSlug: z.string().min(1, 'Location is required'),
   Title: z.string().min(1, 'Title is required'),
-  Body: z.string().min(1, 'Body content is required'),
+  Body: z.string().min(1, 'Body content is required').refine(validateNonEmptyHtml, {
+    message: 'Body content is required'
+  }),
   ShortMessage: z.string().min(1, 'Short message is required'),
   
   // Image field - required for SWEP banners
