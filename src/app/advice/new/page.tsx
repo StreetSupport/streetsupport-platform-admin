@@ -136,10 +136,8 @@ export default function NewAdvicePage() {
   };
 
   const confirmCancel = () => {
-    // Revert to initial data
-    setFormData(JSON.parse(JSON.stringify(initialFormData)));
-    setValidationErrors([]);
     setshowConfirmModal(false);
+    router.push('/advice');
   };
 
   // const hasData = JSON.stringify(formData) !== JSON.stringify(initialFormData);

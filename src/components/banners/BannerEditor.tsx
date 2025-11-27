@@ -305,7 +305,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       
       // Handle background type change: when switching away from IMAGE, reset Background.Value
       if (path === 'Background.Type') {
-        debugger
         const newBackgroundType = value as BackgroundType;
         const previousBackgroundType = (prev as IBannerFormData).Background.Type;
 

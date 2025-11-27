@@ -180,15 +180,9 @@ export default function AdviceEditPage() {
   };
 
   const confirmCancel = () => {
-    // Revert to original data
-    if (originalData) {
-      setFormData(JSON.parse(JSON.stringify(originalData)));
-      setValidationErrors([]);
-    }
     setshowConfirmModal(false);
+    router.push('/advice');
   };
-
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
 
   // Show loading while checking authorization or fetching data
   if (isChecking || loading) {
