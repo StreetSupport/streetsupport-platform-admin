@@ -46,7 +46,6 @@ export interface RichTextEditorProps {
   label?: string;
   required?: boolean;
   helpText?: string;
-  resetKey?: string | number; // Change this key to force editor reset (e.g., when Cancel is clicked)
 }
 
 // Sanitize content
@@ -253,19 +252,17 @@ function ToolbarPlugin({ disabled }: { disabled: boolean }) {
   );
 }
 
-// Plugin to set initial content only on mount
+// Plugin to set initial content
 function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
   const [editor] = useLexicalComposerContext();
   const [isInitialized, setIsInitialized] = React.useState(false);
 
   useEffect(() => {
     // Only set initial content once on mount
-    if (!isInitialized) {
-      setIsInitialized(true);
-      
+    if (!isInitialized && initialHtml) {
       editor.update(() => {
         const parser = new DOMParser();
-        const dom = parser.parseFromString(initialHtml || '<p></p>', 'text/html');
+        const dom = parser.parseFromString(initialHtml, 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
@@ -287,6 +284,8 @@ function InitialContentPlugin({ initialHtml }: { initialHtml: string }) {
           root.append($createParagraphNode());
         }
       });
+
+      setIsInitialized(true);
     }
   }, [editor, isInitialized, initialHtml]);
   
@@ -315,8 +314,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   minHeight = '200px',
   label,
   required = false,
-  helpText,
-  resetKey,
+  helpText
 }) => {
   const initialConfig = {
     namespace: 'RichTextEditor',
@@ -363,7 +361,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </label>
       )}
 
-      <LexicalComposer key={resetKey} initialConfig={initialConfig}>
+      <LexicalComposer initialConfig={initialConfig}>
         <div className={`border rounded-md ${error ? 'border-red-500' : 'border-gray-300'} ${disabled ? 'opacity-60' : ''}`}>
           <ToolbarPlugin disabled={disabled} />
           

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { LinkListType } from '../types/resources/ILinkList';
-import { createValidationResult } from './validationHelpers';
+import { createValidationResult, validateNonEmptyHtml } from './validationHelpers';
 
 // No need for custom regex - using Zod's built-in URL validator
 
@@ -8,7 +8,7 @@ import { createValidationResult } from './validationHelpers';
 export const LinkSchema = z.object({
   Title: z.string().min(1, 'Link name is required'),
   Link: z.union([
-    z.string(),
+    z.string().min(1, 'Link URL is required'),
     z.instanceof(File, { message: 'Invalid file upload' })
   ]),
   Description: z.string().optional(), // For file-link type
@@ -32,7 +32,9 @@ export const ResourceFormSchema = z.object({
   Name: z.string().min(1, 'Resource name is required'),
   Header: z.string().min(1, 'Resource header is required'),
   ShortDescription: z.string().min(1, 'Short description is required'),
-  Body: z.string().min(1, 'Resource body content is required'),
+  Body: z.string().min(1, 'Resource body content is required').refine(validateNonEmptyHtml, {
+    message: 'Resource body content is required'
+  }),
   LinkList: z.array(LinkListSchema).default([])
 });
 

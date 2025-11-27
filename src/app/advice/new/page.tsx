@@ -39,9 +39,8 @@ export default function NewAdvicePage() {
 
   const [saving, setSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showConfirmModal, setshowConfirmModal] = useState(false);
   const [locations, setLocations] = useState<Array<{ Key: string; Name: string }>>([]);
-  const [editorResetKey, setEditorResetKey] = useState(0);
   const { setAdviceTitle } = useBreadcrumb();
 
   // Form state
@@ -49,14 +48,14 @@ export default function NewAdvicePage() {
     LocationKey: '',
     Title: '',
     Body: '',
-    SortPosition: 0,
+    SortPosition: 1,
   });
 
   const initialFormData = {
     LocationKey: '',
     Title: '',
     Body: '',
-    SortPosition: 0,
+    SortPosition: 1,
   };
 
   useEffect(() => {
@@ -130,7 +129,7 @@ export default function NewAdvicePage() {
 
   const handleCancel = () => {
     if (JSON.stringify(formData) !== JSON.stringify(initialFormData)) {
-      setShowCancelModal(true);
+      setshowConfirmModal(true);
     } else {
       router.push('/advice');
     }
@@ -140,8 +139,7 @@ export default function NewAdvicePage() {
     // Revert to initial data
     setFormData(JSON.parse(JSON.stringify(initialFormData)));
     setValidationErrors([]);
-    setEditorResetKey(prev => prev + 1); // Force editor remount
-    setShowCancelModal(false);
+    setshowConfirmModal(false);
   };
 
   // const hasData = JSON.stringify(formData) !== JSON.stringify(initialFormData);
@@ -213,7 +211,6 @@ export default function NewAdvicePage() {
                   placeholder="Enter the advice content..."
                   minHeight="400px"
                   required
-                  resetKey={editorResetKey}
                 />
               </div>
 
@@ -249,13 +246,13 @@ export default function NewAdvicePage() {
 
       {/* Cancel Confirmation Modal */}
       <ConfirmModal
-        isOpen={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
+        isOpen={showConfirmModal}
+        onClose={() => setshowConfirmModal(false)}
         onConfirm={confirmCancel}
         title="Close without saving?"
         message="You may lose unsaved changes."
         variant="warning"
-        confirmLabel="Discard changes"
+        confirmLabel="Close Without Saving"
         cancelLabel="Continue Editing"
       />
     </div>

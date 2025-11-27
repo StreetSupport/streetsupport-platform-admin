@@ -97,6 +97,10 @@ export default function EditLocationLogoPage() {
     }
   };
 
+  const handleCancel = () => {
+    router.push('/location-logos');
+  };
+
   if (isChecking || loading) {
     return <LoadingSpinner />;
   }
@@ -128,7 +132,7 @@ export default function EditLocationLogoPage() {
           <LocationLogoForm
             initialData={logo}
             onSubmit={handleSubmit}
-            onCancel={() => {}}
+            onCancel={handleCancel}
             isEdit={true}
             saving={saving}
           />
