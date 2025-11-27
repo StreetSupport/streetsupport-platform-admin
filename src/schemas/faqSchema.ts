@@ -1,11 +1,13 @@
 import { z } from 'zod';
-import { ValidationResult, createValidationResult } from './validationHelpers';
+import { ValidationResult, createValidationResult, validateNonEmptyHtml } from './validationHelpers';
 
 // Core FAQ schema for validation (matches API side)
 export const FaqSchemaCore = z.object({
   LocationKey: z.string().min(1, 'Location is required'),
   Title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
-  Body: z.string().min(1, 'Body content is required'),
+  Body: z.string().min(1, 'Body content is required').refine(validateNonEmptyHtml, {
+    message: 'Body content is required'
+  }),
   SortPosition: z.number().int('Sort position must be an integer').min(1, 'Sort position must be 1 or greater')
 });
 

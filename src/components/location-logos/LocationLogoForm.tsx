@@ -284,17 +284,11 @@ export default function LocationLogoForm({
       onClose={() => setShowCancelModal(false)}
       onConfirm={() => {
         setShowCancelModal(false);
-        // Reset form to original data before calling onCancel
-        setFormData(originalData);
-        setLogoFile(null);
-        setLogoPreview(initialData?.LogoPath || null);
-        setLogoRemoved(false);
-        setValidationErrors([]);
         onCancel();
       }}
       title="Close without saving?"
       message="You may lose unsaved changes."
-      confirmLabel="Discard changes"
+      confirmLabel="Close Without Saving"
       cancelLabel="Continue Editing"
       variant="warning"
     />

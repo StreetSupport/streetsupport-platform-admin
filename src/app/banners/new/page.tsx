@@ -143,6 +143,10 @@ export default function NewBannerPage() {
     }
   };
 
+  const handleCancel = () => {
+    router.push('/banners');
+  };
+
   // Show loading while checking authorization
   if (isChecking) {
     return <LoadingSpinner />;
@@ -173,6 +177,7 @@ export default function NewBannerPage() {
               onSave={handleSave}
               saving={saving}
               validationErrors={validationErrors}
+              onCancel={handleCancel}
             />
           </div>
         </div>
