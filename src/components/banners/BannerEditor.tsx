@@ -185,7 +185,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       },
       StartDate: undefined,
       EndDate: undefined,
-      ShowDates: false,
       _id: '',
     };
   };

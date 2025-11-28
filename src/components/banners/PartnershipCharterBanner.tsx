@@ -138,7 +138,6 @@ interface PartnershipCharterBannerProps {
   background: { type: string; value: string; overlay?: { colour: string; opacity: number } };
   textColour: string;
   layoutStyle: string;
-  showDates?: boolean;
   startDate?: Date;
   endDate?: Date;
   badgeText?: string;
@@ -158,7 +157,6 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
   background,
   textColour,
   layoutStyle,
-  showDates,
   startDate,
   endDate,
   badgeText,
@@ -351,19 +349,11 @@ export const PartnershipCharterBanner: React.FC<PartnershipCharterBannerProps> =
               </div>
             )}
             {/* Date range */}
-            {showDates && (startDate || endDate) && (
+            {startDate && endDate && (
               <div className="mt-6 text-sm opacity-70 text-left">
-                {startDate && endDate && (
-                  <p>
-                    {new Date(startDate).toLocaleDateString('en-GB')} - {new Date(endDate).toLocaleDateString('en-GB')}
-                  </p>
-                )}
-                {startDate && !endDate && (
-                  <p>From {new Date(startDate).toLocaleDateString('en-GB')}</p>
-                )}
-                {!startDate && endDate && (
-                  <p>Until {new Date(endDate).toLocaleDateString('en-GB')}</p>
-                )}
+                <p>
+                  {new Date(startDate).toLocaleDateString('en-GB')} - {new Date(endDate).toLocaleDateString('en-GB')}
+                </p>
               </div>
             )}
           </div>
