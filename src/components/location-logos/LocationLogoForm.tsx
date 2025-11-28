@@ -153,7 +153,9 @@ export default function LocationLogoForm({
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('Name', formData.Name);
+      if (formData.Name) {
+        formDataToSend.append('Name', formData.Name);
+      }
       formDataToSend.append('DisplayName', formData.DisplayName);
       formDataToSend.append('LocationSlug', formData.LocationSlug);
       formDataToSend.append('LocationName', formData.LocationName);

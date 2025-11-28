@@ -6,7 +6,7 @@ import { ValidationResult, createValidationResult } from './validationHelpers';
  * Used for client-side validation in admin forms
  */
 export const LocationLogoFormSchema = z.object({
-  Name: z.string().min(1, 'Name is required'),
+  Name: z.string().optional(),
   DisplayName: z.string().min(1, 'Display name is required'),
   LocationSlug: z.string().min(1, 'Location slug is required'),
   LocationName: z.string().min(1, 'Location name is required'),

@@ -7,7 +7,6 @@ import { useAuthorization } from '@/hooks/useAuthorization';
 import { ROLES } from '@/constants/roles';
 import { ISwepBanner } from '@/types/swep-banners/ISwepBanner';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
-import { formatSwepActivePeriod, parseSwepBody } from '@/utils/swep';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { errorToast } from '@/utils/toast';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -91,30 +90,40 @@ export default function SwepViewPage() {
     );
   }
 
-  const activePeriodText = formatSwepActivePeriod(swepData);
-  const parsedBody = parseSwepBody(swepData.Body);
-
   return (
     <>
       {/* SWEP Header Section - Full width matching public website */}
-      <div className="bg-red-50 border-b-4 border-brand-g py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-6 h-6 bg-brand-g rounded-full flex items-center justify-center flex-shrink-0">
-              <div className="w-3 h-3 bg-white rounded-full"></div>
+      {!swepData.IsActive && (
+        <div className="bg-brand-d py-12">
+          <div className="max-w-6xl mx-auto px-6 text-center">
+            <h2 className="text-2xl font-bold text-brand-l mb-4">
+              Severe Weather Emergency Accommodation is not currently active in {swepData.LocationName}
+            </h2>
+            <p className="text-brand-k mb-4">
+              This page provides information about emergency accommodation during severe weather. The service is activated when temperatures drop below freezing.
+            </p>
+            <p className="text-brand-k mb-6">If you need help right now, please visit:</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href={`${process.env.NEXT_PUBLIC_WEB_URL}/${swepData.LocationSlug}/advice/`}
+                className="inline-flex items-center justify-center px-6 py-3 bg-brand-g text-white font-semibold rounded-md hover:bg-opacity-90 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                See emergency advice
+              </a>
+              <a
+                href={`${process.env.NEXT_PUBLIC_WEB_URL}/find-help/`}
+                className="inline-flex items-center justify-center px-6 py-3 bg-brand-e text-brand-l font-semibold rounded-md hover:bg-opacity-90 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Find Help
+              </a>
             </div>
-            <h1 className="text-3xl font-bold text-red-800 mb-0">
-              {swepData.Title}
-            </h1>
-          </div>
-          <p className="text-lg text-red-700 mb-4">
-            {activePeriodText}
-          </p>
-          <div className="bg-brand-g text-white px-4 py-2 rounded-md inline-block">
-            <strong>Emergency Support Available</strong>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Content Section - matching public website */}
       <section className="py-12">
@@ -133,7 +142,7 @@ export default function SwepViewPage() {
           {/* Body content with prose styling */}
           <div 
             className="prose prose-lg max-w-none mb-12"
-            dangerouslySetInnerHTML={{ __html: parsedBody }}
+            dangerouslySetInnerHTML={{ __html: swepData.Body }}
           />
           
           {/* Emergency Contacts Section */}
