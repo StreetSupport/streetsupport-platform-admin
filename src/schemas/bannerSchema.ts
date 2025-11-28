@@ -87,7 +87,6 @@ export function transformErrorPath(path: string): string {
     'Logo': 'Logo',
     'BackgroundImage': 'Background Image',
     'IsActive': 'Active Status',
-    'ShowDates': 'Show Dates',
     'StartDate': 'Start Date',
     'EndDate': 'End Date',
     'BadgeText': 'Badge Text',

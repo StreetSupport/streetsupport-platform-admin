@@ -303,21 +303,17 @@ export default function BannerViewPage() {
                     </dd>
                   </div>
                   
-                  {banner.ShowDates && (
+                  {banner.StartDate && banner.EndDate && (
                     <>
-                      {banner.StartDate && (
-                        <div>
-                          <dt className="text-small font-medium text-brand-k">Start Date</dt>
-                          <dd className="text-base text-brand-l">{formatDate(banner.StartDate)}</dd>
-                        </div>
-                      )}
+                      <div>
+                        <dt className="text-small font-medium text-brand-k">Start Date</dt>
+                        <dd className="text-base text-brand-l">{formatDate(banner.StartDate)}</dd>
+                      </div>
                       
-                      {banner.EndDate && (
-                        <div>
-                          <dt className="text-small font-medium text-brand-k">End Date</dt>
-                          <dd className="text-base text-brand-l">{formatDate(banner.EndDate)}</dd>
-                        </div>
-                      )}
+                      <div>
+                        <dt className="text-small font-medium text-brand-k">End Date</dt>
+                        <dd className="text-base text-brand-l">{formatDate(banner.EndDate)}</dd>
+                      </div>
                     </>
                   )}
                   

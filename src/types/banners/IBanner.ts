@@ -46,7 +46,6 @@ export interface IBanner {
   LayoutStyle: LayoutStyle;
 
   // Scheduling
-  ShowDates?: boolean;
   StartDate?: Date;
   EndDate?: Date;
   BadgeText?: string;

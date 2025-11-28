@@ -38,7 +38,6 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     BadgeText: banner.BadgeText || '',
     StartDate: banner.StartDate ? new Date(banner.StartDate) : undefined,
     EndDate: banner.EndDate ? new Date(banner.EndDate) : undefined,
-    ShowDates: banner.ShowDates || false,
     
     // Transform media fields - keep existing IMediaAsset objects as-is
     Logo: banner.Logo || null,

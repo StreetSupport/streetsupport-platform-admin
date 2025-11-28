@@ -100,7 +100,6 @@ function transformToPublicFormat(data: IBannerFormData) {
     },
     textColour: data.TextColour?.toLowerCase() || 'white',
     layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
-    showDates: data.ShowDates || false,
     startDate: data.StartDate,
     endDate: data.EndDate,
     badgeText: data.BadgeText || ''
