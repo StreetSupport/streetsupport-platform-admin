@@ -83,6 +83,7 @@ function transformToPublicFormat(data: IBannerFormData) {
 
 
   const commonProps = {
+    id: data._id || '',
     title: data.Title || '',
     description: data.Description || '',
     subtitle: data.Subtitle || '',
@@ -170,7 +171,6 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
         <ResourceProjectBanner
           {...commonProps}
           resourceType={resourceFile && isResourceFile(resourceFile) ? resourceFile.ResourceType?.toLowerCase() : undefined}
-          downloadCount={resourceFile && isResourceFile(resourceFile) ? resourceFile.DownloadCount : undefined}
           lastUpdated={resourceFile && isResourceFile(resourceFile) ? resourceFile.LastUpdated : undefined}
           fileSize={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileSize : undefined}
           fileType={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileType : undefined}

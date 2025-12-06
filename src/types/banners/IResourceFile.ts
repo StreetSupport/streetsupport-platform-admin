@@ -4,7 +4,6 @@ export interface IResourceFile {
   FileUrl: string;
   FileName: string;
   ResourceType: ResourceType;
-  DownloadCount?: number;
   LastUpdated: Date;
   FileSize: string;
   FileType: string;
