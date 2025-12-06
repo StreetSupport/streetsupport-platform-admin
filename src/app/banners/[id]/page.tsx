@@ -36,6 +36,7 @@ export default function BannerViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showActivateModal, setShowActivateModal] = useState(false);
+  const [downloadCount, setDownloadCount] = useState<number | undefined>(undefined);
   const { setBannerTitle } = useBreadcrumb();
 
   const fetchBanner = useCallback(async () => {
@@ -84,6 +85,41 @@ export default function BannerViewPage() {
       setBannerTitle(null);
     };
   }, [isAuthorized, fetchBanner, setBannerTitle]);
+
+  // Fetch download count from Google Analytics for resource-project banners
+  useEffect(() => {
+    const fetchDownloadCount = async () => {
+      if (!banner || banner.TemplateType !== BannerTemplateType.RESOURCE_PROJECT) {
+        return;
+      }
+      
+      try {
+        const resourceFile = banner.ResourceProject?.ResourceFile;
+        const ctaButtons = banner.CtaButtons;
+        const downloadButton = ctaButtons?.[0];
+        
+        if (downloadButton) {
+          const params = new URLSearchParams({
+            banner_analytics_id: banner._id,
+            fileName: banner.Title,
+            ...(resourceFile?.FileType && { fileType: resourceFile.FileType }),
+            ...(resourceFile?.ResourceType && { resourceType: resourceFile.ResourceType }),
+          });
+
+          const response = await fetch(`/api/analytics/download-count?${params.toString()}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            setDownloadCount(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching download count:', error);
+      }
+    };
+
+    fetchDownloadCount();
+  }, [banner]);
 
   const handleDelete = async () => {
     if (!banner) return;
@@ -424,10 +460,10 @@ export default function BannerViewPage() {
                     </div>
                   )}
                   
-                  {banner.ResourceProject.ResourceFile.DownloadCount !== undefined && (
+                  {downloadCount !== undefined && (
                     <div>
-                      <dt className="text-small font-medium text-brand-k">Download Count</dt>
-                      <dd className="text-base text-brand-l">{banner.ResourceProject.ResourceFile.DownloadCount}</dd>
+                      <dt className="text-small font-medium text-brand-k">Download Count (GA4)</dt>
+                      <dd className="text-base text-brand-l">{downloadCount.toLocaleString('en-GB')}</dd>
                     </div>
                   )}
                 </dl>
