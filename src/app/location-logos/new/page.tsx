@@ -15,7 +15,7 @@ export default function CreateLocationLogoPage() {
   const [saving, setSaving] = useState(false);
 
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.VOLUNTEER_ADMIN, ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN],
+    allowedRoles: [ROLES.VOLUNTEER_ADMIN, ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN],
     requiredPage: '/location-logos/new',
     autoRedirect: true
   });

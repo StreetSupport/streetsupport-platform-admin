@@ -34,10 +34,17 @@ Both Admin (NextAuth) and API (Express middleware) validate these claims for acc
 | Role | Description | Access Level |
 |------|-------------|--------------|
 | `SuperAdmin` | Full platform access | All pages, all API endpoints |
+| `SuperAdminPlus` | SuperAdmin with extended privileges | All SuperAdmin access + organisation deletion |
 | `CityAdmin` | Location-specific administrator | Pages/APIs for assigned locations |
 | `VolunteerAdmin` | Volunteer management | Organisation management, content creation |
 | `OrgAdmin` | Organisation-specific administrator | Own organisation only |
 | `SwepAdmin` | SWEP banner management | SWEP banners for assigned locations |
+
+### Special Notes on SuperAdminPlus
+
+- **Cannot be created through UI**: This role must be manually assigned in MongoDB and Auth0
+- **Organisation Deletion**: Only SuperAdminPlus can delete organisations and their related data
+- **Cannot be removed through UI**: The role removal is disabled in the Edit User modal
 
 ### Role Prefixes (Specific Claims)
 
@@ -50,6 +57,8 @@ Both Admin (NextAuth) and API (Express middleware) validate these claims for acc
 ### Role Hierarchy
 
 ```
+SuperAdminPlus (SuperAdmin + organisation deletion)
+    ↓
 SuperAdmin
     ↓ (Full access)
 VolunteerAdmin
@@ -64,16 +73,27 @@ OrgAdmin + AdminFor:*
 
 ### Page Access by Role
 
-| Page | SuperAdmin | CityAdmin | VolunteerAdmin | OrgAdmin | SwepAdmin |
-|------|------------|-----------|----------------|----------|-----------|
-| `/cities` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `/organisations` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `/users` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `/banners` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `/swep-banners` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `/advice` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `/location-logos` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `/resources` | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Page | SuperAdmin | SuperAdminPlus | CityAdmin | VolunteerAdmin | OrgAdmin | SwepAdmin |
+|------|------------|----------------|-----------|----------------|----------|-----------|
+| `/cities` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `/organisations` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `/users` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `/banners` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `/swep-banners` | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `/advice` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `/location-logos` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `/resources` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+
+### Organisation Actions by Role
+
+| Action | SuperAdmin | SuperAdminPlus | CityAdmin | VolunteerAdmin | OrgAdmin |
+|--------|------------|----------------|-----------|----------------|----------|
+| View | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Edit | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Publish/Disable | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Verify | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Delete** | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -156,14 +176,15 @@ The API validates role assignments based on the creator's permissions:
 ```typescript
 // authMiddleware.ts - requireUserCreationAccess
 // SuperAdmin can assign any role
-if (userAuthClaims.includes(ROLES.SUPER_ADMIN)) {
+if (userAuthClaims.includes(ROLES.SUPER_ADMIN) || userAuthClaims.includes(ROLES.SUPER_ADMIN_PLUS)) {
   return next();
 }
 
 // CityAdmin cannot assign SuperAdmin or VolunteerAdmin
 if (userAuthClaims.includes(ROLES.CITY_ADMIN)) {
   if (newUserClaims.includes(ROLES.SUPER_ADMIN) || 
-      newUserClaims.includes(ROLES.VOLUNTEER_ADMIN)) {
+      newUserClaims.includes(ROLES.VOLUNTEER_ADMIN) ||
+      newUserClaims.includes(ROLES.VOLUNTEER_ADMIN_PLUS)) {
     return sendForbidden(res, 'CityAdmin cannot assign SuperAdmin or VolunteerAdmin roles');
   }
 }
@@ -292,7 +313,7 @@ Using the `useAuthorization` hook:
 // Example: Banners page
 export default function BannersPage() {
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
     requiredPage: '/banners',
     autoRedirect: true
   });
@@ -321,7 +342,7 @@ export function hasApiAccess(
   method: HttpMethod
 ): boolean {
   // SuperAdmin has access to everything
-  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
+  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) || userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS)) {
     return true;
   }
   
@@ -346,9 +367,25 @@ export function hasApiAccess(
 ```typescript
 // src/types/auth.ts
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
-  [ROLES.SUPER_ADMIN]: {
+  [ROLES.SUPER_ADMIN_PLUS]: {
     pages: ['*'],
     apiEndpoints: [{ path: '*', methods: ['*'] }]
+  },
+  [ROLES.SUPER_ADMIN]: {
+    pages: ['*'],
+    apiEndpoints: [
+      { path: '/api/cities', methods: ['*'] },
+      { path: '/api/organisations', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/services', methods: ['*'] },
+      { path: '/api/accommodations', methods: ['*'] },
+      { path: '/api/faqs', methods: ['*'] },
+      { path: '/api/banners', methods: ['*'] },
+      { path: '/api/location-logos', methods: ['*'] },
+      { path: '/api/swep-banners', methods: ['*'] },
+      { path: '/api/resources', methods: ['*'] },
+      { path: '/api/users', methods: ['*'] },
+      { path: '/api/service-categories', methods: ['*'] },
+    ]
   },
   [ROLES.CITY_ADMIN]: {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/location-logos', '/swep-banners', '/users'],
