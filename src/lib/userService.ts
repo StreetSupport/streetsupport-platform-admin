@@ -85,11 +85,14 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
   let hasSwepAdmin = false;
   let hasOrgAdmin = false;
   let hasSuperAdmin = false;
+  let hasSuperAdminPlus = false;
   let hasVolunteerAdmin = false;
 
   for (const claim of authClaims) {
     if (claim === ROLES.SUPER_ADMIN) {
       hasSuperAdmin = true;
+    } else if (claim === ROLES.SUPER_ADMIN_PLUS) {
+      hasSuperAdminPlus = true;
     } else if (claim === ROLES.CITY_ADMIN) {
       hasCityAdmin = true;
     } else if (claim === ROLES.SWEP_ADMIN) {
@@ -112,6 +115,16 @@ export function parseAuthClaimsForDisplay(authClaims: string[]): RoleDisplay[] {
     roleDisplays.push({
       id: ROLES.SUPER_ADMIN,
       label: 'Super Administrator',
+      type: 'base',
+      canRemove: true
+    });
+  }
+
+  // Add SuperAdminPlus
+  if (hasSuperAdminPlus) {
+    roleDisplays.push({
+      id: ROLES.SUPER_ADMIN_PLUS,
+      label: 'Super Administrator Plus',
       type: 'base',
       canRemove: true
     });
@@ -292,7 +305,7 @@ export function canRemoveRole(roleId: string, allRoles: RoleDisplay[]): boolean 
  */
 export function hasPageAccess(userAuthClaims: UserAuthClaims, page: string): boolean {
   // SuperAdmin has access to everything
-  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
+  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) || userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS)) {
     return true;
   }
 
@@ -316,7 +329,7 @@ export function hasApiAccess(
   method: HttpMethod
 ): boolean {
   // SuperAdmin has access to everything if configured with a wildcard
-  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN)) {
+  if (userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) || userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS)) {
     return true;
   }
   

@@ -167,6 +167,7 @@ const UserCard = React.memo(function UserCard({
                   key={index} 
                   className={`service-tag ${
                     role === 'SuperAdmin' ? 'urgent' : 
+                    role === 'SuperAdminPlus' ? 'urgent' :
                     role === 'CityAdmin' ? 'verified' : 
                     'template-type'
                   }`}
