@@ -139,7 +139,7 @@ export function AdminDetailsSection({
         onUpdate(updatedOrg);
       }
       
-      toast.success('Information confirmed as up to date');
+      toast.success('Information verified successfully');
       
       // Close the modal after successful confirmation
       if (onClose) {
@@ -223,7 +223,7 @@ export function AdminDetailsSection({
         </div>
       </div>
 
-      {/* Information Up to Date Button - Only in edit mode */}
+      {/* Information Verified Button - Only in edit mode */}
       <Button
         onClick={handleConfirmInfo}
         disabled={isConfirming}
@@ -233,10 +233,10 @@ export function AdminDetailsSection({
         {isConfirming ? (
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            Confirming...
+            Verifying...
           </div>
         ) : (
-          'Information up to date'
+          'Information verified'
         )}
       </Button>
   </div>
