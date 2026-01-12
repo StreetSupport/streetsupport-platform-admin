@@ -22,10 +22,13 @@ interface FiltersSectionProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
-  
+
   // Filters configuration
   filters?: FilterConfig[];
-  
+
+  // Clear filters callback
+  onClearFilters?: () => void;
+
   // Optional className for additional styling
   className?: string;
 }
@@ -36,6 +39,7 @@ export const FiltersSection: React.FC<FiltersSectionProps> = ({
   onSearchChange,
   onSearchSubmit,
   filters = [],
+  onClearFilters,
   className = '',
 }) => {
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -43,6 +47,8 @@ export const FiltersSection: React.FC<FiltersSectionProps> = ({
       onSearchSubmit();
     }
   };
+
+  const hasActiveFilters = searchValue.trim() !== '' || filters.some(filter => filter.value !== '');
 
   return (
     <div className={`bg-white rounded-lg border border-brand-q p-6 mb-6 mt-1 ${className}`}>
@@ -93,6 +99,17 @@ export const FiltersSection: React.FC<FiltersSectionProps> = ({
               </select>
             ))}
           </div>
+        )}
+
+        {/* Clear Filters Button */}
+        {onClearFilters && hasActiveFilters && (
+          <Button
+            variant="outline"
+            onClick={onClearFilters}
+            className="whitespace-nowrap"
+          >
+            Clear filters
+          </Button>
         )}
       </div>
     </div>
