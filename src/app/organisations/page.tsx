@@ -179,6 +179,15 @@ export default function OrganisationsPage() {
     setCurrentPage(1);
   };
 
+  const handleClearFilters = () => {
+    setNameInput('');
+    setSearchName('');
+    setIsVerifiedFilter('');
+    setIsPublishedFilter('');
+    setLocationFilter('');
+    setCurrentPage(1);
+  };
+
   const handleView = (organisation: IOrganisation) => {
     setSelectedOrganisation(organisation);
     setIsViewOrganisationModalOpen(true);
@@ -404,6 +413,7 @@ export default function OrganisationsPage() {
               searchValue={nameInput}
               onSearchChange={setNameInput}
               onSearchSubmit={handleSearchClick}
+              onClearFilters={handleClearFilters}
               filters={[
                 {
                   id: 'location-filter',
