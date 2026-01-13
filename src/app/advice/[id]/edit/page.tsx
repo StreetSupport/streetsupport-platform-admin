@@ -33,14 +33,14 @@ export default function AdviceEditPage() {
 
   // Check authorization FIRST
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN],
     requiredPage: '/advice',
     autoRedirect: true
   });
 
   const { data: session } = useSession();
   const userRoles = session?.user?.authClaims?.roles || [];
-  const canAccessGeneralAdvice = userRoles.includes(ROLES.SUPER_ADMIN) || userRoles.includes(ROLES.VOLUNTEER_ADMIN);
+  const canAccessGeneralAdvice = userRoles.includes(ROLES.SUPER_ADMIN) || userRoles.includes(ROLES.SUPER_ADMIN_PLUS) || userRoles.includes(ROLES.VOLUNTEER_ADMIN);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

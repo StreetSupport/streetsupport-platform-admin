@@ -124,9 +124,6 @@ const BannerCard = React.memo(function BannerCard({
               <div className="text-sm font-medium text-brand-k truncate" title={banner.ResourceProject.ResourceFile.FileName}>
                 {banner.ResourceProject.ResourceFile.FileName || 'Resource file available'}
               </div>
-              <div className="text-xs text-brand-f mt-1">
-                Downloads: {banner.ResourceProject.ResourceFile.DownloadCount || 0}
-              </div>
             </div>
           );
         }

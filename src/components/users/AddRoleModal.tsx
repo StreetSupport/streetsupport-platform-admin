@@ -31,7 +31,7 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   const initialData = { selectedRole: '', selectedLocations: [] };
   
   const userAuthClaims = (session?.user?.authClaims || { roles: [], specificClaims: [] }) as UserAuthClaims;
-  const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN);
+  const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) || userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS);
   const isCityAdmin = userAuthClaims.roles.includes(ROLES.CITY_ADMIN) || userAuthClaims.specificClaims.includes(ROLE_PREFIXES.CITY_ADMIN_FOR);
 
   // Extract existing locations from currentRoles for pre-selection

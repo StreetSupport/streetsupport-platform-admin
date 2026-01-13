@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { PublicBackground, PublicCTAButton } from '@/types/banners/PreviewTypes';
 import { CTAVariant, LayoutStyle, ResourceType } from '@/types';
@@ -177,6 +177,7 @@ function formatFileSize(sizeString?: string): string {
 }
 
 interface ResourceProjectBannerProps {
+  id: string;
   title: string;
   description?: string;
   subtitle?: string;
@@ -190,7 +191,6 @@ interface ResourceProjectBannerProps {
   endDate?: Date;
   badgeText?: string;
   resourceType?: string;
-  downloadCount?: number;
   lastUpdated?: Date;
   fileSize?: string;
   fileType?: string;
@@ -198,6 +198,7 @@ interface ResourceProjectBannerProps {
 }
 
 export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
+  id,
   title,
   description,
   subtitle,
@@ -211,12 +212,43 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
   endDate,
   badgeText,
   resourceType,
-  downloadCount,
   lastUpdated,
   fileSize,
   fileType,
   className = ''
 }) => {
+  const [downloadCount, setDownloadCount] = useState<number | undefined>(0);
+
+  // Fetch download count from Google Analytics
+  useEffect(() => {
+    const fetchDownloadCount = async () => {
+      try {
+        // Get the first CTA button (index 0) which should be the download button
+        const downloadButton = ctaButtons?.[0];
+        
+        if (downloadButton && id) {
+          const params = new URLSearchParams({
+            banner_analytics_id: id,
+            fileName: title,
+            ...(fileType && { fileType }),
+            ...(resourceType && { resourceType }),
+          });
+
+          const response = await fetch(`/api/analytics/download-count?${params.toString()}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            setDownloadCount(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching download count:', error);
+      }
+    };
+
+    fetchDownloadCount();
+  }, [title, fileType, resourceType, ctaButtons, id]);
+
   const backgroundClasses = generateBackgroundClasses(background);
   const backgroundStyles = generateBackgroundStyles(background);
   const textColourClasses = generateTextColourClasses(textColour);
@@ -305,9 +337,8 @@ export const ResourceProjectBanner: React.FC<ResourceProjectBannerProps> = ({
             )}
 
             {/* Resource Stats */}
-            {/* Update to lg:grid-cols-3 when we configure downloadCount */}
-            <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-              {downloadCount !== undefined && downloadCount !== 0 && (
+            <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {downloadCount !== undefined && (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
