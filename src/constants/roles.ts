@@ -58,6 +58,18 @@ export const BASE_ROLES_ARRAY: readonly BaseRole[] = [
 ] as const;
 
 /**
+ * Mutually exclusive base roles - a user can only have ONE of these role types
+ * Multiple locations/organisations within the same role type are allowed
+ */
+export const EXCLUSIVE_BASE_ROLES: readonly BaseRole[] = [
+  ROLES.SUPER_ADMIN,
+  ROLES.VOLUNTEER_ADMIN,
+  ROLES.CITY_ADMIN,
+  ROLES.SWEP_ADMIN,
+  ROLES.ORG_ADMIN,
+] as const;
+
+/**
  * Role labels for UI display
  */
 export const ROLE_LABELS: Record<BaseRole, string> = {

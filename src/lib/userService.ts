@@ -1,12 +1,13 @@
 import { UserAuthClaims, UserRole, HttpMethod, ApiEndpointPermission } from '@/types/auth';
 import { authenticatedFetch } from './api';
 import { JWT } from 'next-auth/jwt';
-import { 
-  ROLES, 
-  ROLE_PREFIXES, 
-  isBaseRole, 
-  isLocationSpecificRole, 
-  isOrgSpecificRole 
+import {
+  ROLES,
+  ROLE_PREFIXES,
+  EXCLUSIVE_BASE_ROLES,
+  isBaseRole,
+  isLocationSpecificRole,
+  isOrgSpecificRole
 } from '@/constants/roles';
 
 export interface ApiUser {
@@ -298,6 +299,29 @@ export function canRemoveRole(roleId: string, allRoles: RoleDisplay[]): boolean 
   }
 
   return true;
+}
+
+/**
+ * Get the unique base role types from role displays
+ * Used to detect role conflicts (users can only have one exclusive base role type)
+ * @param roleDisplays - Array of role displays from the UI
+ * @returns Array of unique base role types found
+ */
+export function getBaseRoleTypes(roleDisplays: RoleDisplay[]): string[] {
+  const baseTypes = new Set<string>();
+
+  for (const role of roleDisplays) {
+    // For base roles like SuperAdmin, VolunteerAdmin (which don't have a baseRole property)
+    if (role.type === 'base' && EXCLUSIVE_BASE_ROLES.includes(role.id as typeof EXCLUSIVE_BASE_ROLES[number])) {
+      baseTypes.add(role.id);
+    }
+    // For location/org roles, use the baseRole property
+    else if (role.baseRole && EXCLUSIVE_BASE_ROLES.includes(role.baseRole as typeof EXCLUSIVE_BASE_ROLES[number])) {
+      baseTypes.add(role.baseRole);
+    }
+  }
+
+  return Array.from(baseTypes);
 }
 
 /**
