@@ -34,6 +34,14 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
   const isSuperAdmin = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) || userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS);
   const isCityAdmin = userAuthClaims.roles.includes(ROLES.CITY_ADMIN) || userAuthClaims.specificClaims.includes(ROLE_PREFIXES.CITY_ADMIN_FOR);
 
+  // Extract existing locations from currentRoles for pre-selection
+  const getExistingLocations = (roleType: 'location-admin' | 'swep-admin'): string[] => {
+    const prefix = roleType === 'location-admin' ? ROLE_PREFIXES.CITY_ADMIN_FOR : ROLE_PREFIXES.SWEP_ADMIN_FOR;
+    return currentRoles
+      .filter(role => role.startsWith(prefix))
+      .map(role => role.replace(prefix, ''));
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchLocations();
@@ -221,7 +229,8 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                     checked={selectedRole === 'location-admin'}
                     onChange={(e) => {
                       setSelectedRole(e.target.value as RoleType);
-                      setSelectedLocations([]);
+                      // Pre-select existing locations for this role type
+                      setSelectedLocations(getExistingLocations('location-admin'));
                     }}
                   />
                   <span className="text-base text-brand-k ml-2">Location Administrator</span>
@@ -276,7 +285,8 @@ export default function AddRoleModal({ isOpen, onClose, onAdd, currentRoles }: A
                     checked={selectedRole === 'swep-admin'}
                     onChange={(e) => {
                       setSelectedRole(e.target.value as RoleType);
-                      setSelectedLocations([]);
+                      // Pre-select existing locations for this role type
+                      setSelectedLocations(getExistingLocations('swep-admin'));
                     }}
                   />
                   <span className="text-base text-brand-k ml-2">SWEP Administrator</span>
