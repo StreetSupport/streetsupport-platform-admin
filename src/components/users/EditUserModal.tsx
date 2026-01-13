@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Plus } from 'lucide-react';
+import { X, Trash2, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FormField } from '@/components/ui/FormField';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import AddRoleModal from './AddRoleModal';
 import { IUser } from '@/types/IUser';
-import { parseAuthClaimsForDisplay, canRemoveRole, RoleDisplay, hasGenericSwepAdmin } from '@/lib/userService';
+import { parseAuthClaimsForDisplay, canRemoveRole, RoleDisplay, hasGenericSwepAdmin, getBaseRoleTypes } from '@/lib/userService';
 import toastUtils, { errorToast, loadingToast, successToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { HTTP_METHODS } from '@/constants/httpMethods';
@@ -37,6 +37,7 @@ export default function EditUserModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [roleConflictWarning, setRoleConflictWarning] = useState<string | null>(null);
 
   // Get current user's accessible locations
   const userAuthClaims = session?.user?.authClaims;
@@ -61,8 +62,19 @@ export default function EditUserModal({
     } else if (!isOpen) {
       // Reset warning modal state when edit modal closes
       setShowWarningModal(false);
+      setRoleConflictWarning(null);
     }
   }, [user, isOpen]);
+
+  // Check for role type conflicts whenever roleDisplays changes
+  useEffect(() => {
+    const baseTypes = getBaseRoleTypes(roleDisplays);
+    if (baseTypes.length > 1) {
+      setRoleConflictWarning('Users can only have one role type. Please remove one before saving.');
+    } else {
+      setRoleConflictWarning(null);
+    }
+  }, [roleDisplays]);
 
   // Check if roles have been changed
   const hasChanges = () => {
@@ -295,6 +307,16 @@ export default function EditUserModal({
                   </Button>
                 </div>
 
+                {/* Role Conflict Warning */}
+                {roleConflictWarning && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800">
+                      {roleConflictWarning}
+                    </p>
+                  </div>
+                )}
+
                 {/* Display Added Roles */}
                 {roleDisplays.length > 0 ? (
                   <>
@@ -379,7 +401,7 @@ export default function EditUserModal({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={isSubmitting || roleDisplays.length === 0}
+                disabled={isSubmitting || roleDisplays.length === 0 || roleConflictWarning !== null}
               >
                 {isSubmitting ? 'Updating...' : 'Update User'}
               </Button>
