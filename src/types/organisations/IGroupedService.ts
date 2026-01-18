@@ -1,6 +1,7 @@
 import { ILocation } from "./ILocation";
 import { IOpeningTime } from "./IOpeningTime";
 import { IServiceSubCategory } from "./IServiceSubCategory";
+import { IClientGroup } from "./IClientGroup";
 
 export interface IGroupedService {
   _id: string;
@@ -23,4 +24,6 @@ export interface IGroupedService {
   IsTelephoneService?: boolean;
   IsAppointmentOnly?: boolean;
   Telephone?: string;
+  ClientGroupKeys?: string[];
+  ClientGroups?: IClientGroup[];
 }
