@@ -21,9 +21,25 @@ export interface RolePermissions {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
-  [ROLES.SUPER_ADMIN]: {
+  [ROLES.SUPER_ADMIN_PLUS]: {
     pages: ['*'],
     apiEndpoints: [{ path: '*', methods: ['*'] }]
+  },
+  [ROLES.SUPER_ADMIN]: {
+    pages: ['*'],
+    apiEndpoints: [
+      { path: '/api/cities', methods: ['*'] },
+      { path: '/api/organisations', methods: [HTTP_METHODS.GET, HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH] },
+      { path: '/api/services', methods: ['*'] },
+      { path: '/api/accommodations', methods: ['*'] },
+      { path: '/api/faqs', methods: ['*'] },
+      { path: '/api/banners', methods: ['*'] },
+      { path: '/api/location-logos', methods: ['*'] },
+      { path: '/api/swep-banners', methods: ['*'] },
+      { path: '/api/resources', methods: ['*'] },
+      { path: '/api/users', methods: ['*'] },
+      { path: '/api/service-categories', methods: ['*'] },
+    ]
   },
   [ROLES.CITY_ADMIN]: {
     pages: ['/cities', '/organisations', '/advice', '/banners', '/location-logos', '/swep-banners', '/users'],

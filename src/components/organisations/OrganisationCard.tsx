@@ -3,7 +3,7 @@
 import React from 'react';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { Button } from '@/components/ui/Button';
-import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText } from 'lucide-react';
+import { Edit, Calendar, MapPin, Eye, CheckCircle, XCircle, UserPlus, FileText, Trash2 } from 'lucide-react';
 import { decodeText } from '@/utils/htmlDecode';
 
 interface OrganisationCardProps {
@@ -16,9 +16,11 @@ interface OrganisationCardProps {
   onAddUser?: (organisation: IOrganisation) => void;
   onViewNotes?: (organisation: IOrganisation) => void;
   onDisableClick?: (organisation: IOrganisation) => void;
+  onDelete?: (organisation: IOrganisation) => void;
   isTogglingPublish?: boolean;
   isTogglingVerify?: boolean;
   isOrgAdmin?: boolean;
+  isSuperAdminPlus?: boolean;
 }
 
 const OrganisationCard = React.memo(function OrganisationCard({ 
@@ -31,9 +33,11 @@ const OrganisationCard = React.memo(function OrganisationCard({
   onAddUser,
   onViewNotes,
   onDisableClick,
+  onDelete,
   isTogglingPublish = false,
   isTogglingVerify = false,
-  isOrgAdmin = false
+  isOrgAdmin = false,
+  isSuperAdminPlus = false
 }: OrganisationCardProps) {
 
   const formatDate = (date: Date | string): string => {
@@ -117,6 +121,14 @@ const OrganisationCard = React.memo(function OrganisationCard({
     }
   };
 
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(organisation);
+    }
+  };
+
   // Format locations - show first 3 and then "..."
   const displayLocations = organisation.AssociatedLocationIds.slice(0, 3);
   const hasMoreLocations = organisation.AssociatedLocationIds.length > 3;
@@ -147,6 +159,20 @@ const OrganisationCard = React.memo(function OrganisationCard({
           >
             <Edit className="w-4 h-4" />
           </Button>
+
+          {/* Remove button - only visible for SuperAdminPlus */}
+          {isSuperAdminPlus && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRemove}
+              title="Remove organisation"
+              className="text-brand-g border-brand-g hover:bg-brand-g hover:text-white"
+              disabled={isLoading}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
         {/* Action Buttons - Second Row */}

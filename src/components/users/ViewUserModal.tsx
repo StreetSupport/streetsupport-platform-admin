@@ -108,6 +108,7 @@ export default function ViewUserModal({ isOpen, onClose, user }: ViewUserModalPr
                         key={index} 
                         className={`service-tag ${
                           role === 'SuperAdmin' ? 'urgent' : 
+                          role === 'SuperAdminPlus' ? 'urgent' :
                           role === 'CityAdmin' ? 'verified' : 
                           'template-type'
                         }`}
