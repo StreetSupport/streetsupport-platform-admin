@@ -20,7 +20,7 @@ export default function ProtectedLayout({
     
     if (!session) {
       errorToast.auth();
-      router.push('/api/auth/signin');
+      router.push('/api/auth/signin/auth0');
     } else {
       setIsLoading(false);
     }
