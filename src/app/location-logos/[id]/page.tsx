@@ -29,7 +29,7 @@ export default function ViewLocationLogoPage() {
   const { setLogoTitle } = useBreadcrumb();
 
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.VOLUNTEER_ADMIN, ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN],
+    allowedRoles: [ROLES.VOLUNTEER_ADMIN, ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN],
     requiredPage: `/location-logos/${id}`,
     autoRedirect: true
   });
