@@ -172,7 +172,7 @@ export default function Nav() {
                 </button>
               </>
             ) : (
-              <Link href="/api/auth/signin" className="btn-base btn-primary btn-sm">Sign In</Link>
+              <Link href="/api/auth/signin/auth0" className="btn-base btn-primary btn-sm">Sign In</Link>
             )}
           </div>
         </div>
