@@ -36,7 +36,6 @@ export function transformErrorPath(path: string): string {
       'FileName': 'Resource File Name',
       'FileType': 'Resource File Type',
       'FileSize': 'Resource File Size',
-      'DownloadCount': 'Download Count',
       'LastUpdated': 'Last Updated'
     };
     return fieldMap[fieldName] || path;

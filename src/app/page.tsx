@@ -21,7 +21,7 @@ export default async function MainPage() {
   
   // If no session, redirect to sign in (this shouldn't happen due to middleware)
   if (!session?.user?.authClaims) {
-    redirect('/api/auth/signin');
+    redirect('/api/auth/signin/auth0');
   }
   
   // Get all auth claims (roles + specific claims)

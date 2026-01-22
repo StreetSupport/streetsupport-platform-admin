@@ -14,6 +14,7 @@ import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IOrganisation } from '@/types/organisations/IOrganisation';
 import { IGroupedService } from '@/types/organisations/IGroupedService';
 import { IServiceCategory } from '@/types/organisations/IServiceCategory';
+import { IClientGroup } from '@/types/organisations/IClientGroup';
 import { IOpeningTimeFormData } from '@/types/organisations/IOrganisation';
 import { IGroupedServiceFormData, validateGroupedService, transformErrorPath } from '@/schemas/groupedServiceSchema';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -53,10 +54,12 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     IsOpen247: false,
     SubCategories: [],
     IsTelephoneService: false,
-    IsAppointmentOnly: false
+    IsAppointmentOnly: false,
+    ClientGroupKeys: []
   });
 
   const [categories, setCategories] = useState<IServiceCategory[]>([]);
+  const [clientGroups, setClientGroups] = useState<IClientGroup[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<IServiceCategory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -111,7 +114,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         })) || [],
         IsTelephoneService: service.IsTelephoneService,
         IsAppointmentOnly: service.IsAppointmentOnly,
-        Telephone: service.Telephone || ''
+        Telephone: service.Telephone || '',
+        ClientGroupKeys: service.ClientGroupKeys || []
       };
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
@@ -133,7 +137,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         SubCategories: [],
         IsTelephoneService: false,
         IsAppointmentOnly: false,
-        Telephone: ''
+        Telephone: '',
+        ClientGroupKeys: []
       };
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
@@ -163,6 +168,25 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       fetchCategories();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Fetch client groups
+  useEffect(() => {
+    const fetchClientGroups = async () => {
+      try {
+        const response = await authenticatedFetch('/api/client-groups');
+        if (response.ok) {
+          const data = await response.json();
+          setClientGroups(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching client groups:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchClientGroups();
+    }
   }, [isOpen]);
 
   // Update selected category when category ID changes
@@ -438,12 +462,13 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         SubCategories: [],
         IsTelephoneService: false,
         IsAppointmentOnly: false,
-        Telephone: ''
+        Telephone: '',
+        ClientGroupKeys: []
       };
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
       setValidationErrors([]);
-      
+
       onServiceSaved(); // Trigger parent refresh
       onClose(); // Close the modal
     } catch (error) {
@@ -575,6 +600,30 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                     </FormField>
                   </div>
                 </div>
+
+                {/* Client Groups */}
+                {clientGroups.length > 0 && (
+                  <div>
+                    <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Client Groups</h4>
+                    <div className="space-y-4">
+                      <FormField label="Suitable For">
+                        <MultiSelect
+                          options={clientGroups.map(cg => ({
+                            value: cg.Key,
+                            label: cg.Name
+                          }))}
+                          value={formData.ClientGroupKeys || []}
+                          onChange={(values) => updateFormData('ClientGroupKeys', values)}
+                          placeholder={viewMode ? '' : 'Select client groups...'}
+                          disabled={viewMode}
+                        />
+                      </FormField>
+                      <p className="text-sm text-brand-f">
+                        Select the client groups this service is suitable for. Leave empty if the service is available to everyone.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Location */}
                 <div>
