@@ -17,16 +17,25 @@ const getHandler: AuthenticatedApiHandler = async (req: NextRequest, context, au
     // Add location filtering for CityAdmin users
     // Check if this request is from Users page (restrictVolunteerAdmin query param)
     const restrictVolunteerAdmin = req.nextUrl.searchParams.get('restrictVolunteerAdmin') === 'true';
+    const isPublic = req.nextUrl.searchParams.get('isPublic');
     const userAuthClaims = auth.session.user.authClaims as UserAuthClaims;
     const locationSlugs = getUserLocationSlugs(userAuthClaims, restrictVolunteerAdmin);
-        
+
     // Build query string
-    let url = `${API_BASE_URL}/api/cities`;
-    
+    const params = new URLSearchParams();
+
     // If locationSlugs is an array (CityAdmin with specific locations), add them to query
     if (locationSlugs && locationSlugs.length > 0) {
-      const params = new URLSearchParams();
       params.set('locations', locationSlugs.join(','));
+    }
+
+    // Pass through isPublic filter
+    if (isPublic === 'true' || isPublic === 'false') {
+      params.set('isPublic', isPublic);
+    }
+
+    let url = `${API_BASE_URL}/api/cities`;
+    if (params.toString()) {
       url += `?${params.toString()}`;
     }
 

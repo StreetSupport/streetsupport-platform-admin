@@ -15,7 +15,7 @@ import { redirectToNotFound } from '@/utils/navigation';
 export default function SwepViewPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.SWEP_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.SWEP_ADMIN],
     requiredPage: '/swep-banners',
     autoRedirect: true
   });

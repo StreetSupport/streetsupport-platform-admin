@@ -14,6 +14,7 @@ export * from './organisations/IAdministrator';
 export * from './organisations/INote';
 export * from './organisations/ILocation';
 export * from './organisations/IServiceSubCategory';
+export * from './organisations/IClientGroup';
 
 // Banner related types
 export * from './banners/IBanner';

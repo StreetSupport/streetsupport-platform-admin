@@ -26,7 +26,7 @@ import { ResultsSummary } from '@/components/ui/ResultsSummary';
 export default function UsersPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN],
     requiredPage: '/users',
     autoRedirect: true
   });
@@ -54,8 +54,8 @@ export default function UsersPage() {
   
   const limit = 9;
 
-  // Available roles for filtering
-  const availableRoles = getRoleOptions();
+  // Available roles for filtering (exclude SuperAdminPlus on Users page)
+  const availableRoles = getRoleOptions().filter(role => role.value !== ROLES.SUPER_ADMIN_PLUS);
 
   // Only run effects if authorized
   useEffect(() => {

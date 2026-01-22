@@ -31,7 +31,7 @@ import { ResultsSummary } from '@/components/ui/ResultsSummary';
 export default function OrganisationsPage() {
   // Check authorization FIRST before any other logic
   const { isChecking, isAuthorized } = useAuthorization({
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.ORG_ADMIN],
+    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPER_ADMIN_PLUS, ROLES.CITY_ADMIN, ROLES.VOLUNTEER_ADMIN, ROLES.ORG_ADMIN],
     requiredPage: '/organisations',
     autoRedirect: true
   });
@@ -60,6 +60,8 @@ export default function OrganisationsPage() {
   const [organisationToDisable, setOrganisationToDisable] = useState<IOrganisation | null>(null);
   const [togglingPublishId, setTogglingPublishId] = useState<string | null>(null);
   const [togglingVerifyId, setTogglingVerifyId] = useState<string | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [organisationToDelete, setOrganisationToDelete] = useState<IOrganisation | null>(null);
   
   const limit = 9;
 
@@ -69,8 +71,12 @@ export default function OrganisationsPage() {
   // Check if user is OrgAdmin (without other admin roles)
   const isOrgAdmin = userAuthClaims.roles.includes(ROLES.ORG_ADMIN) && 
                      !userAuthClaims.roles.includes(ROLES.SUPER_ADMIN) &&
+                     !userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS) &&
                      !userAuthClaims.roles.includes(ROLES.VOLUNTEER_ADMIN) &&
                      !userAuthClaims.roles.includes(ROLES.CITY_ADMIN);
+
+  // Check if user is SuperAdminPlus
+  const isSuperAdminPlus = userAuthClaims.roles.includes(ROLES.SUPER_ADMIN_PLUS);
 
   // Get organisation keys from AdminFor: claims for OrgAdmin users
   const orgAdminKeys = isOrgAdmin 
@@ -176,6 +182,15 @@ export default function OrganisationsPage() {
 
   const handleLocationFilter = (value: string) => {
     setLocationFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setNameInput('');
+    setSearchName('');
+    setIsVerifiedFilter('');
+    setIsPublishedFilter('');
+    setLocationFilter('');
     setCurrentPage(1);
   };
 
@@ -287,6 +302,41 @@ export default function OrganisationsPage() {
   const handleViewNotes = (organisation: IOrganisation) => {
     setSelectedOrganisation(organisation);
     setIsNotesModalOpen(true);
+  };
+
+  const handleDelete = (organisation: IOrganisation) => {
+    setOrganisationToDelete(organisation);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!organisationToDelete) return;
+
+    setShowDeleteConfirmModal(false);
+    const toastId = loadingToast.delete('organisation');
+    
+    try {
+      const response = await authenticatedFetch(`/api/organisations/${organisationToDelete._id}`, {
+        method: HTTP_METHODS.DELETE
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete organisation');
+      }
+
+      toastUtils.dismiss(toastId);
+      toastUtils.custom('Organisation deleted successfully', { type: 'success' });
+      
+      // Refresh the list
+      fetchOrganisations();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete organisation';
+      toastUtils.dismiss(toastId);
+      errorToast.delete('organisation', errorMessage);
+    } finally {
+      setOrganisationToDelete(null);
+    }
   };
 
   const handleClearNotesClick = () => {
@@ -404,6 +454,7 @@ export default function OrganisationsPage() {
               searchValue={nameInput}
               onSearchChange={setNameInput}
               onSearchSubmit={handleSearchClick}
+              onClearFilters={handleClearFilters}
               filters={[
                 {
                   id: 'location-filter',
@@ -498,9 +549,11 @@ export default function OrganisationsPage() {
                   onAddUser={handleAddUser}
                   onViewNotes={handleViewNotes}
                   onDisableClick={handleDisableClick}
+                  onDelete={handleDelete}
                   isTogglingPublish={togglingPublishId === organisation._id}
                   isTogglingVerify={togglingVerifyId === organisation._id}
                   isOrgAdmin={isOrgAdmin}
+                  isSuperAdminPlus={isSuperAdminPlus}
                 />
               ))}
             </div>
@@ -609,6 +662,21 @@ export default function OrganisationsPage() {
           message={`Are you sure you want to clear all notes for "${selectedOrganisation?.Name}"? This action cannot be undone.`}
           variant="warning"
           confirmLabel="Clear Notes"
+          cancelLabel="Cancel"
+        />
+
+        {/* Delete Organisation Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeleteConfirmModal}
+          onClose={() => {
+            setShowDeleteConfirmModal(false);
+            setOrganisationToDelete(null);
+          }}
+          onConfirm={confirmDelete}
+          title="Delete Organisation"
+          message={`Are you sure you want to delete organisation "${organisationToDelete?.Name}"? This will also delete all related services and accommodations. This action cannot be undone.`}
+          variant="danger"
+          confirmLabel="Delete"
           cancelLabel="Cancel"
         />
     </div>

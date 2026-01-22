@@ -19,7 +19,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 export default function AdviceManagement() {
   const { data: session } = useSession();
   const userRoles = session?.user?.authClaims?.roles || [];
-  const canAccessGeneralAdvice = userRoles.includes(ROLES.SUPER_ADMIN) || userRoles.includes(ROLES.VOLUNTEER_ADMIN);
+  const canAccessGeneralAdvice = userRoles.includes(ROLES.SUPER_ADMIN) || userRoles.includes(ROLES.SUPER_ADMIN_PLUS) || userRoles.includes(ROLES.VOLUNTEER_ADMIN);
 
   const [adviceItems, setAdviceItems] = useState<IFaq[]>([]);
   const [loading, setLoading] = useState(true);

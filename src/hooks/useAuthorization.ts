@@ -79,7 +79,7 @@ export function useAuthorization(options: UseAuthorizationOptions = {}): Authori
       setIsChecking(false);
       setIsAuthorized(false);
       if (autoRedirect) {
-        router.push('/api/auth/signin');
+        router.push('/api/auth/signin/auth0');
       }
       return;
     }

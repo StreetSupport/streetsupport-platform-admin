@@ -14,6 +14,7 @@
  */
 export const ROLES = {
   SUPER_ADMIN: 'SuperAdmin',
+  SUPER_ADMIN_PLUS: 'SuperAdminPlus',
   CITY_ADMIN: 'CityAdmin',
   VOLUNTEER_ADMIN: 'VolunteerAdmin',
   ORG_ADMIN: 'OrgAdmin',
@@ -49,6 +50,7 @@ export type Role = BaseRole | `${typeof ROLE_PREFIXES.CITY_ADMIN_FOR}${string}` 
  */
 export const BASE_ROLES_ARRAY: readonly BaseRole[] = [
   ROLES.SUPER_ADMIN,
+  ROLES.SUPER_ADMIN_PLUS,
   ROLES.CITY_ADMIN,
   ROLES.VOLUNTEER_ADMIN,
   ROLES.ORG_ADMIN,
@@ -56,22 +58,35 @@ export const BASE_ROLES_ARRAY: readonly BaseRole[] = [
 ] as const;
 
 /**
+ * Mutually exclusive base roles - a user can only have ONE of these role types
+ * Multiple locations/organisations within the same role type are allowed
+ */
+export const EXCLUSIVE_BASE_ROLES: readonly BaseRole[] = [
+  ROLES.SUPER_ADMIN,
+  ROLES.VOLUNTEER_ADMIN,
+  ROLES.CITY_ADMIN,
+  ROLES.SWEP_ADMIN,
+  ROLES.ORG_ADMIN,
+] as const;
+
+/**
  * Role labels for UI display
  */
 export const ROLE_LABELS: Record<BaseRole, string> = {
   [ROLES.SUPER_ADMIN]: 'Super Admin',
+  [ROLES.SUPER_ADMIN_PLUS]: 'Super Admin Plus',
   [ROLES.CITY_ADMIN]: 'Location Admin',
   [ROLES.VOLUNTEER_ADMIN]: 'Volunteer Admin',
   [ROLES.ORG_ADMIN]: 'Organisation Admin',
   [ROLES.SWEP_ADMIN]: 'SWEP Admin',
 } as const;
 
-
 /**
  * Role descriptions for UI tooltips
  */
 export const ROLE_DESCRIPTIONS: Record<BaseRole, string> = {
   [ROLES.SUPER_ADMIN]: 'Full access to all features and settings',
+  [ROLES.SUPER_ADMIN_PLUS]: 'Super Admin with additional privileges (e.g., organisation removal)',
   [ROLES.CITY_ADMIN]: 'Manage location-specific content and services',
   [ROLES.VOLUNTEER_ADMIN]: 'Manage volunteers and volunteer-related content',
   [ROLES.ORG_ADMIN]: 'Manage specific organisation content',
@@ -159,6 +174,8 @@ export function formatRoleDisplay(role: string): string {
   switch (role) {
     case ROLES.SUPER_ADMIN:
       return 'Super Administrator';
+    case ROLES.SUPER_ADMIN_PLUS:
+      return 'Super Administrator Plus';
     case ROLES.VOLUNTEER_ADMIN:
       return 'Volunteer Administrator';
     case ROLES.CITY_ADMIN:
@@ -200,4 +217,4 @@ export function formatClaimDisplay(claim: string): string {
  * Regular expression pattern for validating role formats
  * Matches: SuperAdmin, CityAdmin, CityAdminFor:*, AdminFor:*, SwepAdmin, SwepAdminFor:*, OrgAdmin, VolunteerAdmin
  */
-export const ROLE_VALIDATION_PATTERN = /^(SuperAdmin|CityAdmin|CityAdminFor:.+|VolunteerAdmin|SwepAdmin|SwepAdminFor:.+|OrgAdmin|AdminFor:.+)$/;
+export const ROLE_VALIDATION_PATTERN = /^(SuperAdmin|SuperAdminPlus|CityAdmin|CityAdminFor:.+|VolunteerAdmin|SwepAdmin|SwepAdminFor:.+|OrgAdmin|AdminFor:.+)$/;
