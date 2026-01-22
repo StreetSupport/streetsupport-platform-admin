@@ -662,7 +662,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                     {/* Fixed Location Fields - shown only if IsOutreachLocation is false */}
                     {!isOutreachLocation && (
                       <>
-                        {!viewMode && (
+                        {!viewMode && organisation.Addresses && organisation.Addresses.length > 0 && (
                           <FormField label="Use Existing Address">
                             <Select
                               id="use-existing-address"
