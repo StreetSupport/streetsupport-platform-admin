@@ -65,7 +65,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
   const [originalData, setOriginalData] = useState<IGroupedServiceFormData | null>(null);
-  const [selectedAddressIndex, setSelectedAddressIndex] = useState<string>('');
 
   // Initialize form data when service prop changes
   useEffect(() => {
@@ -120,7 +119,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       };
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
-      setSelectedAddressIndex('');
     } else {
       // Reset form for new service
       const initialData: IGroupedServiceFormData = {
@@ -144,7 +142,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
       };
       setFormData(initialData);
       setOriginalData(JSON.parse(JSON.stringify(initialData)));
-      setSelectedAddressIndex('');
     }
   }, [service, organisation._id, organisation.IsPublished, organisation.IsVerified, organisation.Key, organisation.Name]);
 
@@ -669,11 +666,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                           <FormField label="Use Existing Address">
                             <Select
                               id="use-existing-address"
-                              value={selectedAddressIndex}
-                              onChange={(e) => {
-                                setSelectedAddressIndex(e.target.value);
-                                handleAddressSelect(e.target.value);
-                              }}
+                              onChange={(e) => handleAddressSelect(e.target.value)}
                               options={organisation.Addresses.map((address, index) => ({
                                 value: index.toString(),
                                 label: `${address.Street} - ${address.Postcode}`
