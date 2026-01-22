@@ -106,7 +106,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   const emptyResourceFile = {
         FileUrl: '',
         ResourceType: ResourceType.GUIDE,
-        DownloadCount: 0,
         LastUpdated: new Date(),
         FileSize: '',
         FileType: '',
@@ -662,7 +661,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                               LastUpdated: new Date(),
                               FileSize: formatFileSize(file.size),
                               FileType: getFileTypeFromMimeType(file.type) || 'unknown',
-                              DownloadCount: 0,
                               File: file
                             };
                             
@@ -767,7 +765,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                       ResourceType: existingFile?.ResourceType || ResourceType.GUIDE,
                       FileSize: existingFile?.FileSize || '',
                       FileType: existingFile?.FileType || '',
-                      DownloadCount: existingFile?.DownloadCount || 0,
                       LastUpdated: existingFile?.LastUpdated || new Date()
                     };
                     
@@ -888,17 +885,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                 )}
               </FormField>
             </div>
-
-            {/* TODO: Uncomment it when we get value of downloadCount from GA4 */}
-            {/* <FormField label="Download Count">
-              <Input
-                type="number"
-                value={(formData.ResourceProject?.ResourceFile && !(formData.ResourceProject.ResourceFile instanceof File)) ? formData.ResourceProject.ResourceFile.DownloadCount || 0 : 0}
-                disabled={true}
-                min={0}
-                className="bg-gray-50 cursor-not-allowed"
-              />
-            </FormField> */}
 
             <FormField label="Last Updated" required>
               <Input

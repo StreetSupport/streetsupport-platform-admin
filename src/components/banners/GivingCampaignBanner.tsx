@@ -127,6 +127,7 @@ function calculateProgress(current: number, target: number): number {
 }
 
 interface GivingCampaignBannerProps {
+  id?: string;
   title: string;
   description?: string;
   subtitle?: string;

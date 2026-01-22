@@ -129,6 +129,7 @@ function getCharterTypeIcon(type?: string): string {
 }
 
 interface PartnershipCharterBannerProps {
+  id?: string;
   title: string;
   description?: string;
   subtitle?: string;
