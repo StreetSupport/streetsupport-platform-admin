@@ -43,8 +43,8 @@ export default function SwepManagement() {
 
   const fetchLocations = async () => {
     try {
-      const response = await authenticatedFetch('/api/cities');
-      
+      const response = await authenticatedFetch('/api/cities?isPublic=true');
+
       if (response.ok) {
         const data = await response.json();
         setLocations(data.data || []);
