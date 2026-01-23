@@ -17,7 +17,7 @@ export default function ProtectedLayout({
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       errorToast.auth();
       router.push('/api/auth/signin');

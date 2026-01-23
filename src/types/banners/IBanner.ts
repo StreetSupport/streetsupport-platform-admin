@@ -1,23 +1,6 @@
 import { IMediaAsset } from './IMediaAsset';
-import { IBannerBackground, ICTAButton, IDonationGoal } from '@/types/index';
-import { IResourceFile } from './IResourceFile';
-
-// Template-specific interfaces
-export interface IGivingCampaign {
-  UrgencyLevel: UrgencyLevel;
-  CampaignEndDate?: Date;
-  DonationGoal?: IDonationGoal;
-}
-
-export interface IPartnershipCharter {
-  PartnerLogos?: IMediaAsset[];
-  CharterType?: CharterType;
-  SignatoriesCount?: number;
-}
-
-export interface IResourceProject {
-  ResourceFile?: IResourceFile;
-}
+import { IBannerBackground, ICTAButton } from '@/types/index';
+import { IUploadedFile } from './IUploadedFile';
 
 export interface IBanner {
   // Audit fields
@@ -30,16 +13,20 @@ export interface IBanner {
   Title: string;
   Description?: string;
   Subtitle?: string;
-  TemplateType: BannerTemplateType;
-  
-  // Media
+
+  // Media - flexible: either image or YouTube
+  MediaType: MediaType;
   Logo?: IMediaAsset;
   BackgroundImage?: IMediaAsset;
-  MainImage?: IMediaAsset; // Separate image for split layout (not background)
-  
+  MainImage?: IMediaAsset;
+  YouTubeUrl?: string;
+
+  // File upload for CTAs (PDFs, images, etc.)
+  UploadedFile?: IUploadedFile;
+
   // Actions
   CtaButtons?: ICTAButton[];
-  
+
   // Styling
   Background: IBannerBackground;
   TextColour: TextColour;
@@ -48,13 +35,7 @@ export interface IBanner {
   // Scheduling
   StartDate?: Date;
   EndDate?: Date;
-  BadgeText?: string;
-  
-  // Template-specific fields - using intersection types for better type safety
-  GivingCampaign?: IGivingCampaign;
-  PartnershipCharter?: IPartnershipCharter;
-  ResourceProject?: IResourceProject;
-  
+
   // CMS metadata
   IsActive: boolean;
   LocationSlug: string;
@@ -71,36 +52,23 @@ export interface IMediaAssetFileMeta {
 }
 
 export type MediaField = IMediaAsset | File | IMediaAssetFileMeta | null;
-export type MediaArrayField = (IMediaAsset | File)[];
-export type ResourceFileField = IResourceFile | File | null;
+export type UploadedFileField = IUploadedFile | File | null;
 
 // Form data interface that can handle both create and edit scenarios
-export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'MainImage' | 'GivingCampaign' | 'PartnershipCharter' | 'ResourceProject' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
+export interface IBannerFormData extends Omit<IBanner, 'Logo' | 'BackgroundImage' | 'MainImage' | 'UploadedFile' | 'DocumentCreationDate' | 'DocumentModifiedDate' | 'CreatedBy'> {
   // Media fields that can be either existing assets or new files
   Logo?: MediaField;
   BackgroundImage?: MediaField;
   MainImage?: MediaField;
-  
-  // Template-specific fields with File support
-  GivingCampaign?: IGivingCampaign;
-  PartnershipCharter?: Omit<IPartnershipCharter, 'PartnerLogos'> & {
-    PartnerLogos?: MediaArrayField;
-  };
-  ResourceProject?: Omit<IResourceProject, 'ResourceFile'> & {
-    ResourceFile?: ResourceFileField;
-  };
+
+  // Uploaded file for CTA links
+  UploadedFile?: UploadedFileField;
 }
 
-// Helper type for edit mode - when we receive data from API
-// export interface IBannerEditData extends IBanner {
-//   // In edit mode, we receive IMediaAsset[] from API but need to convert for form
-// }
-
 // Enums for type safety
-export enum BannerTemplateType {
-  GIVING_CAMPAIGN = 'giving-campaign',
-  PARTNERSHIP_CHARTER = 'partnership-charter',
-  RESOURCE_PROJECT = 'resource-project'
+export enum MediaType {
+  IMAGE = 'image',
+  YOUTUBE = 'youtube'
 }
 
 export enum TextColour {
@@ -110,28 +78,5 @@ export enum TextColour {
 
 export enum LayoutStyle {
   SPLIT = 'split',
-  FULL_WIDTH = 'full-width',
-  CARD = 'card'
-}
-
-export enum UrgencyLevel {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
-}
-
-export enum CharterType {
-  HOMELESS_CHARTER = 'homeless-charter',
-  REAL_CHANGE = 'real-change',
-  ALTERNATIVE_GIVING = 'alternative-giving',
-  PARTNERSHIP = 'partnership'
-}
-
-export enum ResourceType {
-  GUIDE = 'guide',
-  TOOLKIT = 'toolkit',
-  RESEARCH = 'research',
-  TRAINING = 'training',
-  EVENT = 'event'
+  FULL_WIDTH = 'full-width'
 }

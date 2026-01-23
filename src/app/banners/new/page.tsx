@@ -49,66 +49,36 @@ export default function NewBannerPage() {
       }
 
       const formData = new FormData();
-      
-      // Add text fields
+
       Object.keys(data).forEach(key => {
         const typedKey = key as keyof IBannerFormData;
         const value = data[typedKey];
-        
+
         if (key === 'Logo' || key === 'BackgroundImage' || key === 'MainImage') {
-          // Handle media uploads with optional metadata
           if (value instanceof File) {
-            // Single new file
             formData.append(`newfile_${key}`, value);
           } else if (value && typeof value === 'object' && 'File' in value) {
-            // IMediaAssetFileMeta object with File and metadata
             const mediaAsset = value as { File: File; Width?: number; Height?: number };
             formData.append(`newfile_${key}`, mediaAsset.File);
-            
-            // Send metadata (Width, Height) if present
+
             const metadata = { ...mediaAsset };
-            delete (metadata as { File?: unknown }).File; // Remove File from metadata
+            delete (metadata as { File?: unknown }).File;
             if (Object.keys(metadata).length > 0) {
               formData.append(`newmetadata_${key}`, JSON.stringify(metadata));
             }
           }
         }
-        else if (key === 'PartnershipCharter' && value && typeof value === 'object') {
-          // Handle nested PartnershipCharter with PartnerLogos
-          const partnershipCharter = value as NonNullable<IBannerFormData['PartnershipCharter']>;
-          if (partnershipCharter.PartnerLogos && Array.isArray(partnershipCharter.PartnerLogos)) {
-            partnershipCharter.PartnerLogos.forEach((item) => {
-              if (item instanceof File) {
-                formData.append('newfile_PartnerLogos', item);
-              }
-            });
-          }
-          // Add other PartnershipCharter fields as JSON
-          const partnershipCharterData = { ...partnershipCharter };
-          delete partnershipCharterData.PartnerLogos; // Remove files from JSON
-          formData.append(key, JSON.stringify(partnershipCharterData));
-        } else if (key === 'ResourceProject' && value && typeof value === 'object') {
-          // Handle nested ResourceProject with ResourceFile
-          const resourceProject = value as NonNullable<IBannerFormData['ResourceProject']>;
-          if (resourceProject.ResourceFile) {
-            // Type guard to detect metadata object with embedded File
-            type ResourceFileWithUpload = { File: File } & Record<string, unknown>;
-            const rf = resourceProject.ResourceFile as unknown;
-            const hasEmbeddedFile = typeof rf === 'object' && rf !== null && 'File' in (rf as object) && (rf as ResourceFileWithUpload).File instanceof File;
-            if (hasEmbeddedFile) {
-              // 1. Append the actual file for upload
-              formData.append('newfile_ResourceFile', (rf as ResourceFileWithUpload).File);
+        else if (key === 'UploadedFile' && value) {
+          type UploadedFileWithUpload = { File: File } & Record<string, unknown>;
+          const uf = value as unknown;
+          const hasEmbeddedFile = typeof uf === 'object' && uf !== null && 'File' in (uf as object) && (uf as UploadedFileWithUpload).File instanceof File;
+          if (hasEmbeddedFile) {
+            formData.append('newfile_UploadedFile', (uf as UploadedFileWithUpload).File);
 
-              // 2. Send the metadata as a separate JSON string (excluding the File)
-              const metadata = { ...(rf as object) };
-              delete (metadata as { File?: unknown }).File; // Don't send the file object in the JSON
-              formData.append('newmetadata_ResourceFile', JSON.stringify(metadata));
-            }
+            const metadata = { ...(uf as object) };
+            delete (metadata as { File?: unknown }).File;
+            formData.append('newmetadata_UploadedFile', JSON.stringify(metadata));
           }
-          // Add other ResourceProject fields as JSON (excluding ResourceFile)
-          const resourceProjectData = { ...resourceProject };
-          delete resourceProjectData.ResourceFile;
-          formData.append(key, JSON.stringify(resourceProjectData));
         } else if (typeof value === 'object' && value !== null) {
           formData.append(key, JSON.stringify(value));
         } else if (value !== undefined) {

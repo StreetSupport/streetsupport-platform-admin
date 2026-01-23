@@ -30,33 +30,29 @@ export const authOptions: NextAuthOptions = {
         const formattedUserId = user.id.replace('auth0|', '');
         token.id = formattedUserId;
         token.auth0Id = formattedUserId;
-        
-        // Fetch user data from MongoDB to get AuthClaims
+
         try {
           const apiUser = await fetchUserByAuth0Id(token.auth0Id, token);
 
           if (apiUser) {
-            // Check if user is active
             if (apiUser.IsActive === false) {
               throw new Error('User account is deactivated');
             }
-            
+
             token.authClaims = parseAuthClaims(apiUser.AuthClaims);
             token.userName = apiUser.UserName;
             token.associatedAreaId = apiUser.AssociatedAreaId;
           } else {
-            // Default empty claims for new users
             token.authClaims = { roles: [], specificClaims: [] };
           }
         } catch (error) {
           console.error('Error fetching user claims:', error);
-          // If user is deactivated, throw error to prevent sign in
           if (error instanceof Error && error.message === 'User account is deactivated') {
             throw error;
           }
           token.authClaims = { roles: [], specificClaims: [] };
         }
-      } 
+      }
       return token;
     },
     async session({ session, token }) {
@@ -69,5 +65,5 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-  }
+  },
 };

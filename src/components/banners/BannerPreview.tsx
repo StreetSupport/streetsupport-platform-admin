@@ -1,18 +1,16 @@
 'use client';
 
 import React from 'react';
-import { IBannerFormData, BannerTemplateType, LayoutStyle } from '@/types/banners/IBanner';
-import { BackgroundType, CTAVariant, type IMediaAsset, type IResourceFile } from '@/types';
-import { GivingCampaignBanner } from './GivingCampaignBanner';
-import { PartnershipCharterBanner } from './PartnershipCharterBanner';
-import { ResourceProjectBanner } from './ResourceProjectBanner';
+import Image from 'next/image';
+import Link from 'next/link';
+import { IBannerFormData, LayoutStyle, MediaType } from '@/types/banners/IBanner';
+import { BackgroundType, CTAVariant, type IMediaAsset } from '@/types';
 
 interface BannerPreviewProps {
   data: IBannerFormData;
   className?: string;
 }
 
-// Type guards
 const isMediaAsset = (asset: unknown): asset is IMediaAsset => {
   return !!asset && typeof asset === 'object' && 'Url' in (asset as Record<string, unknown>);
 };
@@ -27,14 +25,22 @@ const isMediaAssetFileMeta = (value: unknown): value is MediaAssetFileMeta => {
   );
 };
 
-const isResourceFile = (file: unknown): file is IResourceFile => {
-  // File has 'name'; our resource metadata does not
-  return !!file && typeof file === 'object' && !('name' in (file as Record<string, unknown>));
-};
+function getYouTubeVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
 
-/**
- * Transform admin data structure (PascalCase, nested) to public website format (camelCase, flat)
- */
+function getYouTubeEmbedUrl(url: string): string {
+  const videoId = getYouTubeVideoId(url);
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+}
+
 function transformToPublicFormat(data: IBannerFormData) {
   const processMediaAsset = (
     asset: IMediaAsset | File | MediaAssetFileMeta | null | undefined
@@ -56,39 +62,25 @@ function transformToPublicFormat(data: IBannerFormData) {
     return undefined;
   };
 
-  // Determine background image URL from BackgroundImage (File or IMediaAsset)
   const bgImage = processMediaAsset(data.BackgroundImage);
   const backgroundType = data.Background?.Type?.toLowerCase() || 'solid';
 
-  let resourceFileUrl: string | undefined;
-  if (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
-    const resourceFile = data.ResourceProject?.ResourceFile;
-    if (resourceFile instanceof File) {
-      resourceFileUrl = URL.createObjectURL(resourceFile);
-    } else if (isResourceFile(resourceFile) && resourceFile.FileUrl) {
-      resourceFileUrl = resourceFile.FileUrl;
-    }
-  }
+  const ctaButtons = data.CtaButtons?.map((btn) => ({
+    label: btn.Label || '',
+    url: btn.Url || '/',
+    variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
+    external: btn.External || false
+  })) || [];
 
-  const ctaButtons = data.CtaButtons?.map((btn, index) => {
-    const url = (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT && index === 0 && resourceFileUrl) ? resourceFileUrl : btn.Url;
-    return {
-      label: btn.Label || '',
-      url,
-      variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
-      external: btn.External || false
-    };
-  }) || [];
-
-
-
-  const commonProps = {
+  return {
     title: data.Title || '',
     description: data.Description || '',
     subtitle: data.Subtitle || '',
     logo: processMediaAsset(data.Logo),
     image: processMediaAsset(data.MainImage),
-    ctaButtons: ctaButtons,
+    mediaType: data.MediaType || MediaType.IMAGE,
+    youTubeUrl: data.YouTubeUrl || '',
+    ctaButtons,
     background: {
       type: backgroundType,
       value: backgroundType === BackgroundType.IMAGE ? (bgImage?.url || data.Background?.Value || '') : (data.Background?.Value || '#38ae8e'),
@@ -99,98 +91,181 @@ function transformToPublicFormat(data: IBannerFormData) {
       } : undefined
     },
     textColour: data.TextColour?.toLowerCase() || 'white',
-    layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
-    startDate: data.StartDate,
-    endDate: data.EndDate,
-    badgeText: data.BadgeText || ''
+    layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT
   };
-
-  return commonProps;
 }
 
 export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = '' }) => {
-  const commonProps = transformToPublicFormat(data);
+  const props = transformToPublicFormat(data);
 
-  if (!data.TemplateType) {
-    return (
-      <div className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center ${className}`}>
-        <div className="text-gray-500">
-          <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <h3 className="text-lg font-medium mb-2">Banner Preview</h3>
-          <p className="text-sm">Select a template type to see your banner preview</p>
+  const generateBackgroundStyles = () => {
+    const styles: React.CSSProperties = {};
+    if (props.background.type === 'solid') {
+      styles.backgroundColor = props.background.value;
+    } else if (props.background.type === 'gradient') {
+      styles.backgroundImage = props.background.value;
+    } else if (props.background.type === 'image' && props.background.backgroundImage?.url) {
+      styles.backgroundImage = `url(${props.background.backgroundImage.url})`;
+      styles.backgroundSize = 'cover';
+      styles.backgroundPosition = 'center';
+    }
+    return styles;
+  };
+
+  const textColourClass = props.textColour === 'white' ? 'text-white' : 'text-gray-900';
+  const layoutIsFullWidth = props.layoutStyle === 'full-width';
+
+  return (
+    <section
+      className={`relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8 ${textColourClass} ${className}`}
+      style={generateBackgroundStyles()}
+      role="banner"
+      aria-labelledby="banner-title"
+    >
+      {props.background.overlay && (
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundColor: props.background.overlay.colour,
+            opacity: props.background.overlay.opacity
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <div className={layoutIsFullWidth ? 'text-center' : 'grid md:grid-cols-2 gap-8 items-center'}>
+          <div className={!layoutIsFullWidth ? 'order-2 md:order-1' : ''}>
+            {props.logo && (
+              <div className={`mb-6 ${layoutIsFullWidth ? 'flex justify-center' : ''}`}>
+                <Image
+                  src={props.logo.url}
+                  alt={props.logo.alt}
+                  width={props.logo.width || 200}
+                  height={props.logo.height || 60}
+                  className="h-12 sm:h-16 w-auto object-contain"
+                />
+              </div>
+            )}
+
+            <h1
+              id="banner-title"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight"
+            >
+              {props.title}
+            </h1>
+
+            {props.subtitle && (
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4 opacity-90">
+                {props.subtitle}
+              </h2>
+            )}
+
+            {props.description && (
+              <p className={`text-lg sm:text-xl mb-6 opacity-80 leading-relaxed max-w-2xl ${layoutIsFullWidth ? 'mx-auto' : ''}`}>
+                {props.description}
+              </p>
+            )}
+
+            {props.ctaButtons.length > 0 && (
+              <div className={`flex flex-col sm:flex-row gap-4 ${layoutIsFullWidth ? 'justify-center' : ''}`}>
+                {props.ctaButtons.map((button, index) => {
+                  const buttonClasses = `
+                    inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all
+                    ${button.variant === 'primary'
+                      ? props.textColour === 'white'
+                        ? 'bg-white text-gray-900 hover:bg-gray-100'
+                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                      : button.variant === 'secondary'
+                        ? 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+                        : 'border-2 border-current hover:bg-white/10'
+                    }
+                  `;
+
+                  if (button.external) {
+                    return (
+                      <a
+                        key={index}
+                        href={button.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={buttonClasses}
+                      >
+                        {button.label}
+                        <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <Link key={index} href={button.url} className={buttonClasses}>
+                      {button.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {!layoutIsFullWidth && (
+            <div className="order-1 md:order-2">
+              {props.mediaType === MediaType.YOUTUBE && props.youTubeUrl ? (
+                <div className="relative rounded-lg overflow-hidden shadow-2xl aspect-video">
+                  <iframe
+                    src={getYouTubeEmbedUrl(props.youTubeUrl)}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="YouTube video"
+                  />
+                </div>
+              ) : props.image ? (
+                <div className="relative rounded-lg overflow-hidden shadow-2xl">
+                  <Image
+                    src={props.image.url}
+                    alt={props.image.alt}
+                    width={props.image.width || 600}
+                    height={props.image.height || 400}
+                    className="w-full h-auto object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {layoutIsFullWidth && (props.mediaType === MediaType.YOUTUBE && props.youTubeUrl ? (
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="relative rounded-lg overflow-hidden shadow-2xl aspect-video">
+                <iframe
+                  src={getYouTubeEmbedUrl(props.youTubeUrl)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="YouTube video"
+                />
+              </div>
+            </div>
+          ) : props.image && (
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="relative rounded-lg overflow-hidden shadow-2xl">
+                <Image
+                  src={props.image.url}
+                  alt={props.image.alt}
+                  width={props.image.width || 800}
+                  height={props.image.height || 400}
+                  className="w-full h-auto object-cover"
+                  sizes="(max-width: 1024px) 100vw, 800px"
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    );
-  }
-
-  switch (data.TemplateType) {
-    case BannerTemplateType.GIVING_CAMPAIGN:
-      return (
-        <GivingCampaignBanner
-          {...commonProps}
-          urgencyLevel={data.GivingCampaign?.UrgencyLevel?.toLowerCase()}
-          campaignEndDate={data.GivingCampaign?.CampaignEndDate}
-          donationGoal={data.GivingCampaign?.DonationGoal ? {
-            current: data.GivingCampaign.DonationGoal.Current || 0,
-            target: data.GivingCampaign.DonationGoal.Target || 0,
-            currency: data.GivingCampaign.DonationGoal.Currency || 'GBP'
-          } : undefined}
-          className={className}
-        />
-      );
-
-    case BannerTemplateType.PARTNERSHIP_CHARTER:
-      return (
-        <PartnershipCharterBanner
-          {...commonProps}
-          charterType={data.PartnershipCharter?.CharterType?.toLowerCase()}
-          signatoriesCount={data.PartnershipCharter?.SignatoriesCount}
-          partnerLogos={
-            (data.PartnershipCharter?.PartnerLogos
-              ?.map((logo: IMediaAsset | File): { url: string; alt: string; width?: number; height?: number } | null => {
-                if (logo instanceof File) {
-                  return { url: URL.createObjectURL(logo), alt: logo.name };
-                }
-                if (isMediaAsset(logo)) {
-                  return { url: logo.Url || '', alt: logo.Alt || '', width: logo.Width, height: logo.Height };
-                }
-                return null;
-              })
-              .filter((item): item is { url: string; alt: string; width?: number; height?: number } => item !== null)) || []
-          }
-          className={className}
-        />
-      );
-
-    case BannerTemplateType.RESOURCE_PROJECT: {
-      const resourceFile = data.ResourceProject?.ResourceFile;
-      return (
-        <ResourceProjectBanner
-          {...commonProps}
-          resourceType={resourceFile && isResourceFile(resourceFile) ? resourceFile.ResourceType?.toLowerCase() : undefined}
-          downloadCount={resourceFile && isResourceFile(resourceFile) ? resourceFile.DownloadCount : undefined}
-          lastUpdated={resourceFile && isResourceFile(resourceFile) ? resourceFile.LastUpdated : undefined}
-          fileSize={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileSize : undefined}
-          fileType={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileType : undefined}
-          className={className}
-        />
-      );
-    }
-    default:
-      return (
-        <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center ${className}`}>
-          <div className="text-yellow-600">
-            <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <h3 className="text-lg font-medium mb-2">Unknown Template Type</h3>
-            <p className="text-sm">The selected template type &quot;{data.TemplateType}&quot; is not supported</p>
-          </div>
-        </div>
-      );
-  }
+    </section>
+  );
 };
 
 export default BannerPreview;
