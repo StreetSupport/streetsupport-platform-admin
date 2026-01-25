@@ -29,6 +29,41 @@ const getYouTubeEmbedUrl = (url: string): string => {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
 };
 
+type TextColour = 'white' | 'dark';
+
+function generateCTAClasses(variant: string, textColour: TextColour): string {
+  const baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+
+  switch (variant) {
+    case 'primary':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white text-gray-900 hover:bg-gray-100 focus:ring-white`;
+      }
+      return `${baseClasses} bg-brand-a text-white hover:bg-brand-b focus:ring-brand-a`;
+
+    case 'secondary':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white/20 text-white border border-white/40 hover:bg-white/30 focus:ring-white`;
+      }
+      return `${baseClasses} bg-white text-brand-a border border-brand-a hover:bg-brand-a hover:text-white hover:border-brand-a focus:ring-brand-a`;
+
+    case 'outline':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white/10 border-2 border-white text-white hover:bg-white hover:text-gray-900 focus:ring-white`;
+      }
+      return `${baseClasses} bg-transparent border-2 border-brand-a text-brand-a hover:bg-brand-a hover:text-white focus:ring-brand-a`;
+
+    default:
+      return baseClasses;
+  }
+}
+
+const ExternalLinkIcon = () => (
+  <svg className="ml-2 w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+);
+
 function transformToPublicFormat(data: IBannerFormData) {
   const processMediaAsset = (
     asset: IMediaAsset | File | MediaAssetFileMeta | null | undefined
@@ -154,22 +189,17 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
             )}
 
             {props.ctaButtons.length > 0 && (
-              <div className={`flex gap-3 pt-4 ${!isSplitLayout ? 'justify-center' : ''}`}>
+              <div className={`flex flex-wrap gap-3 pt-4 ${!isSplitLayout ? 'justify-center' : ''}`}>
                 {props.ctaButtons.map((btn, index) => (
                   <a
                     key={index}
                     href={btn.url}
-                    className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                      btn.variant === 'primary'
-                        ? 'bg-brand-d text-white hover:bg-brand-c'
-                        : btn.variant === 'secondary'
-                          ? 'bg-white text-brand-k hover:bg-gray-100'
-                          : 'border-2 border-current hover:bg-white hover:bg-opacity-10'
-                    }`}
+                    className={generateCTAClasses(btn.variant, props.textColour as TextColour)}
                     target={btn.external ? '_blank' : undefined}
                     rel={btn.external ? 'noopener noreferrer' : undefined}
                   >
                     {btn.label}
+                    {btn.external && <ExternalLinkIcon />}
                   </a>
                 ))}
               </div>
