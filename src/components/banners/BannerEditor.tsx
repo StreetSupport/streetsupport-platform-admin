@@ -173,6 +173,90 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const hasUnsavedChanges = useRef(false);
 
+  useEffect(() => {
+    const hasFileObjects = (obj: unknown): boolean => {
+      if (obj instanceof File) return true;
+      if (Array.isArray(obj)) return obj.some(hasFileObjects);
+      if (obj && typeof obj === 'object') {
+        return Object.values(obj as Record<string, unknown>).some(hasFileObjects);
+      }
+      return false;
+    };
+
+    const imageFields = ['Logo', 'BackgroundImage', 'MainImage'] as const;
+    let hasChanges = false;
+
+    if (hasFileObjects(formData)) {
+      hasChanges = true;
+    } else {
+      for (const field of imageFields) {
+        const originalValue = originalDataRef.current[field];
+        const currentValue = formData[field];
+        if (originalValue && !currentValue) {
+          hasChanges = true;
+          break;
+        }
+      }
+      if (!hasChanges && JSON.stringify(formData) !== JSON.stringify(originalDataRef.current)) {
+        hasChanges = true;
+      }
+    }
+
+    hasUnsavedChanges.current = hasChanges;
+  }, [formData]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges.current) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    const handleLinkClick = (e: MouseEvent) => {
+      if (!hasUnsavedChanges.current) return;
+
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+
+      if (anchor && anchor.href && !anchor.href.startsWith('javascript:')) {
+        const isSamePage = anchor.href.includes('#') && anchor.href.split('#')[0] === window.location.href.split('#')[0];
+        if (isSamePage) return;
+
+        const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+        if (!confirmed) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    };
+
+    const handlePopState = () => {
+      if (hasUnsavedChanges.current) {
+        const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+        if (!confirmed) {
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleLinkClick, true);
+    window.addEventListener('popstate', handlePopState);
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleLinkClick, true);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    onDataChange(formData);
+  }, [formData, onDataChange]);
+
   const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
       const keys = path.split('.');
@@ -357,10 +441,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               value={formData.Description}
               onChange={(e) => updateFormData('Description', e.target.value)}
               rows={3}
-              maxLength={500}
+              maxLength={550}
             />
             <p className="text-xs text-brand-f mt-1">
-              {formData.Description?.length || 0}/500 characters
+              {formData.Description?.length || 0}/550 characters
             </p>
           </FormField>
         </div>
@@ -399,7 +483,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
           {formData.MediaType === MediaType.IMAGE && (
             <MediaUpload
-              label="Layout Image"
+              label="Banner Image"
               value={formData.MainImage}
               onUpload={(file) => {
                 const imageUrl = URL.createObjectURL(file);
