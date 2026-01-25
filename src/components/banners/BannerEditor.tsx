@@ -173,55 +173,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
   const hasUnsavedChanges = useRef(false);
 
-  useEffect(() => {
-    const hasFileObjects = (obj: unknown): boolean => {
-      if (obj instanceof File) return true;
-      if (Array.isArray(obj)) return obj.some(hasFileObjects);
-      if (obj && typeof obj === 'object') {
-        return Object.values(obj as Record<string, unknown>).some(hasFileObjects);
-      }
-      return false;
-    };
-
-    const imageFields = ['Logo', 'BackgroundImage', 'MainImage'] as const;
-    let hasChanges = false;
-
-    if (hasFileObjects(formData)) {
-      hasChanges = true;
-    } else {
-      for (const field of imageFields) {
-        const originalValue = originalDataRef.current[field];
-        const currentValue = formData[field];
-        if (originalValue && !currentValue) {
-          hasChanges = true;
-          break;
-        }
-      }
-      if (!hasChanges && JSON.stringify(formData) !== JSON.stringify(originalDataRef.current)) {
-        hasChanges = true;
-      }
-    }
-
-    hasUnsavedChanges.current = hasChanges;
-  }, [formData]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges.current) {
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
-  useEffect(() => {
-    onDataChange(formData);
-  }, [formData, onDataChange]);
-
   const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
       const keys = path.split('.');
@@ -406,10 +357,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               value={formData.Description}
               onChange={(e) => updateFormData('Description', e.target.value)}
               rows={3}
-              maxLength={550}
+              maxLength={500}
             />
             <p className="text-xs text-brand-f mt-1">
-              {formData.Description?.length || 0}/550 characters
+              {formData.Description?.length || 0}/500 characters
             </p>
           </FormField>
         </div>
