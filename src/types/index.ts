@@ -20,6 +20,4 @@ export * from './organisations/IClientGroup';
 export * from './banners/IBanner';
 export * from './banners/IBannerBackground';
 export * from './banners/ICTAButton';
-export * from './banners/IDonationGoal';
 export * from './banners/IMediaAsset';
-export * from './banners/IResourceFile';
