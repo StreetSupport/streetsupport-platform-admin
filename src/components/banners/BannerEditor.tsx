@@ -171,9 +171,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
   const [errors] = useState<Record<string, string>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  useEffect(() => {
-    onDataChange(formData);
-  }, [formData, onDataChange]);
+  const hasUnsavedChanges = useRef(false);
 
   const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
