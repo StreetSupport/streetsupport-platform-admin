@@ -21,8 +21,9 @@ import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { Trash } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { RESOURCE_FILE_ACCEPT_STRING } from '@/types';
 import { redirectToNotFound } from '@/utils/navigation';
+
+const RESOURCE_FILE_ACCEPT_STRING = 'application/pdf,application/msword,application/vnd.ms-excel,application/vnd.ms-powerpoint,audio/mpeg,video/mp4,application/zip,image/jpeg,image/jpg,image/png';
 
 interface ValidationError {
   Path: string;
