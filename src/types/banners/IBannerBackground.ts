@@ -1,6 +1,9 @@
 export interface IBannerBackground {
   Type: BackgroundType;
   Value: string;
+  GradientStartColour?: string;
+  GradientEndColour?: string;
+  GradientDirection?: string;
   Overlay?: {
     Colour?: string;
     Opacity?: number;

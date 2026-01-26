@@ -1,18 +1,16 @@
 'use client';
 
 import React from 'react';
-import { IBannerFormData, BannerTemplateType, LayoutStyle } from '@/types/banners/IBanner';
-import { BackgroundType, CTAVariant, type IMediaAsset, type IResourceFile } from '@/types';
-import { GivingCampaignBanner } from './GivingCampaignBanner';
-import { PartnershipCharterBanner } from './PartnershipCharterBanner';
-import { ResourceProjectBanner } from './ResourceProjectBanner';
+import Image from 'next/image';
+import { IBannerFormData, LayoutStyle, MediaType } from '@/types/banners/IBanner';
+import { BackgroundType, CTAVariant, type IMediaAsset } from '@/types';
+import { sanitizeHtmlForDisplay } from '@/components/ui/RichTextEditor';
 
 interface BannerPreviewProps {
   data: IBannerFormData;
   className?: string;
 }
 
-// Type guards
 const isMediaAsset = (asset: unknown): asset is IMediaAsset => {
   return !!asset && typeof asset === 'object' && 'Url' in (asset as Record<string, unknown>);
 };
@@ -27,14 +25,46 @@ const isMediaAssetFileMeta = (value: unknown): value is MediaAssetFileMeta => {
   );
 };
 
-const isResourceFile = (file: unknown): file is IResourceFile => {
-  // File has 'name'; our resource metadata does not
-  return !!file && typeof file === 'object' && !('name' in (file as Record<string, unknown>));
+const getYouTubeEmbedUrl = (url: string): string => {
+  const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/)?.[1];
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
 };
 
-/**
- * Transform admin data structure (PascalCase, nested) to public website format (camelCase, flat)
- */
+type TextColour = 'white' | 'dark';
+
+function generateCTAClasses(variant: string, textColour: TextColour): string {
+  const baseClasses = 'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+
+  switch (variant) {
+    case 'primary':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white text-gray-900 hover:bg-gray-100 focus:ring-white`;
+      }
+      return `${baseClasses} bg-brand-a text-white hover:bg-brand-b focus:ring-brand-a`;
+
+    case 'secondary':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white/20 text-white border border-white/40 hover:bg-white/30 focus:ring-white`;
+      }
+      return `${baseClasses} bg-white text-brand-a border border-brand-a hover:bg-brand-a hover:text-white hover:border-brand-a focus:ring-brand-a`;
+
+    case 'outline':
+      if (textColour === 'white') {
+        return `${baseClasses} bg-white/10 border-2 border-white text-white hover:bg-white hover:text-gray-900 focus:ring-white`;
+      }
+      return `${baseClasses} bg-transparent border-2 border-brand-a text-brand-a hover:bg-brand-a hover:text-white focus:ring-brand-a`;
+
+    default:
+      return baseClasses;
+  }
+}
+
+const ExternalLinkIcon = () => (
+  <svg className="ml-2 w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+);
+
 function transformToPublicFormat(data: IBannerFormData) {
   const processMediaAsset = (
     asset: IMediaAsset | File | MediaAssetFileMeta | null | undefined
@@ -56,33 +86,17 @@ function transformToPublicFormat(data: IBannerFormData) {
     return undefined;
   };
 
-  // Determine background image URL from BackgroundImage (File or IMediaAsset)
   const bgImage = processMediaAsset(data.BackgroundImage);
   const backgroundType = data.Background?.Type?.toLowerCase() || 'solid';
 
-  let resourceFileUrl: string | undefined;
-  if (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT) {
-    const resourceFile = data.ResourceProject?.ResourceFile;
-    if (resourceFile instanceof File) {
-      resourceFileUrl = URL.createObjectURL(resourceFile);
-    } else if (isResourceFile(resourceFile) && resourceFile.FileUrl) {
-      resourceFileUrl = resourceFile.FileUrl;
-    }
-  }
+  const ctaButtons = data.CtaButtons?.map((btn) => ({
+    label: btn.Label || '',
+    url: btn.Url,
+    variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
+    external: btn.External || false
+  })) || [];
 
-  const ctaButtons = data.CtaButtons?.map((btn, index) => {
-    const url = (data.TemplateType === BannerTemplateType.RESOURCE_PROJECT && index === 0 && resourceFileUrl) ? resourceFileUrl : btn.Url;
-    return {
-      label: btn.Label || '',
-      url,
-      variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
-      external: btn.External || false
-    };
-  }) || [];
-
-
-
-  const commonProps = {
+  return {
     id: data._id || '',
     title: data.Title || '',
     description: data.Description || '',
@@ -103,94 +117,134 @@ function transformToPublicFormat(data: IBannerFormData) {
     layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
     startDate: data.StartDate,
     endDate: data.EndDate,
-    badgeText: data.BadgeText || ''
+    mediaType: data.MediaType || MediaType.IMAGE,
+    youTubeUrl: data.YouTubeUrl,
+    border: data.Border ? {
+      showBorder: data.Border.ShowBorder || false,
+      colour: data.Border.Colour || '#f8c77c'
+    } : undefined
   };
-
-  return commonProps;
 }
 
 export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = '' }) => {
-  const commonProps = transformToPublicFormat(data);
+  const props = transformToPublicFormat(data);
 
-  if (!data.TemplateType) {
-    return (
-      <div className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center ${className}`}>
-        <div className="text-gray-500">
-          <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <h3 className="text-lg font-medium mb-2">Banner Preview</h3>
-          <p className="text-sm">Select a template type to see your banner preview</p>
-        </div>
-      </div>
-    );
-  }
-
-  switch (data.TemplateType) {
-    case BannerTemplateType.GIVING_CAMPAIGN:
-      return (
-        <GivingCampaignBanner
-          {...commonProps}
-          urgencyLevel={data.GivingCampaign?.UrgencyLevel?.toLowerCase()}
-          campaignEndDate={data.GivingCampaign?.CampaignEndDate}
-          donationGoal={data.GivingCampaign?.DonationGoal ? {
-            current: data.GivingCampaign.DonationGoal.Current || 0,
-            target: data.GivingCampaign.DonationGoal.Target || 0,
-            currency: data.GivingCampaign.DonationGoal.Currency || 'GBP'
-          } : undefined}
-          className={className}
-        />
-      );
-
-    case BannerTemplateType.PARTNERSHIP_CHARTER:
-      return (
-        <PartnershipCharterBanner
-          {...commonProps}
-          charterType={data.PartnershipCharter?.CharterType?.toLowerCase()}
-          signatoriesCount={data.PartnershipCharter?.SignatoriesCount}
-          partnerLogos={
-            (data.PartnershipCharter?.PartnerLogos
-              ?.map((logo: IMediaAsset | File): { url: string; alt: string; width?: number; height?: number } | null => {
-                if (logo instanceof File) {
-                  return { url: URL.createObjectURL(logo), alt: logo.name };
-                }
-                if (isMediaAsset(logo)) {
-                  return { url: logo.Url || '', alt: logo.Alt || '', width: logo.Width, height: logo.Height };
-                }
-                return null;
-              })
-              .filter((item): item is { url: string; alt: string; width?: number; height?: number } => item !== null)) || []
-          }
-          className={className}
-        />
-      );
-
-    case BannerTemplateType.RESOURCE_PROJECT: {
-      const resourceFile = data.ResourceProject?.ResourceFile;
-      return (
-        <ResourceProjectBanner
-          {...commonProps}
-          resourceType={resourceFile && isResourceFile(resourceFile) ? resourceFile.ResourceType?.toLowerCase() : undefined}
-          lastUpdated={resourceFile && isResourceFile(resourceFile) ? resourceFile.LastUpdated : undefined}
-          fileSize={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileSize : undefined}
-          fileType={resourceFile && isResourceFile(resourceFile) ? resourceFile.FileType : undefined}
-          className={className}
-        />
-      );
+  const getBackgroundStyle = () => {
+    if (props.background.type === 'image' && props.background.backgroundImage?.url) {
+      return {
+        backgroundImage: `url(${props.background.backgroundImage.url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
     }
-    default:
-      return (
-        <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center ${className}`}>
-          <div className="text-yellow-600">
-            <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <h3 className="text-lg font-medium mb-2">Unknown Template Type</h3>
-            <p className="text-sm">The selected template type &quot;{data.TemplateType}&quot; is not supported</p>
+    if (props.background.type === 'gradient') {
+      return { background: props.background.value };
+    }
+    return { backgroundColor: props.background.value };
+  };
+
+  const getBorderStyle = (): React.CSSProperties => {
+    if (!props.border?.showBorder) return {};
+    return {
+      borderTop: `50px solid ${props.border.colour}`,
+      borderBottom: `50px solid ${props.border.colour}`,
+    };
+  };
+
+  const textColourClass = props.textColour === 'white' ? 'text-white' : 'text-brand-k';
+  const isSplitLayout = props.layoutStyle === 'split';
+
+  return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{ ...getBackgroundStyle(), ...getBorderStyle() }}
+    >
+      {props.background.type === 'image' && props.background.overlay && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundColor: props.background.overlay.colour,
+            opacity: props.background.overlay.opacity
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className={`relative z-10 ${isSplitLayout ? 'max-w-7xl mx-auto px-4 py-12 md:py-16' : 'px-4 py-12 md:py-16'}`}>
+        <div className={`${isSplitLayout ? 'grid md:grid-cols-2 gap-8 items-center' : 'text-center max-w-4xl mx-auto'}`}>
+          <div className={`space-y-4 ${!isSplitLayout ? 'mb-8' : ''}`}>
+            {props.logo && (
+              <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
+                <Image
+                  src={props.logo.url}
+                  alt={props.logo.alt || 'Logo'}
+                  width={120}
+                  height={40}
+                  className="object-contain"
+                />
+              </div>
+            )}
+
+            {props.subtitle && (
+              <p className={`text-sm font-medium uppercase tracking-wider ${textColourClass} opacity-80`}>
+                {props.subtitle}
+              </p>
+            )}
+
+            <h2 className={`text-3xl md:text-4xl font-bold ${textColourClass}`}>
+              {props.title}
+            </h2>
+
+            {props.description && (
+              <div
+                className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none ${props.textColour === 'white' ? 'prose-invert' : ''}`}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtmlForDisplay(props.description) }}
+              />
+            )}
+
+            {props.ctaButtons.length > 0 && (
+              <div className={`flex flex-wrap gap-3 pt-4 ${!isSplitLayout ? 'justify-center' : ''}`}>
+                {props.ctaButtons.map((btn, index) => (
+                  <a
+                    key={index}
+                    href={btn.url}
+                    className={generateCTAClasses(btn.variant, props.textColour as TextColour)}
+                    target={btn.external ? '_blank' : undefined}
+                    rel={btn.external ? 'noopener noreferrer' : undefined}
+                  >
+                    {btn.label}
+                    {btn.external && <ExternalLinkIcon />}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
+            {props.mediaType === MediaType.YOUTUBE && props.youTubeUrl ? (
+              <div className="aspect-video w-full max-w-lg rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  src={getYouTubeEmbedUrl(props.youTubeUrl)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={props.title}
+                />
+              </div>
+            ) : props.image ? (
+              <Image
+                src={props.image.url}
+                alt={props.image.alt || props.title}
+                width={props.image.width || 600}
+                height={props.image.height || 400}
+                className="rounded-lg object-cover shadow-lg"
+              />
+            ) : null}
           </div>
         </div>
-      );
-  }
+      </div>
+    </div>
+  );
 };
 
 export default BannerPreview;

@@ -35,6 +35,38 @@ import { LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import DOMPurify from 'dompurify';
 import { Button } from './Button';
 
+export interface ToolbarFeatures {
+  headings?: boolean;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  lists?: boolean;
+  links?: boolean;
+  undoRedo?: boolean;
+}
+
+export const DEFAULT_TOOLBAR_FEATURES: ToolbarFeatures = {
+  headings: true,
+  bold: true,
+  italic: true,
+  underline: true,
+  lists: true,
+  links: true,
+  undoRedo: true,
+};
+
+export const BANNER_TOOLBAR_FEATURES: ToolbarFeatures = {
+  headings: false,
+  bold: true,
+  italic: true,
+  underline: true,
+  lists: false,
+  links: true,
+  undoRedo: true,
+};
+
+export const BANNER_ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'a'];
+
 export interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -46,19 +78,22 @@ export interface RichTextEditorProps {
   label?: string;
   required?: boolean;
   helpText?: string;
+  toolbarFeatures?: ToolbarFeatures;
+  allowedTags?: string[];
 }
 
-// Sanitize content
-const sanitizeContent = (content: string): string => {
+const DEFAULT_ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'];
+
+const sanitizeContent = (content: string, allowedTags: string[] = DEFAULT_ALLOWED_TAGS): string => {
   return DOMPurify.sanitize(content, {
     KEEP_CONTENT: true,
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+    ALLOWED_TAGS: allowedTags,
     ALLOWED_ATTR: ['href', 'target', 'rel'],
   });
 };
 
 // Toolbar Component
-function ToolbarPlugin({ disabled }: { disabled: boolean }) {
+function ToolbarPlugin({ disabled, features }: { disabled: boolean; features: ToolbarFeatures }) {
   const [editor] = useLexicalComposerContext();
 
   const handleBold = () => {
@@ -105,149 +140,172 @@ function ToolbarPlugin({ disabled }: { disabled: boolean }) {
     });
   };
 
+  const showDivider = (nextSection: boolean | undefined) => nextSection && <div className="w-px h-6 bg-gray-300 mx-1" />;
+  const hasTextFormatting = features.bold || features.italic || features.underline;
+
   return (
     <div className="border-b border-gray-300 p-2 flex flex-wrap gap-1 bg-gray-50">
-      {/* Headings */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => formatHeading('h1')}
-        disabled={disabled}
-        className="px-3 py-1 text-sm"
-        title="Heading 1"
-      >
-        H1
-      </Button>
+      {features.headings && (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatHeading('h1')}
+            disabled={disabled}
+            className="px-3 py-1 text-sm"
+            title="Heading 1"
+          >
+            H1
+          </Button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => formatHeading('h2')}
-        disabled={disabled}
-        className="px-3 py-1 text-sm"
-        title="Heading 2"
-      >
-        H2
-      </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatHeading('h2')}
+            disabled={disabled}
+            className="px-3 py-1 text-sm"
+            title="Heading 2"
+          >
+            H2
+          </Button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => formatHeading('h3')}
-        disabled={disabled}
-        className="px-3 py-1 text-sm"
-        title="Heading 3"
-      >
-        H3
-      </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => formatHeading('h3')}
+            disabled={disabled}
+            className="px-3 py-1 text-sm"
+            title="Heading 3"
+          >
+            H3
+          </Button>
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+          {showDivider(hasTextFormatting || features.lists || features.links || features.undoRedo)}
+        </>
+      )}
 
-      {/* Text Formatting */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleBold}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Bold"
-      >
-        <strong>B</strong>
-      </Button>
+      {features.bold && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleBold}
+          disabled={disabled}
+          className="px-3 py-1"
+          title="Bold"
+        >
+          <strong>B</strong>
+        </Button>
+      )}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleItalic}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Italic"
-      >
-        <em>I</em>
-      </Button>
+      {features.italic && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleItalic}
+          disabled={disabled}
+          className="px-3 py-1"
+          title="Italic"
+        >
+          <em>I</em>
+        </Button>
+      )}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleUnderline}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Underline"
-      >
-        <u>U</u>
-      </Button>
+      {features.underline && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleUnderline}
+          disabled={disabled}
+          className="px-3 py-1"
+          title="Underline"
+        >
+          <u>U</u>
+        </Button>
+      )}
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+      {hasTextFormatting && showDivider(features.lists || features.links || features.undoRedo)}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleBulletList}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Bullet List"
-      >
-        • List
-      </Button>
+      {features.lists && (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleBulletList}
+            disabled={disabled}
+            className="px-3 py-1"
+            title="Bullet List"
+          >
+            * List
+          </Button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleNumberedList}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Numbered List"
-      >
-        1. List
-      </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleNumberedList}
+            disabled={disabled}
+            className="px-3 py-1"
+            title="Numbered List"
+          >
+            1. List
+          </Button>
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+          {showDivider(features.links || features.undoRedo)}
+        </>
+      )}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleLink}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Add Link"
-      >
-        🔗 Link
-      </Button>
+      {features.links && (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleLink}
+            disabled={disabled}
+            className="px-3 py-1"
+            title="Add Link"
+          >
+            Link
+          </Button>
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+          {showDivider(features.undoRedo)}
+        </>
+      )}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleUndo}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Undo"
-      >
-        ↶
-      </Button>
+      {features.undoRedo && (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleUndo}
+            disabled={disabled}
+            className="px-3 py-1"
+            title="Undo"
+          >
+            Undo
+          </Button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleRedo}
-        disabled={disabled}
-        className="px-3 py-1"
-        title="Redo"
-      >
-        ↷
-      </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleRedo}
+            disabled={disabled}
+            className="px-3 py-1"
+            title="Redo"
+          >
+            Redo
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -314,8 +372,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   minHeight = '200px',
   label,
   required = false,
-  helpText
+  helpText,
+  toolbarFeatures = DEFAULT_TOOLBAR_FEATURES,
+  allowedTags,
 }) => {
+  const mergedFeatures = { ...DEFAULT_TOOLBAR_FEATURES, ...toolbarFeatures };
   const initialConfig = {
     namespace: 'RichTextEditor',
     theme: {
@@ -347,7 +408,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const handleChange = (editorState: EditorState, editor: LexicalEditor) => {
     editor.update(() => {
       const htmlString = $generateHtmlFromNodes(editor);
-      const sanitized = sanitizeContent(htmlString);
+      const sanitized = sanitizeContent(htmlString, allowedTags);
       onChange(sanitized);
     });
   };
@@ -363,7 +424,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       <LexicalComposer initialConfig={initialConfig}>
         <div className={`border rounded-md ${error ? 'border-red-500' : 'border-gray-300'} ${disabled ? 'opacity-60' : ''}`}>
-          <ToolbarPlugin disabled={disabled} />
+          <ToolbarPlugin disabled={disabled} features={mergedFeatures} />
           
           <div className="relative" style={{ minHeight }}>
             <RichTextPlugin

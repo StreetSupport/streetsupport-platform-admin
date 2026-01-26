@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { FiltersSection } from '@/components/ui/FiltersSection';
 import { Plus } from 'lucide-react';
 import { ICity } from '@/types';
-import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
+import { IBanner } from '@/types/banners/IBanner';
 import BannerCard from '@/components/banners/BannerCard';
 import Link from 'next/link';
 import { errorToast, successToast, loadingToast, toastUtils } from '@/utils/toast';
@@ -35,7 +35,6 @@ export default function BannersListPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [templateFilter, setTemplateFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState<string>('');
   const [locations, setLocations] = useState<ICity[]>([]);
@@ -62,7 +61,7 @@ export default function BannersListPage() {
       fetchBanners();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthorized, currentPage, searchTerm, templateFilter, statusFilter, locationFilter]);
+  }, [isAuthorized, currentPage, searchTerm, statusFilter, locationFilter]);
 
   const fetchBanners = async () => {
     try {
@@ -74,7 +73,6 @@ export default function BannersListPage() {
       });
       
       if (searchInput?.trim()) params.append('search', searchInput.trim());
-      if (templateFilter) params.append('templateType', templateFilter);
       if (statusFilter) params.append('isActive', statusFilter);
       if (locationFilter) params.append('location', locationFilter);
       
@@ -99,11 +97,6 @@ export default function BannersListPage() {
 
   const handleSearchSubmit = () => {
     setSearchTerm(searchInput);
-    setCurrentPage(1); // Reset to first page when searching
-  };
-
-  const handleTemplateFilter = (value: string) => {
-    setTemplateFilter(value);
     setCurrentPage(1);
   };
 
@@ -266,17 +259,6 @@ export default function BannersListPage() {
                 }))
               },
               {
-                id: 'template-filter',
-                value: templateFilter,
-                onChange: handleTemplateFilter,
-                placeholder: 'All Templates',
-                options: [
-                  { label: 'Giving Campaign', value: BannerTemplateType.GIVING_CAMPAIGN },
-                  { label: 'Partnership Charter', value: BannerTemplateType.PARTNERSHIP_CHARTER },
-                  { label: 'Resource Project', value: BannerTemplateType.RESOURCE_PROJECT }
-                ]
-              },
-              {
                 id: 'status-filter',
                 value: statusFilter,
                 onChange: handleStatusFilter,
@@ -306,7 +288,7 @@ export default function BannersListPage() {
             <EmptyState
               title="No Banners Found"
               message={
-                searchTerm || templateFilter || statusFilter ? (
+                searchTerm || statusFilter || locationFilter ? (
                   <p>No banners match your current filters. Try adjusting your search criteria.</p>
                 ) : (
                   <p>Get started by creating your first banner.</p>

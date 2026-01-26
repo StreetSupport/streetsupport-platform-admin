@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import Image from 'next/image';
 import { Button } from './Button';
-import { FileUpload } from './FileUpload';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { IMediaAsset } from '@/types';
 
@@ -13,7 +12,7 @@ interface MediaUploadProps {
   onRemove: () => void;
   accept?: string;
   maxSize?: number;
-  label?: string;
+  label?: ReactNode;
   description?: string;
   required?: boolean;
   multiple?: boolean;
@@ -25,7 +24,7 @@ interface MediaArrayUploadProps {
   onRemove: (index: number) => void;
   accept?: string;
   maxSize?: number;
-  label?: string;
+  label?: ReactNode;
   description?: string;
 }
 
@@ -149,30 +148,39 @@ export function MediaUpload({
           </div>
         </div>
       ) : (
-        <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-            dragOver 
-              ? 'border-brand-a bg-brand-a/5' 
+        <label
+          className={`block border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+            dragOver
+              ? 'border-brand-a bg-brand-a/5'
               : 'border-gray-300 hover:border-gray-400'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-600 mb-2">
-            Drag and drop an image here, or click to select
-          </p>
-          <FileUpload
+          <input
+            type="file"
             accept={accept}
-            onUpload={(files) => {
-              const file = Array.isArray(files) ? files[0] : files;
-              if (file) onUpload(file);
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > maxSize) {
+                  return;
+                }
+                onUpload(file);
+              }
+              e.target.value = '';
             }}
-            maxSize={maxSize}
-            className="inline-block"
+            className="hidden"
           />
-        </div>
+          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">
+            Click to upload or drag and drop
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {accept === 'image/*' ? 'Images only' : 'Any file type'} &bull; Max {Math.round(maxSize / 1024 / 1024)}MB
+          </p>
+        </label>
       )}
     </div>
   );
@@ -246,21 +254,30 @@ export function MediaArrayUpload({
       )}
 
       {/* Upload new files */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+      <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer">
+        <input
+          type="file"
+          accept={accept}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              if (file.size > maxSize) {
+                return;
+              }
+              onUpload(file);
+            }
+            e.target.value = '';
+          }}
+          className="hidden"
+        />
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600">
           Add more images
         </p>
-        <FileUpload
-          accept={accept}
-          onUpload={(files) => {
-            const file = Array.isArray(files) ? files[0] : files;
-            if (file) onUpload(file);
-          }}
-          maxSize={maxSize}
-          className="inline-block"
-        />
-      </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {accept === 'image/*' ? 'Images only' : 'Any file type'} &bull; Max {Math.round(maxSize / 1024 / 1024)}MB
+        </p>
+      </label>
     </div>
   );
 }

@@ -3,9 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { IBanner, BannerTemplateType } from '@/types/banners/IBanner';
+import { IBanner, MediaType } from '@/types/banners/IBanner';
 import { Button } from '@/components/ui/Button';
-import { Eye, Edit, Trash2, Calendar, Target, Users, Download, EyeOff } from 'lucide-react';
+import { Eye, Edit, Trash2, Calendar, EyeOff, Youtube } from 'lucide-react';
 import { BackgroundType } from '@/types';
 
 interface BannerCardProps {
@@ -16,26 +16,13 @@ interface BannerCardProps {
   isToggling?: boolean;
 }
 
-const BannerCard = React.memo(function BannerCard({ 
-  banner, 
+const BannerCard = React.memo(function BannerCard({
+  banner,
   isLoading = false,
   onDelete,
   onToggleActive,
   isToggling = false
 }: BannerCardProps) {
-  const getTemplateTypeLabel = (type: BannerTemplateType): string => {
-    switch (type) {
-      case BannerTemplateType.GIVING_CAMPAIGN:
-        return 'Giving Campaign';
-      case BannerTemplateType.PARTNERSHIP_CHARTER:
-        return 'Partnership Charter';
-      case BannerTemplateType.RESOURCE_PROJECT:
-        return 'Resource Project';
-      default:
-        return type;
-    }
-  };
-
   const formatDate = (date: Date | string): string => {
     const d = new Date(date);
     return d.toLocaleDateString('en-GB', {
@@ -61,88 +48,20 @@ const BannerCard = React.memo(function BannerCard({
     }
   };
 
-
-  // Template-specific stats
-  const renderTemplateStats = () => {
-    switch (banner.TemplateType) {
-      case BannerTemplateType.GIVING_CAMPAIGN:
-        if (banner.GivingCampaign?.DonationGoal) {
-          const current = banner.GivingCampaign.DonationGoal.Current || 0;
-          const target = banner.GivingCampaign.DonationGoal.Target || 0;
-          const percentage = target > 0 ? Math.round((current / target) * 100) : 0;
-          
-          return (
-            <div className="template-stats giving-campaign">
-              <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
-                <Target className="w-3 h-3" />
-                <span>Donation Progress</span>
-              </div>
-              <div className="text-sm font-medium text-brand-k">
-                £{current.toLocaleString()} / £{target.toLocaleString()}
-              </div>
-              <div className="w-full bg-brand-q rounded-full h-2 mt-1">
-                <div 
-                  className="bg-brand-b h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
-              </div>
-              <div className="text-xs text-brand-f mt-1">{percentage}% funded</div>
-            </div>
-          );
-        }
-        break;
-        
-      case BannerTemplateType.PARTNERSHIP_CHARTER:
-        if (banner.PartnershipCharter?.SignatoriesCount !== undefined) {
-          return (
-            <div className="template-stats partnership-charter">
-              <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
-                <Users className="w-3 h-3" />
-                <span>Signatories</span>
-              </div>
-              <div className="text-sm font-medium text-brand-k">
-                {banner.PartnershipCharter.SignatoriesCount} signatures
-              </div>
-              {banner.PartnershipCharter.PartnerLogos && banner.PartnershipCharter.PartnerLogos.length > 0 && (
-                <div className="text-xs text-brand-f mt-1">
-                  {banner.PartnershipCharter.PartnerLogos.length} partner logo(s)
-                </div>
-              )}
-            </div>
-          );
-        }
-        break;
-        
-      case BannerTemplateType.RESOURCE_PROJECT:
-        if (banner.ResourceProject?.ResourceFile) {
-          return (
-            <div className="template-stats resource-project">
-              <div className="flex items-center gap-2 text-xs text-brand-f mb-1">
-                <Download className="w-3 h-3" />
-                <span>Resource File</span>
-              </div>
-              <div className="text-sm font-medium text-brand-k truncate" title={banner.ResourceProject.ResourceFile.FileName}>
-                {banner.ResourceProject.ResourceFile.FileName || 'Resource file available'}
-              </div>
-            </div>
-          );
-        }
-        break;
-    }
-    return null;
-  };
-
   return (
     <div className={`card card-compact ${isLoading ? 'loading-card' : ''}`}>
-      {/* Banner Preview/Thumbnail */}
-      <div 
+      <div
         className="banner-thumbnail relative h-32 flex items-center justify-center overflow-hidden"
         style={{
           backgroundColor: banner.Background?.Type === BackgroundType.SOLID ? banner.Background.Value : undefined,
           backgroundImage: banner.Background?.Type === BackgroundType.GRADIENT ? `${banner.Background.Value}` : undefined
         }}
       >
-        {banner.Logo?.Url && (
+        {banner.MediaType === MediaType.YOUTUBE ? (
+          <div className="flex items-center justify-center z-10">
+            <Youtube className="w-12 h-12 text-white opacity-80" />
+          </div>
+        ) : banner.Logo?.Url ? (
           <div className="relative h-16 w-32 z-10">
             <Image
               src={banner.Logo.Url}
@@ -151,18 +70,16 @@ const BannerCard = React.memo(function BannerCard({
               className="object-contain"
             />
           </div>
-        )}
-        
-        {/* Background Image if available */}
+        ) : null}
+
         {banner.Background?.Type === BackgroundType.IMAGE && (banner.BackgroundImage?.Url || banner.Background?.Value) && (
           <>
-            <div 
+            <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${banner.BackgroundImage?.Url || banner.Background?.Value})` }}
             />
-            {/* Overlay for image background */}
             {banner.Background?.Overlay && (
-              <div 
+              <div
                 className="absolute inset-0"
                 style={{
                   backgroundColor: banner.Background.Overlay.Colour,
@@ -173,21 +90,13 @@ const BannerCard = React.memo(function BannerCard({
             )}
           </>
         )}
-        
-        {/* Status Badge */}
+
         <div className="absolute top-2 right-2 flex gap-2">
           <span className={`service-tag ${banner.IsActive ? 'verified' : 'inactive'}`}>
             {banner.IsActive ? 'Active' : 'Inactive'}
           </span>
-          
-          {banner.GivingCampaign?.UrgencyLevel && (
-            <span className={`service-tag urgent ${banner.GivingCampaign.UrgencyLevel}`}>
-              {banner.GivingCampaign.UrgencyLevel.toUpperCase()}
-            </span>
-          )}
         </div>
-        
-        {/* Priority Badge */}
+
         <div className="absolute top-2 left-2">
           <span className="service-tag priority">
             Priority {banner.Priority}
@@ -195,9 +104,7 @@ const BannerCard = React.memo(function BannerCard({
         </div>
       </div>
 
-      {/* Banner Info */}
       <div className="p-4">
-        {/* Action Buttons */}
         <div className="flex items-center gap-2 mb-4">
           <Link href={`/banners/${banner._id}`} className="flex-1">
             <Button variant="primary" size="sm" className="w-full">
@@ -228,7 +135,7 @@ const BannerCard = React.memo(function BannerCard({
               <Eye className="w-4 h-4" />
             )}
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -240,19 +147,20 @@ const BannerCard = React.memo(function BannerCard({
           </Button>
         </div>
 
-        {/* Header */}
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="heading-5 line-clamp-1">{banner.Title}</h3>
           </div>
         </div>
 
-        {/* Template Type */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="service-tag template-type">
-            {getTemplateTypeLabel(banner.TemplateType)}
-          </span>
-          
+          {banner.MediaType === MediaType.YOUTUBE && (
+            <span className="service-tag flex items-center gap-1">
+              <Youtube className="w-3 h-3" />
+              YouTube
+            </span>
+          )}
+
           {banner.LocationSlug && (
             <span className="service-tag location">
               {banner.LocationSlug}
@@ -260,21 +168,12 @@ const BannerCard = React.memo(function BannerCard({
           )}
         </div>
 
-        {/* Description */}
         {banner.Description && (
           <p className="text-small text-brand-l mb-3 line-clamp-1" title={banner.Description}>
             {banner.Description}
           </p>
         )}
 
-        {/* Template-specific Stats */}
-        {renderTemplateStats() && (
-          <div className="mb-4 p-3 bg-brand-q rounded-lg">
-            {renderTemplateStats()}
-          </div>
-        )}
-
-        {/* Date Range Display - Only show if scheduled or EndDate is in future */}
         {banner.StartDate && banner.EndDate && (() => {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
