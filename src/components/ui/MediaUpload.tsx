@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import Image from 'next/image';
 import { Button } from './Button';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
@@ -12,7 +12,7 @@ interface MediaUploadProps {
   onRemove: () => void;
   accept?: string;
   maxSize?: number;
-  label?: string;
+  label?: ReactNode;
   description?: string;
   required?: boolean;
   multiple?: boolean;
@@ -24,7 +24,7 @@ interface MediaArrayUploadProps {
   onRemove: (index: number) => void;
   accept?: string;
   maxSize?: number;
-  label?: string;
+  label?: ReactNode;
   description?: string;
 }
 

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { RichTextEditor, BANNER_TOOLBAR_FEATURES, BANNER_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
 import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 import { Plus, Trash, Youtube, ImageIcon, FileText } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/Tooltip';
 import { IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant, MediaType } from '@/types';
 import { errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -486,7 +487,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
           {formData.MediaType === MediaType.IMAGE && (
             <MediaUpload
-              label="Banner Image"
+              label={<>Banner Image <InfoTooltip content="This image appears beside the text on split layouts, or below the text on full width layouts." /></>}
               value={formData.MainImage}
               onUpload={(file) => {
                 const imageUrl = URL.createObjectURL(file);
@@ -527,7 +528,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
 
           <MediaUpload
-            label="Logo"
+            label={<>Logo <InfoTooltip content="An optional logo displayed alongside the banner content. Use this to feature a partner or campaign logo." /></>}
             value={formData.Logo}
             onUpload={(file) => updateFormData('Logo', file)}
             onRemove={() => removeFile('Logo')}
@@ -540,7 +541,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2">Styling Options</h3>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Layout Style" required>
+            <FormField label={<>Layout Style <InfoTooltip content="Split Layout: Content on one side, media on the other. Full Width: Content spans the entire banner with media as background or below." /></>} required>
               <Select
                 value={formData.LayoutStyle}
                 onChange={(e) => updateFormData('LayoutStyle', e.target.value)}
@@ -548,7 +549,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
 
-            <FormField label="Text Colour" required>
+            <FormField label={<>Text Colour <InfoTooltip content="Choose white text for dark backgrounds or black text for light backgrounds to ensure readability." /></>} required>
               <Select
                 value={formData.TextColour}
                 onChange={(e) => updateFormData('TextColour', e.target.value)}
@@ -598,7 +599,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           {formData.Background.Type === BackgroundType.IMAGE && (
             <div className="space-y-4 p-4 rounded-md">
               <MediaUpload
-                label="Background Image"
+                label={<>Background Image <InfoTooltip content="Use an image as the banner background instead of a solid colour or gradient. Adjust the overlay settings below to ensure text remains readable." /></>}
                 value={formData.BackgroundImage}
                 onUpload={(file) => {
                   updateFormData('BackgroundImage', file);
@@ -680,7 +681,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   </FormField>
                 </div>
                 <div className="flex justify-between items-center">
-                  <FormField label="Button Style" required>
+                  <FormField label={<>Button Style <InfoTooltip content="Primary: Solid filled button for main actions. Secondary: Subtle filled button for alternative actions. Outline: Bordered button for less prominent actions." /></>} required>
                     <Select
                       value={button.Variant}
                       onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
@@ -711,7 +712,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         <div className="space-y-4 border-t border-brand-q pt-6">
-          <h3 className="heading-5 border-b border-brand-q pb-2">Attached File (Optional)</h3>
+          <h3 className="heading-5 border-b border-brand-q pb-2 flex items-center">Attached File (Optional) <InfoTooltip content="Upload a file to be linked from a CTA button or referenced in the banner description. The file URL will be provided after upload." className="ml-1.5" /></h3>
           <p className="text-sm text-brand-f">
             Upload a PDF, document, or image to link from CTA buttons.
           </p>
@@ -796,7 +797,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
 
-            <FormField label="Priority (1-10)" required>
+            <FormField label={<>Priority (1-10) <InfoTooltip content="Banners with higher priority (10) appear higher up the page than those with lower priority (1). Banners with equal priority rotate randomly." /></>} required>
               <Input
                 type="number"
                 value={formData.Priority}
