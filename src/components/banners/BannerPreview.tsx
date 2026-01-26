@@ -197,7 +197,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
 
             {props.description && (
               <div
-                className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none`}
+                className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none ${props.textColour === 'white' ? 'prose-invert' : ''}`}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtmlForDisplay(props.description) }}
               />
             )}
