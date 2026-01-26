@@ -118,7 +118,11 @@ function transformToPublicFormat(data: IBannerFormData) {
     startDate: data.StartDate,
     endDate: data.EndDate,
     mediaType: data.MediaType || MediaType.IMAGE,
-    youTubeUrl: data.YouTubeUrl
+    youTubeUrl: data.YouTubeUrl,
+    border: data.Border ? {
+      showBorder: data.Border.ShowBorder || false,
+      colour: data.Border.Colour || '#f8c77c'
+    } : undefined
   };
 }
 
@@ -139,13 +143,21 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
     return { backgroundColor: props.background.value };
   };
 
+  const getBorderStyle = (): React.CSSProperties => {
+    if (!props.border?.showBorder) return {};
+    return {
+      borderTop: `50px solid ${props.border.colour}`,
+      borderBottom: `50px solid ${props.border.colour}`,
+    };
+  };
+
   const textColourClass = props.textColour === 'white' ? 'text-white' : 'text-brand-k';
   const isSplitLayout = props.layoutStyle === 'split';
 
   return (
     <div
       className={`relative overflow-hidden ${className}`}
-      style={getBackgroundStyle()}
+      style={{ ...getBackgroundStyle(), ...getBorderStyle() }}
     >
       {props.background.type === 'image' && props.background.overlay && (
         <div

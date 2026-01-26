@@ -86,6 +86,21 @@ const CTA_VARIANTS = [
   { value: CTAVariant.OUTLINE, label: 'Outline' }
 ];
 
+const GRADIENT_DIRECTIONS = [
+  { value: 'to bottom', label: 'Top to Bottom' },
+  { value: 'to top', label: 'Bottom to Top' },
+  { value: 'to right', label: 'Left to Right' },
+  { value: 'to left', label: 'Right to Left' },
+  { value: 'to bottom right', label: 'Diagonal (Top-Left to Bottom-Right)' },
+  { value: 'to bottom left', label: 'Diagonal (Top-Right to Bottom-Left)' },
+  { value: 'to top right', label: 'Diagonal (Bottom-Left to Top-Right)' },
+  { value: 'to top left', label: 'Diagonal (Bottom-Right to Top-Left)' },
+];
+
+function generateGradientValue(startColour: string, endColour: string, direction: string): string {
+  return `linear-gradient(${direction}, ${startColour} 0%, ${endColour} 100%)`;
+}
+
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
 
@@ -123,10 +138,17 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       Background: {
         Type: BackgroundType.SOLID,
         Value: '#38ae8e',
+        GradientStartColour: '#667eea',
+        GradientEndColour: '#764ba2',
+        GradientDirection: 'to bottom',
         Overlay: {
           Colour: 'rgba(0,0,0,0.5)',
           Opacity: 0.5
         }
+      },
+      Border: {
+        ShowBorder: false,
+        Colour: '#f8c77c'
       },
       CtaButtons: [
         {
@@ -165,6 +187,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           ...initialData.Background.Overlay,
         } : defaults.Background.Overlay,
       } : defaults.Background,
+      Border: initialData.Border ? {
+        ...defaults.Border,
+        ...initialData.Border,
+      } : defaults.Border,
       CtaButtons: initialData?.CtaButtons ?? defaults.CtaButtons,
     };
   });
@@ -270,6 +296,13 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
         if (previousBackgroundType === BackgroundType.IMAGE && newBackgroundType !== BackgroundType.IMAGE) {
           newData.Background.Value = '#38ae8e';
+        }
+
+        if (newBackgroundType === BackgroundType.GRADIENT) {
+          const startColour = newData.Background.GradientStartColour || '#667eea';
+          const endColour = newData.Background.GradientEndColour || '#764ba2';
+          const direction = newData.Background.GradientDirection || 'to bottom';
+          newData.Background.Value = generateGradientValue(startColour, endColour, direction);
         }
       }
 
@@ -448,7 +481,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               allowedTags={BANNER_ALLOWED_TAGS}
             />
             <p className="text-xs text-brand-f mt-1">
-              {getTextLengthFromHtml(formData.Description || '')}/550 characters
+              {getTextLengthFromHtml(formData.Description || '')}/600 characters
             </p>
           </FormField>
         </div>
@@ -587,13 +620,54 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
 
           {formData.Background.Type === BackgroundType.GRADIENT && (
-            <FormField label="CSS Gradient" required>
-              <Input
-                value={formData.Background.Value}
-                onChange={(e) => updateFormData('Background.Value', e.target.value)}
-                placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-              />
-            </FormField>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Start Colour" required>
+                  <Input
+                    type="color"
+                    value={formData.Background.GradientStartColour || '#667eea'}
+                    onChange={(e) => {
+                      updateFormData('Background.GradientStartColour', e.target.value);
+                      updateFormData('Background.Value', generateGradientValue(
+                        e.target.value,
+                        formData.Background.GradientEndColour || '#764ba2',
+                        formData.Background.GradientDirection || 'to bottom'
+                      ));
+                    }}
+                    className="h-10"
+                  />
+                </FormField>
+                <FormField label="End Colour" required>
+                  <Input
+                    type="color"
+                    value={formData.Background.GradientEndColour || '#764ba2'}
+                    onChange={(e) => {
+                      updateFormData('Background.GradientEndColour', e.target.value);
+                      updateFormData('Background.Value', generateGradientValue(
+                        formData.Background.GradientStartColour || '#667eea',
+                        e.target.value,
+                        formData.Background.GradientDirection || 'to bottom'
+                      ));
+                    }}
+                    className="h-10"
+                  />
+                </FormField>
+              </div>
+              <FormField label="Direction">
+                <Select
+                  value={formData.Background.GradientDirection || 'to bottom'}
+                  onChange={(e) => {
+                    updateFormData('Background.GradientDirection', e.target.value);
+                    updateFormData('Background.Value', generateGradientValue(
+                      formData.Background.GradientStartColour || '#667eea',
+                      formData.Background.GradientEndColour || '#764ba2',
+                      e.target.value
+                    ));
+                  }}
+                  options={GRADIENT_DIRECTIONS}
+                />
+              </FormField>
+            </div>
           )}
 
           {formData.Background.Type === BackgroundType.IMAGE && (
@@ -645,6 +719,33 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               </div>
             </div>
           )}
+
+          <div className="space-y-3 pt-4 border-t border-brand-q">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Show Border
+                </label>
+                <InfoTooltip content="Add decorative borders at the top and bottom of the banner. This style is commonly used for campaign banners." />
+              </div>
+              <Checkbox
+                label=""
+                checked={formData.Border?.ShowBorder ?? false}
+                onChange={(e) => updateFormData('Border.ShowBorder', (e.target as HTMLInputElement).checked)}
+              />
+            </div>
+
+            {formData.Border?.ShowBorder && (
+              <FormField label="Border Colour">
+                <Input
+                  type="color"
+                  value={formData.Border?.Colour || '#f8c77c'}
+                  onChange={(e) => updateFormData('Border.Colour', e.target.value)}
+                  className="h-10"
+                />
+              </FormField>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 border-t border-brand-q pt-6">
