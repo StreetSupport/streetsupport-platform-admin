@@ -1483,6 +1483,29 @@ select:disabled {
   @apply border-t border-brand-q my-6;
 }
 
+.prose-invert {
+  @apply text-white;
+}
+
+.prose-invert h1,
+.prose-invert h2,
+.prose-invert h3,
+.prose-invert h4 {
+  @apply text-white;
+}
+
+.prose-invert li {
+  @apply text-white;
+}
+
+.prose-invert strong {
+  @apply text-white;
+}
+
+.prose-invert a {
+  @apply text-white underline hover:text-gray-200;
+}
+
 /* Custom Select Dropdown - Cross-browser compatibility */
 .custom-select {
   /* Remove default styling */
