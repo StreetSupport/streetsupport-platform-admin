@@ -8,9 +8,11 @@ import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IUploadedFile } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { RichTextEditor, BANNER_TOOLBAR_FEATURES, BANNER_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 import { Plus, Trash, Youtube, ImageIcon, FileText } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/Tooltip';
 import { IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant, MediaType } from '@/types';
 import { errorToast } from '@/utils/toast';
 import { authenticatedFetch } from '@/utils/authenticatedFetch';
@@ -84,6 +86,21 @@ const CTA_VARIANTS = [
   { value: CTAVariant.OUTLINE, label: 'Outline' }
 ];
 
+const GRADIENT_DIRECTIONS = [
+  { value: 'to bottom', label: 'Top to Bottom' },
+  { value: 'to top', label: 'Bottom to Top' },
+  { value: 'to right', label: 'Left to Right' },
+  { value: 'to left', label: 'Right to Left' },
+  { value: 'to bottom right', label: 'Diagonal (Top-Left to Bottom-Right)' },
+  { value: 'to bottom left', label: 'Diagonal (Top-Right to Bottom-Left)' },
+  { value: 'to top right', label: 'Diagonal (Bottom-Left to Top-Right)' },
+  { value: 'to top left', label: 'Diagonal (Bottom-Right to Top-Left)' },
+];
+
+function generateGradientValue(startColour: string, endColour: string, direction: string): string {
+  return `linear-gradient(${direction}, ${startColour} 0%, ${endColour} 100%)`;
+}
+
 export function BannerEditor({ initialData, onDataChange, onSave, saving = false, onCancel, errorMessage, validationErrors = [] }: BannerEditorProps) {
   const [cities, setCities] = useState<ICity[]>([]);
 
@@ -121,10 +138,17 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       Background: {
         Type: BackgroundType.SOLID,
         Value: '#38ae8e',
+        GradientStartColour: '#667eea',
+        GradientEndColour: '#764ba2',
+        GradientDirection: 'to bottom',
         Overlay: {
           Colour: 'rgba(0,0,0,0.5)',
           Opacity: 0.5
         }
+      },
+      Border: {
+        ShowBorder: false,
+        Colour: '#f8c77c'
       },
       CtaButtons: [
         {
@@ -163,6 +187,10 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           ...initialData.Background.Overlay,
         } : defaults.Background.Overlay,
       } : defaults.Background,
+      Border: initialData.Border ? {
+        ...defaults.Border,
+        ...initialData.Border,
+      } : defaults.Border,
       CtaButtons: initialData?.CtaButtons ?? defaults.CtaButtons,
     };
   });
@@ -268,6 +296,13 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
         if (previousBackgroundType === BackgroundType.IMAGE && newBackgroundType !== BackgroundType.IMAGE) {
           newData.Background.Value = '#38ae8e';
+        }
+
+        if (newBackgroundType === BackgroundType.GRADIENT) {
+          const startColour = newData.Background.GradientStartColour || '#667eea';
+          const endColour = newData.Background.GradientEndColour || '#764ba2';
+          const direction = newData.Background.GradientDirection || 'to bottom';
+          newData.Background.Value = generateGradientValue(startColour, endColour, direction);
         }
       }
 
@@ -437,14 +472,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </FormField>
 
           <FormField label="Description">
-            <Textarea
-              value={formData.Description}
-              onChange={(e) => updateFormData('Description', e.target.value)}
-              rows={3}
-              maxLength={550}
+            <RichTextEditor
+              value={formData.Description || ''}
+              onChange={(value) => updateFormData('Description', value)}
+              placeholder="Enter banner description..."
+              minHeight="120px"
+              toolbarFeatures={BANNER_TOOLBAR_FEATURES}
+              allowedTags={BANNER_ALLOWED_TAGS}
             />
             <p className="text-xs text-brand-f mt-1">
-              {formData.Description?.length || 0}/550 characters
+              {getTextLengthFromHtml(formData.Description || '')}/600 characters
             </p>
           </FormField>
         </div>
@@ -483,7 +520,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
           {formData.MediaType === MediaType.IMAGE && (
             <MediaUpload
-              label="Banner Image"
+              label={<>Banner Image <InfoTooltip content="This image appears beside the text on split layouts, or below the text on full width layouts." /></>}
               value={formData.MainImage}
               onUpload={(file) => {
                 const imageUrl = URL.createObjectURL(file);
@@ -524,7 +561,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
 
           <MediaUpload
-            label="Logo"
+            label={<>Logo <InfoTooltip content="An optional logo displayed alongside the banner content. Use this to feature a partner or campaign logo." /></>}
             value={formData.Logo}
             onUpload={(file) => updateFormData('Logo', file)}
             onRemove={() => removeFile('Logo')}
@@ -537,7 +574,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           <h3 className="heading-5 border-b border-brand-q pb-2">Styling Options</h3>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Layout Style" required>
+            <FormField label={<>Layout Style <InfoTooltip content="Split Layout: Content on one side, media on the other. Full Width: Content spans the entire banner with media as background or below." /></>} required>
               <Select
                 value={formData.LayoutStyle}
                 onChange={(e) => updateFormData('LayoutStyle', e.target.value)}
@@ -545,7 +582,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
 
-            <FormField label="Text Colour" required>
+            <FormField label={<>Text Colour <InfoTooltip content="Choose white text for dark backgrounds or black text for light backgrounds to ensure readability." /></>} required>
               <Select
                 value={formData.TextColour}
                 onChange={(e) => updateFormData('TextColour', e.target.value)}
@@ -583,19 +620,60 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           )}
 
           {formData.Background.Type === BackgroundType.GRADIENT && (
-            <FormField label="CSS Gradient" required>
-              <Input
-                value={formData.Background.Value}
-                onChange={(e) => updateFormData('Background.Value', e.target.value)}
-                placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-              />
-            </FormField>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Start Colour" required>
+                  <Input
+                    type="color"
+                    value={formData.Background.GradientStartColour || '#667eea'}
+                    onChange={(e) => {
+                      updateFormData('Background.GradientStartColour', e.target.value);
+                      updateFormData('Background.Value', generateGradientValue(
+                        e.target.value,
+                        formData.Background.GradientEndColour || '#764ba2',
+                        formData.Background.GradientDirection || 'to bottom'
+                      ));
+                    }}
+                    className="h-10"
+                  />
+                </FormField>
+                <FormField label="End Colour" required>
+                  <Input
+                    type="color"
+                    value={formData.Background.GradientEndColour || '#764ba2'}
+                    onChange={(e) => {
+                      updateFormData('Background.GradientEndColour', e.target.value);
+                      updateFormData('Background.Value', generateGradientValue(
+                        formData.Background.GradientStartColour || '#667eea',
+                        e.target.value,
+                        formData.Background.GradientDirection || 'to bottom'
+                      ));
+                    }}
+                    className="h-10"
+                  />
+                </FormField>
+              </div>
+              <FormField label="Direction">
+                <Select
+                  value={formData.Background.GradientDirection || 'to bottom'}
+                  onChange={(e) => {
+                    updateFormData('Background.GradientDirection', e.target.value);
+                    updateFormData('Background.Value', generateGradientValue(
+                      formData.Background.GradientStartColour || '#667eea',
+                      formData.Background.GradientEndColour || '#764ba2',
+                      e.target.value
+                    ));
+                  }}
+                  options={GRADIENT_DIRECTIONS}
+                />
+              </FormField>
+            </div>
           )}
 
           {formData.Background.Type === BackgroundType.IMAGE && (
             <div className="space-y-4 p-4 rounded-md">
               <MediaUpload
-                label="Background Image"
+                label={<>Background Image <InfoTooltip content="Use an image as the banner background instead of a solid colour or gradient. Adjust the overlay settings below to ensure text remains readable." /></>}
                 value={formData.BackgroundImage}
                 onUpload={(file) => {
                   updateFormData('BackgroundImage', file);
@@ -641,6 +719,33 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               </div>
             </div>
           )}
+
+          <div className="space-y-3 pt-4 border-t border-brand-q">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Show Border
+                </label>
+                <InfoTooltip content="Add decorative borders at the top and bottom of the banner. This style is commonly used for campaign banners." />
+              </div>
+              <Checkbox
+                label=""
+                checked={formData.Border?.ShowBorder ?? false}
+                onChange={(e) => updateFormData('Border.ShowBorder', (e.target as HTMLInputElement).checked)}
+              />
+            </div>
+
+            {formData.Border?.ShowBorder && (
+              <FormField label="Border Colour">
+                <Input
+                  type="color"
+                  value={formData.Border?.Colour || '#f8c77c'}
+                  onChange={(e) => updateFormData('Border.Colour', e.target.value)}
+                  className="h-10"
+                />
+              </FormField>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 border-t border-brand-q pt-6">
@@ -677,7 +782,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   </FormField>
                 </div>
                 <div className="flex justify-between items-center">
-                  <FormField label="Button Style" required>
+                  <FormField label={<>Button Style <InfoTooltip content="Primary: Solid filled button for main actions. Secondary: Subtle filled button for alternative actions. Outline: Bordered button for less prominent actions." /></>} required>
                     <Select
                       value={button.Variant}
                       onChange={(e) => updateCTAButton(index, 'Variant', (e.target as HTMLSelectElement).value as CTAVariant)}
@@ -708,7 +813,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         </div>
 
         <div className="space-y-4 border-t border-brand-q pt-6">
-          <h3 className="heading-5 border-b border-brand-q pb-2">Attached File (Optional)</h3>
+          <h3 className="heading-5 border-b border-brand-q pb-2 flex items-center">Attached File (Optional) <InfoTooltip content="Upload a file to be linked from a CTA button or referenced in the banner description. The file URL will be provided after upload." className="ml-1.5" /></h3>
           <p className="text-sm text-brand-f">
             Upload a PDF, document, or image to link from CTA buttons.
           </p>
@@ -793,7 +898,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               />
             </FormField>
 
-            <FormField label="Priority (1-10)" required>
+            <FormField label={<>Priority (1-10) <InfoTooltip content="Banners with higher priority (10) appear higher up the page than those with lower priority (1). Banners with equal priority rotate randomly." /></>} required>
               <Input
                 type="number"
                 value={formData.Priority}

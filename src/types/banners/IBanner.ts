@@ -1,5 +1,6 @@
 import { IMediaAsset } from './IMediaAsset';
 import { IBannerBackground, ICTAButton } from '@/types/index';
+import { IBannerBorder } from './IBannerBorder';
 
 export enum MediaType {
   IMAGE = 'image',
@@ -33,6 +34,7 @@ export interface IBanner {
   CtaButtons?: ICTAButton[];
 
   Background: IBannerBackground;
+  Border?: IBannerBorder;
   TextColour: TextColour;
   LayoutStyle: LayoutStyle;
 

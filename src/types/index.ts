@@ -19,5 +19,6 @@ export * from './organisations/IClientGroup';
 // Banner related types
 export * from './banners/IBanner';
 export * from './banners/IBannerBackground';
+export * from './banners/IBannerBorder';
 export * from './banners/ICTAButton';
 export * from './banners/IMediaAsset';
