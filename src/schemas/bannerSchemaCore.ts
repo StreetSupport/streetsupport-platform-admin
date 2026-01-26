@@ -7,6 +7,7 @@ import {
   CTAVariant,
   MediaType,
 } from '@/types/index';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 export const MediaAssetSchemaCore = z.object({
   Url: z.string().optional(),
@@ -53,7 +54,7 @@ export const UploadedFileSchemaCore = z.object({
   FileName: z.string().min(1, 'File name is required'),
   FileSize: z.string().optional(),
   FileType: z.string().optional()
-}).optional();
+}).nullable().optional();
 
 export const MediaTypeSchema = z.nativeEnum(MediaType).default(MediaType.IMAGE);
 
@@ -66,7 +67,13 @@ export const YouTubeUrlSchema = z.string()
 
 export const BannerSchemaCore = z.object({
   Title: z.string().min(1, 'Title is required').max(100, 'Title must be 100 characters or less'),
-  Description: z.string().max(600, 'Description must be 600 characters or less').optional(),
+  Description: z.string()
+    .max(2000, 'Description content too long')
+    .refine(
+      (val) => getTextLengthFromHtml(val) <= 600,
+      'Description must be 600 characters or less'
+    )
+    .optional(),
   Subtitle: z.string().max(50, 'Subtitle must be 50 characters or less').optional(),
 
   MediaType: MediaTypeSchema,
