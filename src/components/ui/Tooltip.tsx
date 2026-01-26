@@ -80,7 +80,7 @@ export function Tooltip({ content, children, position = 'top', className = '' }:
           role="tooltip"
           className={`absolute z-50 ${positionClasses[adjustedPosition]}`}
         >
-          <div className="bg-brand-k text-white text-xs px-3 py-2 rounded-md shadow-lg whitespace-normal" style={{ maxWidth: '400px' }}>
+          <div className="bg-brand-k text-white text-xs px-3 py-2 rounded-md shadow-lg whitespace-normal" style={{ width: 'max-content', maxWidth: '400px' }}>
             {content}
           </div>
           <div
