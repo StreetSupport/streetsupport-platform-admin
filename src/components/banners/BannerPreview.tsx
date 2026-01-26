@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { IBannerFormData, LayoutStyle, MediaType } from '@/types/banners/IBanner';
 import { BackgroundType, CTAVariant, type IMediaAsset } from '@/types';
+import { sanitizeHtmlForDisplay } from '@/components/ui/RichTextEditor';
 
 interface BannerPreviewProps {
   data: IBannerFormData;
@@ -183,9 +184,10 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
             </h2>
 
             {props.description && (
-              <p className={`text-lg ${textColourClass} opacity-90`}>
-                {props.description}
-              </p>
+              <div
+                className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none`}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtmlForDisplay(props.description) }}
+              />
             )}
 
             {props.ctaButtons.length > 0 && (

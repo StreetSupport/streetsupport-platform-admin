@@ -8,8 +8,9 @@ import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IUploadedFile } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { RichTextEditor, BANNER_TOOLBAR_FEATURES, BANNER_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 import { Plus, Trash, Youtube, ImageIcon, FileText } from 'lucide-react';
 import { IBannerFormData, LayoutStyle, TextColour, BackgroundType, CTAVariant, MediaType } from '@/types';
 import { errorToast } from '@/utils/toast';
@@ -437,14 +438,16 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </FormField>
 
           <FormField label="Description">
-            <Textarea
-              value={formData.Description}
-              onChange={(e) => updateFormData('Description', e.target.value)}
-              rows={3}
-              maxLength={550}
+            <RichTextEditor
+              value={formData.Description || ''}
+              onChange={(value) => updateFormData('Description', value)}
+              placeholder="Enter banner description..."
+              minHeight="120px"
+              toolbarFeatures={BANNER_TOOLBAR_FEATURES}
+              allowedTags={BANNER_ALLOWED_TAGS}
             />
             <p className="text-xs text-brand-f mt-1">
-              {formData.Description?.length || 0}/550 characters
+              {getTextLengthFromHtml(formData.Description || '')}/550 characters
             </p>
           </FormField>
         </div>
