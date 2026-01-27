@@ -120,10 +120,10 @@ export function AddLocationModal({
       });
     }
     
-    // Validate opening times if not 24/7
-    if (!currentLocation.IsOpen247) {
+    // Validate opening times if not 24/7 and not appointment only
+    if (!currentLocation.IsOpen247 && !currentLocation.IsAppointmentOnly) {
       if (currentLocation.OpeningTimes.length === 0) {
-        errors.push({ Path: 'Opening Times', Message: 'At least one opening time is required when location is not open 24/7' });
+        errors.push({ Path: 'Opening Times', Message: 'At least one opening time is required when location is not open 24/7 and not appointment only' });
       } else {
         // Validate each opening time using OpeningTimeFormSchema
         for (const openingTime of currentLocation.OpeningTimes) {
@@ -395,7 +395,7 @@ export function AddLocationModal({
                   />
                 </div>
 
-                {!currentLocation.IsOpen247 && (
+                {!currentLocation.IsOpen247 && !currentLocation.IsAppointmentOnly && (
                   <OpeningTimesManager
                     openingTimes={currentLocation.OpeningTimes}
                     onChange={handleOpeningTimesChange}
