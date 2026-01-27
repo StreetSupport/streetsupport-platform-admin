@@ -809,7 +809,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         />
                       </div>
 
-                      {!formData.IsOpen247 && (
+                      {!formData.IsOpen247 && !formData.IsAppointmentOnly && (
                         <OpeningTimesManager
                           openingTimes={formData.OpeningTimes || []}
                           onChange={handleOpeningTimesChange}
