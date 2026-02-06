@@ -67,7 +67,8 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
     Website: organisation.Website || '',
     Facebook: organisation.Facebook || '',
     Twitter: organisation.Twitter || '',
-    Bluesky: organisation.Bluesky || '', // Added missing field
+    Bluesky: organisation.Bluesky || '',
+    Instagram: organisation.Instagram || '',
     Addresses: (organisation.Addresses || []).map(address => ({
       ...address,
       Street: decodeText(address.Street || ''),
