@@ -54,20 +54,22 @@ const BannerCard = React.memo(function BannerCard({
         className="banner-thumbnail relative h-32 flex items-center justify-center overflow-hidden"
         style={{
           backgroundColor: banner.Background?.Type === BackgroundType.SOLID ? banner.Background.Value : undefined,
-          backgroundImage: banner.Background?.Type === BackgroundType.GRADIENT ? `${banner.Background.Value}` : undefined
+          backgroundImage: banner.Background?.Type === BackgroundType.GRADIENT ? `${banner.Background.Value}` : undefined,
+          borderTop: banner.Border?.ShowBorder ? `6px solid ${banner.Border.Colour}` : undefined,
+          borderBottom: banner.Border?.ShowBorder ? `6px solid ${banner.Border.Colour}` : undefined
         }}
       >
         {banner.MediaType === MediaType.YOUTUBE ? (
           <div className="flex items-center justify-center z-10">
             <Youtube className="w-12 h-12 text-white opacity-80" />
           </div>
-        ) : banner.Logo?.Url ? (
-          <div className="relative h-16 w-32 z-10">
+        ) : banner.MainImage?.Url ? (
+          <div className="relative h-full w-full z-10 flex items-center justify-center">
             <Image
-              src={banner.Logo.Url}
-              alt={banner.Logo.Alt || 'Banner logo'}
+              src={banner.MainImage.Url}
+              alt={banner.MainImage.Alt || 'Banner image'}
               fill
-              className="object-contain"
+              className="object-contain p-2"
             />
           </div>
         ) : null}

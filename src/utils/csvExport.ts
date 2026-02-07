@@ -86,6 +86,7 @@ export function organisationsToCsv(organisations: IOrganisation[]): string {
     'Facebook',
     'Twitter',
     'Bluesky',
+    'Instagram',
     'Tags'
   );
 
@@ -121,6 +122,7 @@ export function organisationsToCsv(organisations: IOrganisation[]): string {
       escapeCsvField(org.Facebook || 'NOT_INITIALISED'),
       escapeCsvField(org.Twitter || 'NOT_INITIALISED'),
       escapeCsvField(org.Bluesky || 'NOT_INITIALISED'),
+      escapeCsvField(org.Instagram || 'NOT_INITIALISED'),
       escapeCsvField(org.Tags || 'NOT_INITIALISED')
     );
 
