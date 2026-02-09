@@ -52,6 +52,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     Facebook: '',
     Twitter: '',
     Bluesky: '',
+    Instagram: '',
     Addresses: [],
     Administrators: [],
     ...initialData
@@ -342,6 +343,17 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               value={formData.Bluesky}
               onChange={(e) => updateFormData('Bluesky', e.target.value)}
               placeholder={viewMode ? '' : 'https://bsky.app/profile/organisation'}
+              type="url"
+              disabled={viewMode}
+            />
+          </FormField>
+
+          <FormField label="Instagram">
+            <Input
+              id="org-instagram"
+              value={formData.Instagram}
+              onChange={(e) => updateFormData('Instagram', e.target.value)}
+              placeholder={viewMode ? '' : 'https://instagram.com/organisation'}
               type="url"
               disabled={viewMode}
             />

@@ -30,6 +30,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     LayoutStyle: banner.LayoutStyle,
     TextColour: banner.TextColour,
     Background: banner.Background,
+    Border: banner.Border,
     CtaButtons: banner.CtaButtons || [],
     IsActive: banner.IsActive,
     Priority: banner.Priority,
