@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isValidPostcodeFormat } from '@/utils/postcodeValidation';
 import { preprocessNullableString } from './validationHelpers';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 // Location Schema for services with conditional validation based on IsOutreachLocation
 export const ServiceLocationSchema = z.object({
@@ -90,7 +91,10 @@ export const GroupedServiceSchema = z.object({
   CategoryId: z.string().min(1, 'Category is required'),
   CategoryName: z.preprocess(preprocessNullableString, z.string().optional()),
   CategorySynopsis: z.preprocess(preprocessNullableString, z.string().optional()),
-  Info: z.preprocess(preprocessNullableString, z.string().optional()),
+  Info: z.preprocess(preprocessNullableString, z.string().optional().refine(
+    (val) => !val || getTextLengthFromHtml(val) <= 1600,
+    'Description must be 1,600 characters or fewer'
+  )),
   Location: ServiceLocationSchema,
   IsOpen247: z.boolean().default(false),
   OpeningTimes: z.array(OpeningTimeFormSchema).optional(),
@@ -155,6 +159,11 @@ export interface IGroupedServiceFormData {
 
 // Helper function to transform error paths to user-friendly names
 export function transformErrorPath(path: string): string {
+  // Handle Info
+  if (path === 'Info') {
+    return 'Description';
+  }
+
   // Handle CategoryId
   if (path === 'CategoryId') {
     return 'Category';

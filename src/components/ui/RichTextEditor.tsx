@@ -67,6 +67,18 @@ export const BANNER_TOOLBAR_FEATURES: ToolbarFeatures = {
 
 export const BANNER_ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'a'];
 
+export const DESCRIPTION_TOOLBAR_FEATURES: ToolbarFeatures = {
+  headings: false,
+  bold: true,
+  italic: true,
+  underline: true,
+  lists: true,
+  links: true,
+  undoRedo: true,
+};
+
+export const DESCRIPTION_ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a'];
+
 export interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
