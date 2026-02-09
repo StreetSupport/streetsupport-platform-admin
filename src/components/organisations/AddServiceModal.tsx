@@ -213,7 +213,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     let openingTimes: IOpeningTimeFormData[] = [];
     
     if (checked) {
-      // Generate 24/7 opening times for all days (Sunday=0 to Saturday=6)
+      // Generate 24/7 opening times for all days (Monday=0 to Sunday=6)
       // IsOpen247 has priority - even if IsAppointmentOnly is also checked
       openingTimes = Array.from({ length: 7 }, (_, day) => ({
         Day: day,

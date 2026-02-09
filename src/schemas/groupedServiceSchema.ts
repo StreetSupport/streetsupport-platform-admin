@@ -56,7 +56,7 @@ export const ServiceLocationSchema = z.object({
 
 // Opening Time Schema (using string format for form inputs)
 export const OpeningTimeFormSchema = z.object({
-  Day: z.number().min(0).max(6, 'Day must be between 0 (Sunday) and 6 (Saturday)'),
+  Day: z.number().min(0).max(6, 'Day must be between 0 (Monday) and 6 (Sunday)'),
   StartTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format'),
   EndTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'End time must be in HH:MM format'),
 }).refine((data) => {

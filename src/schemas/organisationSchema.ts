@@ -14,7 +14,7 @@ export const LocationCoordinatesSchema = z.object({
 
 // Form schema: Uses string times (HH:MM format) for form inputs
 export const OpeningTimeFormSchema = z.object({
-  Day: z.number().min(0).max(6, 'Day must be between 0 (Sunday) and 6 (Saturday)'),
+  Day: z.number().min(0).max(6, 'Day must be between 0 (Monday) and 6 (Sunday)'),
   StartTime: timeStringSchema,
   EndTime: timeStringSchema,
 }).refine((data) => {
@@ -28,7 +28,7 @@ export const OpeningTimeFormSchema = z.object({
 
 // API schema: Uses number times (e.g., 900 for 09:00) for database storage
 export const OpeningTimeSchema = z.object({
-  Day: z.number().min(0).max(6, 'Day must be between 0 (Sunday) and 6 (Saturday)'),
+  Day: z.number().min(0).max(6, 'Day must be between 0 (Monday) and 6 (Sunday)'),
   StartTime: z.number().min(0).max(2359, 'Start time must be between 0 and 2359'),
   EndTime: z.number().min(0).max(2359, 'End time must be between 0 and 2359'),
 }).refine((data) => {
