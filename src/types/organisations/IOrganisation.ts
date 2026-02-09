@@ -22,6 +22,7 @@ export interface IOrganisation {
     Facebook?: string;
     Twitter?: string;
     Bluesky?: string;
+    Instagram?: string;
     Addresses: IAddress[];
     Notes: INote[];
     Administrators: IAdministrator[];

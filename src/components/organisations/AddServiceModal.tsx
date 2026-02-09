@@ -375,7 +375,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
     // Then validate the rest using GroupedServiceSchema
     const result = validateGroupedService(formData);
-    
+
     // Combine all errors
     const allErrors: { Path: string; Message: string }[] = [];
     if (!result.success) {

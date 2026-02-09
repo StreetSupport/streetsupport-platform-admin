@@ -8,6 +8,7 @@ import { FormField } from '@/components/ui/FormField';
 import type { ICity, ICTAButton, IUploadedFile } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ColourPicker } from '@/components/ui/ColourPicker';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { RichTextEditor, BANNER_TOOLBAR_FEATURES, BANNER_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
 import { getTextLengthFromHtml } from '@/utils/htmlUtils';
@@ -610,11 +611,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
           {formData.Background.Type === BackgroundType.SOLID && (
             <FormField label="Background Colour" required>
-              <Input
-                type="color"
+              <ColourPicker
                 value={formData.Background.Value}
-                onChange={(e) => updateFormData('Background.Value', e.target.value)}
-                className="h-10"
+                onChange={(value) => updateFormData('Background.Value', value)}
               />
             </FormField>
           )}
@@ -623,33 +622,29 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Start Colour" required>
-                  <Input
-                    type="color"
+                  <ColourPicker
                     value={formData.Background.GradientStartColour || '#667eea'}
-                    onChange={(e) => {
-                      updateFormData('Background.GradientStartColour', e.target.value);
+                    onChange={(value) => {
+                      updateFormData('Background.GradientStartColour', value);
                       updateFormData('Background.Value', generateGradientValue(
-                        e.target.value,
+                        value,
                         formData.Background.GradientEndColour || '#764ba2',
                         formData.Background.GradientDirection || 'to bottom'
                       ));
                     }}
-                    className="h-10"
                   />
                 </FormField>
                 <FormField label="End Colour" required>
-                  <Input
-                    type="color"
+                  <ColourPicker
                     value={formData.Background.GradientEndColour || '#764ba2'}
-                    onChange={(e) => {
-                      updateFormData('Background.GradientEndColour', e.target.value);
+                    onChange={(value) => {
+                      updateFormData('Background.GradientEndColour', value);
                       updateFormData('Background.Value', generateGradientValue(
                         formData.Background.GradientStartColour || '#667eea',
-                        e.target.value,
+                        value,
                         formData.Background.GradientDirection || 'to bottom'
                       ));
                     }}
-                    className="h-10"
                   />
                 </FormField>
               </div>
@@ -690,33 +685,21 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               <h4 className="text-sm font-semibold text-brand-k">Image Overlay Settings</h4>
               <p className="text-xs text-brand-f mb-3">Add a colour overlay to improve text readability on the background image</p>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Overlay Colour" required>
-                  <Input
-                    type="color"
-                    value={formData.Background.Overlay?.Colour?.startsWith('#')
-                      ? formData.Background.Overlay.Colour
-                      : '#000000'}
-                    onChange={(e) => {
-                      const hex = e.target.value;
-                      updateFormData('Background.Overlay.Colour', hex);
-                    }}
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label={`Opacity (${Math.round((formData.Background.Overlay?.Opacity ?? 0.5) * 100)}%)`} required>
-                  <Input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={formData.Background.Overlay?.Opacity ?? 0.5}
-                    onChange={(e) => updateFormData('Background.Overlay.Opacity', parseFloat(e.target.value))}
-                    className="w-full"
-                  />
-                </FormField>
-              </div>
+              <FormField label="Overlay Colour" required>
+                <ColourPicker
+                  value={formData.Background.Overlay?.Colour || 'rgba(0,0,0,0.5)'}
+                  onChange={(value) => {
+                    updateFormData('Background.Overlay.Colour', value);
+                    const rgbaMatch = value.match(/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)$/);
+                    if (rgbaMatch) {
+                      updateFormData('Background.Overlay.Opacity', parseFloat(rgbaMatch[1]));
+                    } else {
+                      updateFormData('Background.Overlay.Opacity', 1);
+                    }
+                  }}
+                  enableOpacity
+                />
+              </FormField>
             </div>
           )}
 
@@ -737,11 +720,9 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
             {formData.Border?.ShowBorder && (
               <FormField label="Border Colour">
-                <Input
-                  type="color"
+                <ColourPicker
                   value={formData.Border?.Colour || '#f8c77c'}
-                  onChange={(e) => updateFormData('Border.Colour', e.target.value)}
-                  className="h-10"
+                  onChange={(value) => updateFormData('Border.Colour', value)}
                 />
               </FormField>
             )}
