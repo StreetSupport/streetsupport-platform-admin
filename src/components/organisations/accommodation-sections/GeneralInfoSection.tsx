@@ -4,6 +4,8 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Select } from '@/components/ui/Select';
+import { RichTextEditor, DESCRIPTION_TOOLBAR_FEATURES, DESCRIPTION_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 import { ACCOMMODATION_TYPES } from '@/types/organisations/IAccommodation';
 import { IAccommodationFormData } from '@/types';
 
@@ -50,15 +52,18 @@ export function GeneralInfoSection({ formData, onChange, viewMode = false }: Gen
       </FormField>
 
       <FormField label="Description">
-        <textarea
-          id="description"
+        <RichTextEditor
           value={formData.Description || ''}
-          onChange={(e) => onChange('GeneralInfo.Description', e.target.value)}
-          rows={4}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-a focus:border-transparent sm:text-sm"
-          placeholder={viewMode ? '' : 'Detailed description of the accommodation'}
+          onChange={(value) => onChange('GeneralInfo.Description', value)}
+          placeholder="Detailed description of the accommodation"
+          minHeight="150px"
+          toolbarFeatures={DESCRIPTION_TOOLBAR_FEATURES}
+          allowedTags={DESCRIPTION_ALLOWED_TAGS}
           disabled={viewMode}
         />
+        <p className="text-xs text-brand-f mt-1">
+          {getTextLengthFromHtml(formData.Description || '')}/1,800 characters
+        </p>
       </FormField>
 
       <Checkbox
