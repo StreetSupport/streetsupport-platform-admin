@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { FormField } from '@/components/ui/FormField';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { MultiSelect } from '@/components/ui/MultiSelect';
+import { RichTextEditor, DESCRIPTION_TOOLBAR_FEATURES, DESCRIPTION_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
 import { IOrganisationFormData, IAddressFormData, ORGANISATION_TAGS } from '@/types/organisations/IOrganisation';
 import { ICity } from '@/types';
 import { validateOrganisation, transformErrorPath } from '@/schemas/organisationSchema';
@@ -13,6 +14,8 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
 import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { LocationManager } from './LocationManager';
+import { prepareContentForEditor } from '@/utils/htmlUtils';
+import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 
 export interface OrganisationFormRef {
@@ -36,6 +39,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
 }, ref) => {
   const [locations, setLocations] = useState<ICity[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const descriptionPreparedRef = useRef(false);
 
   const [formData, setFormData] = useState<IOrganisationFormData>({
     Key: '',
@@ -57,6 +61,17 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
     Administrators: [],
     ...initialData
   });
+
+  // Prepare legacy description content for the editor on initial load
+  useEffect(() => {
+    if (!descriptionPreparedRef.current && formData.Description) {
+      const prepared = prepareContentForEditor(formData.Description);
+      if (prepared !== formData.Description) {
+        setFormData(prev => ({ ...prev, Description: prepared }));
+      }
+      descriptionPreparedRef.current = true;
+    }
+  }, [formData.Description]);
 
   // Fetch locations on mount
   useEffect(() => {
@@ -248,14 +263,18 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
           </FormField>
 
           <FormField label="Description" required className="lg:col-span-2">
-            <Textarea
-              id="org-description"
+            <RichTextEditor
               value={formData.Description}
-              onChange={(e) => updateFormData('Description', e.target.value)}
-              placeholder={viewMode ? '' : 'Detailed description of the organisation'}
-              rows={4}
+              onChange={(value) => updateFormData('Description', value)}
+              placeholder="Detailed description of the organisation"
+              minHeight="150px"
+              toolbarFeatures={DESCRIPTION_TOOLBAR_FEATURES}
+              allowedTags={DESCRIPTION_ALLOWED_TAGS}
               disabled={viewMode}
             />
+            <p className="text-xs text-brand-f mt-1">
+              {getTextLengthFromHtml(formData.Description)}/1,800 characters
+            </p>
           </FormField>
         </div>
 
