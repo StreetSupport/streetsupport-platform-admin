@@ -11,7 +11,6 @@ import { errorToast, successToast } from '@/utils/toast';
 import { OrganisationForm, OrganisationFormRef } from '../OrganisationForm';
 import { AdminDetailsSection } from '../sections/AdminDetailsSection';
 import { decodeText } from '@/utils/htmlDecode';
-import { prepareContentForEditor } from '@/utils/htmlUtils';
 
 export interface OrganisationTabRef {
   hasChanges: () => boolean;
@@ -58,7 +57,7 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
     AssociatedLocationIds: organisation.AssociatedLocationIds || [],
     Name: decodeText(organisation.Name || ''),
     ShortDescription: decodeText(organisation.ShortDescription || ''),
-    Description: prepareContentForEditor(organisation.Description || ''),
+    Description: decodeText(organisation.Description || ''),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) as any : [],
     IsVerified: organisation.IsVerified || false,

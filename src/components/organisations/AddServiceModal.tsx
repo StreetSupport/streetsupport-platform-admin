@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { MultiSelect } from '@/components/ui/MultiSelect';
-import { RichTextEditor, DESCRIPTION_TOOLBAR_FEATURES, DESCRIPTION_ALLOWED_TAGS } from '@/components/ui/RichTextEditor';
 import { OpeningTimesManager } from '@/components/organisations/OpeningTimesManager';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import ErrorDisplay, { ValidationError } from '@/components/ui/ErrorDisplay';
@@ -22,7 +21,6 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast, successToast } from '@/utils/toast';
 import { decodeText } from '@/utils/htmlDecode';
 import { Textarea } from '@/components/ui/Textarea';
-import { prepareContentForEditor, getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 interface AddServiceModalProps {
   isOpen: boolean;
@@ -67,7 +65,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [showCancelConfirm, setShowConfirmModal] = useState(false);
   const [originalData, setOriginalData] = useState<IGroupedServiceFormData | null>(null);
-  const infoPreparedRef = useRef(false);
   const formDataRef = useRef(formData);
   formDataRef.current = formData;
 
@@ -94,7 +91,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         CategoryId: service.CategoryId,
         CategoryName: decodeText(service.CategoryName || ''),
         CategorySynopsis: decodeText(service.CategorySynopsis || ''),
-        Info: prepareContentForEditor(service.Info || ''),
+        Info: decodeText(service.Info || ''),
         Tags: service.Tags,
         Location: {
           IsOutreachLocation: service.Location.IsOutreachLocation || false,
@@ -148,34 +145,10 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     }
   }, [service, organisation._id, organisation.IsPublished, organisation.IsVerified, organisation.Key, organisation.Name]);
 
-  // Capture form state after the rich text editor has stabilised
-  // for accurate change detection
+  // Capture form state for change detection
   useEffect(() => {
-    setOriginalData(null);
-    infoPreparedRef.current = false;
-
-    const timer = setTimeout(() => {
-      setOriginalData(JSON.parse(JSON.stringify(formDataRef.current)));
-    }, 500);
-
-    return () => clearTimeout(timer);
+    setOriginalData(JSON.parse(JSON.stringify(formDataRef.current)));
   }, [service, organisation._id]);
-
-  // Prepare legacy Info content for the editor on initial load
-  useEffect(() => {
-    if (!infoPreparedRef.current && formData.Info) {
-      const prepared = prepareContentForEditor(formData.Info);
-      if (prepared !== formData.Info) {
-        setFormData(prev => ({ ...prev, Info: prepared }));
-      }
-      infoPreparedRef.current = true;
-    }
-  }, [formData.Info]);
-
-  // Reset the ref when the service prop changes (new service loaded)
-  useEffect(() => {
-    infoPreparedRef.current = false;
-  }, [service]);
 
   // Fetch service categories
   useEffect(() => {
@@ -604,18 +577,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                   <h4 className="heading-4 pb-2 border-b border-brand-q mb-4">Service Details</h4>
                   <div className="space-y-4">
                     <FormField label="Description">
-                      <RichTextEditor
+                      <Textarea
+                        id="service-info"
                         value={formData.Info || ''}
-                        onChange={(value) => updateFormData('Info', value)}
-                        placeholder="Service description"
-                        minHeight="150px"
-                        toolbarFeatures={DESCRIPTION_TOOLBAR_FEATURES}
-                        allowedTags={DESCRIPTION_ALLOWED_TAGS}
+                        onChange={(e) => updateFormData('Info', e.target.value)}
+                        placeholder={viewMode ? '' : 'Service description'}
+                        rows={6}
                         disabled={viewMode}
                       />
-                      <p className="text-xs text-brand-f mt-1">
-                        {getTextLengthFromHtml(formData.Info || '')}/1,600 characters
-                      </p>
                     </FormField>
 
                     <Checkbox

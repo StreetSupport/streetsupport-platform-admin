@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useImperativeHandle, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useImperativeHandle, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { IAccommodation, IAccommodationFormData, DiscretionaryValue } from '@/types/organisations/IAccommodation';
 import { AccommodationType } from '@/types/organisations/IAccommodation';
 import { validateAccommodation } from '@/schemas/accommodationSchema';
-import { prepareContentForEditor } from '@/utils/htmlUtils';
 import { GeneralInfoSection } from './accommodation-sections/GeneralInfoSection';
 import { ContactDetailsSection } from './accommodation-sections/ContactDetailsSection';
 import { LocationSection } from './accommodation-sections/LocationSection';
@@ -70,7 +69,6 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
   viewMode = false
 }, ref) => {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const descriptionPreparedRef = useRef(false);
 
   // Section collapse states
   const [openSections, setOpenSections] = useState({
@@ -163,25 +161,10 @@ export const AccommodationForm = React.forwardRef<AccommodationFormRef, Accommod
 
   const [formData, setFormData] = useState<IAccommodationFormData>(getInitialFormData);
 
-  // Prepare legacy description content for the editor on initial load
-  useEffect(() => {
-    if (!descriptionPreparedRef.current && formData.GeneralInfo.Description) {
-      const prepared = prepareContentForEditor(formData.GeneralInfo.Description);
-      if (prepared !== formData.GeneralInfo.Description) {
-        setFormData(prev => ({
-          ...prev,
-          GeneralInfo: { ...prev.GeneralInfo, Description: prepared }
-        }));
-      }
-      descriptionPreparedRef.current = true;
-    }
-  }, [formData.GeneralInfo.Description]);
-
   // Reset form when initialData changes
   useEffect(() => {
     setFormData(getInitialFormData());
     setValidationErrors([]);
-    descriptionPreparedRef.current = false;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, providerId]);
 
