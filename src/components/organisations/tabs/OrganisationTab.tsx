@@ -58,7 +58,7 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
     AssociatedLocationIds: organisation.AssociatedLocationIds || [],
     Name: decodeText(organisation.Name || ''),
     ShortDescription: decodeText(organisation.ShortDescription || ''),
-    Description: prepareContentForEditor(decodeText(organisation.Description || '')),
+    Description: prepareContentForEditor(organisation.Description || ''),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Tags: organisation.Tags ? organisation.Tags.split(',').filter(tag => tag.trim()) as any : [],
     IsVerified: organisation.IsVerified || false,
