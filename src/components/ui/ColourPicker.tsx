@@ -20,9 +20,9 @@ const SSN_PRESETS = [
   { name: 'Secondary Teal', value: '#0b9b75' },
   { name: 'Dark Teal', value: '#086049' },
   { name: 'Orange', value: '#ffa200' },
-  { name: 'Yellow', value: '#ffde00' },
+  { name: 'Soft Yellow', value: '#ffec83' },
   { name: 'Grey', value: '#8d8d8d' },
-  { name: 'Red', value: '#a90000' },
+  { name: 'Mint', value: '#b0dccf' },
   { name: 'Purple', value: '#5a497f' },
 ];
 

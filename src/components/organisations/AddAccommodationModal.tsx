@@ -144,12 +144,20 @@ export function AddAccommodationModal({
     handleClose();
   };
 
-  // Store initial form data when modal opens
+  // Capture the form's actual state after it has stabilised
+  // Content normalisation on load can alter field values
   useEffect(() => {
-    if (isOpen && formRef.current) {
-      const formData = formRef.current.getFormData();
-      setInitialFormData(JSON.parse(JSON.stringify(formData)));
-    }
+    if (!isOpen) return;
+
+    setInitialFormData(null);
+
+    const timer = setTimeout(() => {
+      if (formRef.current) {
+        setInitialFormData(JSON.parse(JSON.stringify(formRef.current.getFormData())));
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   if (!isOpen) return null;
