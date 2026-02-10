@@ -84,11 +84,19 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
     Administrators: organisation.Administrators || []
   };
 
-  // Store initial data for comparison when component mounts or organisation changes
+  // Capture the form's actual state after it has stabilised
+  // The rich text editor normalises content on load, so we wait
+  // before capturing the baseline for change detection
   useEffect(() => {
-    // Deep clone to store independent copy
-    setInitialFormData(JSON.parse(JSON.stringify(initialData)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setInitialFormData(undefined);
+
+    const timer = setTimeout(() => {
+      if (formRef.current) {
+        setInitialFormData(JSON.parse(JSON.stringify(formRef.current.getFormData())));
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [organisation]);
 
   // Expose methods to parent via ref
