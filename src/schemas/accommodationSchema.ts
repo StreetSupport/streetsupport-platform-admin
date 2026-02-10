@@ -3,7 +3,6 @@ import { ValidationResult, createValidationResult, preprocessNullableString, pre
 import { LocationCoordinatesSchema } from './organisationSchema';
 import { AccommodationType, SupportOfferedType, DiscretionaryValue } from '@/types/organisations/IAccommodation';
 import { isValidPostcodeFormat } from '@/utils/postcodeValidation';
-import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 // Helper function to transform error paths to user-friendly names
 export function transformErrorPath(path: string): string {
@@ -29,10 +28,7 @@ const DiscretionaryValueSchema = z.nativeEnum(DiscretionaryValue);
 const GeneralInfoSchema = z.object({
   Name: z.string().min(1, 'Accommodation Name is required'),
   Synopsis: z.preprocess(preprocessNullableString, z.string().optional()),
-  Description: z.preprocess(preprocessNullableString, z.string().optional().refine(
-    (val) => !val || getTextLengthFromHtml(val) <= 1800,
-    'Description must be 1,800 characters or fewer'
-  )),
+  Description: z.preprocess(preprocessNullableString, z.string().optional()),
   AccommodationType: z.nativeEnum(AccommodationType),
   ServiceProviderId: z.string().min(1, 'Service provider ID is required'),
   ServiceProviderName: z.string().optional(),
