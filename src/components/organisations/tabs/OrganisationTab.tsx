@@ -85,7 +85,9 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
     Administrators: organisation.Administrators || []
   };
 
-  // Store initial data for comparison when component mounts or organisation changes
+  // Capture the form's actual state after it has stabilised
+  // The rich text editor normalises content on load, so we wait
+  // before capturing the baseline for change detection
   useEffect(() => {
     setInitialFormData(JSON.parse(JSON.stringify(initialData)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
