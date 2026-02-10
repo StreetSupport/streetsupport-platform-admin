@@ -94,7 +94,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         CategoryId: service.CategoryId,
         CategoryName: decodeText(service.CategoryName || ''),
         CategorySynopsis: decodeText(service.CategorySynopsis || ''),
-        Info: service.Info || '',
+        Info: prepareContentForEditor(service.Info || ''),
         Tags: service.Tags,
         Location: {
           IsOutreachLocation: service.Location.IsOutreachLocation || false,
