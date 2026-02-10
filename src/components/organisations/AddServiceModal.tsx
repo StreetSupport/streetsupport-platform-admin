@@ -22,6 +22,7 @@ import { errorToast, successToast } from '@/utils/toast';
 import { decodeText } from '@/utils/htmlDecode';
 import { Textarea } from '@/components/ui/Textarea';
 import { prepareContentForTextarea } from '@/utils/htmlUtils';
+import { MarkdownFormattingHelp } from '@/components/ui/MarkdownFormattingHelp';
 
 interface AddServiceModalProps {
   isOpen: boolean;
@@ -593,6 +594,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         rows={6}
                         disabled={viewMode}
                       />
+                      <MarkdownFormattingHelp />
                     </FormField>
 
                     <Checkbox
@@ -708,6 +710,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'Main street address'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
 
@@ -725,6 +728,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'Building name, floor, etc.'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
 
@@ -742,6 +746,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'Additional address info'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
 
@@ -759,6 +764,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'Additional address info'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
 
@@ -776,6 +782,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'City'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
 
@@ -793,6 +800,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                               }))}
                               placeholder={viewMode ? '' : 'M1 1AA'}
                               disabled={viewMode}
+                              autoComplete="off"
                             />
                           </FormField>
                         </div>

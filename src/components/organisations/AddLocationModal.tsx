@@ -273,6 +273,7 @@ export function AddLocationModal({
                           Street: e.target.value
                         })}
                         placeholder="Main street address"
+                        autoComplete="off"
                       />
                     )}
                   </FormField>
@@ -291,6 +292,7 @@ export function AddLocationModal({
                           Street1: e.target.value
                         })}
                         placeholder="Building name, floor, etc."
+                        autoComplete="off"
                       />
                     )}
                   </FormField>
@@ -309,6 +311,7 @@ export function AddLocationModal({
                           Street2: e.target.value
                         })}
                         placeholder="Additional address info"
+                        autoComplete="off"
                       />
                     )}
                   </FormField>
@@ -327,6 +330,7 @@ export function AddLocationModal({
                           Street3: e.target.value
                         })}
                         placeholder="Additional address info"
+                        autoComplete="off"
                       />
                     )}
                   </FormField>
@@ -341,6 +345,7 @@ export function AddLocationModal({
                       })}
                       placeholder={viewMode ? '' : 'City'}
                       disabled={viewMode}
+                      autoComplete="off"
                     />
                   </FormField>
 
@@ -354,6 +359,7 @@ export function AddLocationModal({
                       })}
                       placeholder={viewMode ? '' : 'Postcode'}
                       disabled={viewMode}
+                      autoComplete="off"
                     />
                   </FormField>
 
