@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { ValidationResult, createValidationResult, preprocessNullableString, timeStringToNumber } from './validationHelpers';
 import { isValidPostcodeFormat } from '../utils/postcodeValidation';
 import { OrganisationTag } from '@/types/organisations/IOrganisation';
-import { getTextLengthFromHtml } from '@/utils/htmlUtils';
 
 // Time validation helper
 const timeStringSchema = z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format');
@@ -66,12 +65,7 @@ export const OrganisationSchema = z.object({
   Name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   AssociatedLocationIds: z.array(z.string()).min(1, 'At least one associated location is required'),
   ShortDescription: z.string().min(1, 'Short description is required'),
-  Description: z.string()
-    .min(1, 'Description is required')
-    .refine(
-      (val) => getTextLengthFromHtml(val) <= 1800,
-      'Description must be 1,800 characters or fewer'
-    ),
+  Description: z.string().min(1, 'Description is required'),
   Tags: z.array(z.nativeEnum(OrganisationTag)).default([]),
   
   // Contact Information
