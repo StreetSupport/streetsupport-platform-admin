@@ -13,6 +13,7 @@ import { authenticatedFetch } from '@/utils/authenticatedFetch';
 import { errorToast } from '@/utils/toast';
 import { ValidationError } from '@/components/ui/ErrorDisplay';
 import { LocationManager } from './LocationManager';
+import { MarkdownFormattingHelp } from '@/components/ui/MarkdownFormattingHelp';
 
 
 export interface OrganisationFormRef {
@@ -256,6 +257,7 @@ export const OrganisationForm = React.forwardRef<OrganisationFormRef, Organisati
               rows={6}
               disabled={viewMode}
             />
+            <MarkdownFormattingHelp />
           </FormField>
         </div>
 

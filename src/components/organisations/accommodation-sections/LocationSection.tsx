@@ -27,6 +27,7 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
             value={formData.Street1}
             onChange={(e) => onChange('Address.Street1', e.target.value)}
             placeholder="Enter street address"
+            autoComplete="off"
           />
         )}
       </FormField>
@@ -43,6 +44,7 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
             value={formData.Street2 || ''}
             onChange={(e) => onChange('Address.Street2', e.target.value)}
             placeholder="Apartment, suite, etc. (optional)"
+            autoComplete="off"
           />
         )}
       </FormField>
@@ -59,6 +61,7 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
             value={formData.Street3 || ''}
             onChange={(e) => onChange('Address.Street3', e.target.value)}
             placeholder="Additional address line (optional)"
+            autoComplete="off"
           />
         )}
       </FormField>
@@ -72,6 +75,7 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
             onChange={(e) => onChange('Address.City', e.target.value)}
             placeholder={viewMode ? '' : 'City name'}
             disabled={viewMode}
+            autoComplete="off"
           />
         </FormField>
 
@@ -83,6 +87,7 @@ export function LocationSection({ formData, onChange, availableCities, viewMode 
             onChange={(e) => onChange('Address.Postcode', e.target.value)}
             placeholder={viewMode ? '' : 'Postcode'}
             disabled={viewMode}
+            autoComplete="off"
           />
         </FormField>
       </div>

@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Select } from '@/components/ui/Select';
 import { ACCOMMODATION_TYPES } from '@/types/organisations/IAccommodation';
 import { IAccommodationFormData } from '@/types';
+import { MarkdownFormattingHelp } from '@/components/ui/MarkdownFormattingHelp';
 
 interface GeneralInfoSectionProps {
   formData: IAccommodationFormData['GeneralInfo'];
@@ -59,6 +60,7 @@ export function GeneralInfoSection({ formData, onChange, viewMode = false }: Gen
           placeholder={viewMode ? '' : 'Detailed description of the accommodation'}
           disabled={viewMode}
         />
+        <MarkdownFormattingHelp />
       </FormField>
 
       <Checkbox
