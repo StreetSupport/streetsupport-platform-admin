@@ -19,7 +19,7 @@
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
     "@lexical/link": "^0.38.2",
-    "@lexical/list": "^0.38.2",
+    "@lexical/list": "^0.41.0",
     "@lexical/react": "^0.38.2",
     "@lexical/rich-text": "^0.38.2",
     "@lexical/selection": "^0.38.2",
