@@ -157,10 +157,6 @@ const EditOrganisationModal: React.FC<EditOrganisationModalProps> = ({
                 ref={organisationTabRef}
                 organisation={organisation}
                 onOrganisationUpdated={onOrganisationUpdated}
-                onClose={() => {
-                  setActiveTab('organisation');
-                  onClose();
-                }}
                 onCancel={() => {
                   setActiveTab('organisation');
                   onClose();
