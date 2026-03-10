@@ -117,7 +117,7 @@ function transformToPublicFormat(data: IBannerFormData) {
     layoutStyle: data.LayoutStyle?.toLowerCase() || LayoutStyle.SPLIT,
     startDate: data.StartDate,
     endDate: data.EndDate,
-    mediaType: data.MediaType || MediaType.IMAGE,
+    mediaType: data.MediaType,
     youTubeUrl: data.YouTubeUrl,
     border: data.Border ? {
       showBorder: data.Border.ShowBorder || false,
@@ -153,11 +153,12 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
 
   const textColourClass = props.textColour === 'white' ? 'text-white' : 'text-brand-k';
   const isSplitLayout = props.layoutStyle === 'split';
+  const isCompactLayout = props.layoutStyle === 'compact';
 
   return (
     <div
       className={`relative overflow-hidden ${className}`}
-      style={{ ...getBackgroundStyle(), ...getBorderStyle() }}
+      style={{ ...getBackgroundStyle(), ...(isCompactLayout ? {} : getBorderStyle()) }}
     >
       {props.background.type === 'image' && props.background.overlay && (
         <div
@@ -170,40 +171,18 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
         />
       )}
 
-      <div className={`relative z-10 ${isSplitLayout ? 'max-w-7xl mx-auto px-4 py-12 md:py-16' : 'px-4 py-12 md:py-16'}`}>
-        <div className={`${isSplitLayout ? 'grid md:grid-cols-2 gap-8 items-center' : 'text-center max-w-4xl mx-auto'}`}>
-          <div className={`space-y-4 ${!isSplitLayout ? 'mb-8' : ''}`}>
-            {props.logo && (
-              <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
-                <Image
-                  src={props.logo.url}
-                  alt={props.logo.alt || 'Logo'}
-                  width={120}
-                  height={40}
-                  className="object-contain"
-                />
-              </div>
-            )}
-
-            {props.subtitle && (
-              <p className={`text-sm font-medium uppercase tracking-wider ${textColourClass} opacity-80`}>
-                {props.subtitle}
-              </p>
-            )}
-
-            <h2 className={`text-3xl md:text-4xl font-bold ${textColourClass}`}>
-              {props.title}
-            </h2>
-
+      {isCompactLayout ? (
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 md:py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 className="sr-only">{props.title}</h2>
             {props.description && (
               <div
-                className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none ${props.textColour === 'white' ? 'prose-invert' : ''}`}
+                className={`text-base ${textColourClass} opacity-90 prose prose-sm max-w-none ${props.textColour === 'white' ? 'prose-invert' : ''}`}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtmlForDisplay(props.description) }}
               />
             )}
-
             {props.ctaButtons.length > 0 && (
-              <div className={`flex flex-wrap gap-3 pt-4 ${!isSplitLayout ? 'justify-center' : ''}`}>
+              <div className="flex flex-wrap gap-3 shrink-0">
                 {props.ctaButtons.map((btn, index) => (
                   <a
                     key={index}
@@ -219,30 +198,82 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
               </div>
             )}
           </div>
+        </div>
+      ) : (
+        <div className={`relative z-10 ${isSplitLayout ? 'max-w-7xl mx-auto px-4 py-12 md:py-16' : 'px-4 py-12 md:py-16'}`}>
+          <div className={`${isSplitLayout ? 'grid md:grid-cols-2 gap-8 items-center' : 'text-center max-w-4xl mx-auto'}`}>
+            <div className={`space-y-4 ${!isSplitLayout ? 'mb-8' : ''}`}>
+              {props.logo && (
+                <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
+                  <Image
+                    src={props.logo.url}
+                    alt={props.logo.alt || 'Logo'}
+                    width={120}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+              )}
 
-          <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
-            {props.mediaType === MediaType.YOUTUBE && props.youTubeUrl ? (
-              <div className="aspect-video w-full max-w-lg rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src={getYouTubeEmbedUrl(props.youTubeUrl)}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={props.title}
+              {props.subtitle && (
+                <p className={`text-sm font-medium uppercase tracking-wider ${textColourClass} opacity-80`}>
+                  {props.subtitle}
+                </p>
+              )}
+
+              <h2 className={`text-3xl md:text-4xl font-bold ${textColourClass}`}>
+                {props.title}
+              </h2>
+
+              {props.description && (
+                <div
+                  className={`text-lg ${textColourClass} opacity-90 prose prose-sm max-w-none ${props.textColour === 'white' ? 'prose-invert' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlForDisplay(props.description) }}
                 />
-              </div>
-            ) : props.image ? (
-              <Image
-                src={props.image.url}
-                alt={props.image.alt || props.title}
-                width={props.image.width || 600}
-                height={props.image.height || 400}
-                className="rounded-lg object-cover shadow-lg"
-              />
-            ) : null}
+              )}
+
+              {props.ctaButtons.length > 0 && (
+                <div className={`flex flex-wrap gap-3 pt-4 ${!isSplitLayout ? 'justify-center' : ''}`}>
+                  {props.ctaButtons.map((btn, index) => (
+                    <a
+                      key={index}
+                      href={btn.url}
+                      className={generateCTAClasses(btn.variant, props.textColour as TextColour)}
+                      target={btn.external ? '_blank' : undefined}
+                      rel={btn.external ? 'noopener noreferrer' : undefined}
+                    >
+                      {btn.label}
+                      {btn.external && <ExternalLinkIcon />}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={`${!isSplitLayout ? 'flex justify-center' : ''}`}>
+              {props.mediaType === MediaType.YOUTUBE && props.youTubeUrl ? (
+                <div className="aspect-video w-full max-w-lg rounded-lg overflow-hidden shadow-lg">
+                  <iframe
+                    src={getYouTubeEmbedUrl(props.youTubeUrl)}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={props.title}
+                  />
+                </div>
+              ) : props.image ? (
+                <Image
+                  src={props.image.url}
+                  alt={props.image.alt || props.title}
+                  width={props.image.width || 600}
+                  height={props.image.height || 400}
+                  className="rounded-lg object-cover shadow-lg"
+                />
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
