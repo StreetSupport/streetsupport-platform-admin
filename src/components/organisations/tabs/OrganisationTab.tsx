@@ -21,7 +21,6 @@ export interface OrganisationTabRef {
 interface OrganisationTabProps {
   organisation: IOrganisation;
   onOrganisationUpdated: () => void;
-  onClose: () => void; // Called after successful update (no confirmation)
   onCancel: () => void; // Called when user clicks Cancel (shows confirmation)
   viewMode?: boolean; // When true, all inputs are disabled and save button hidden
 }
@@ -29,7 +28,6 @@ interface OrganisationTabProps {
 const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProps>(({
   organisation,
   onOrganisationUpdated,
-  onClose,
   onCancel,
   viewMode = false
 }, ref) => {
@@ -207,7 +205,6 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
 
       successToast.update('Organisation');
       onOrganisationUpdated();
-      onClose();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update organisation';
       errorToast.generic(errorMessage);
@@ -263,7 +260,6 @@ const OrganisationTab = React.forwardRef<OrganisationTabRef, OrganisationTabProp
                 setCurrentOrganisation(updatedOrg);
                 onOrganisationUpdated();
               }}
-              onClose={onClose}
             />
           </div>
 
