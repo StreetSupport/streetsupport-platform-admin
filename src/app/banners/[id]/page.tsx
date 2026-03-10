@@ -243,7 +243,7 @@ export default function BannerViewPage() {
                   <div>
                     <dt className="text-small font-medium text-brand-k">Media Type</dt>
                     <dd className="text-base text-brand-l capitalize">
-                      {banner.MediaType === MediaType.YOUTUBE ? 'YouTube Video' : 'Image'}
+                      {banner.MediaType === MediaType.YOUTUBE ? 'YouTube Video' : banner.MediaType === MediaType.IMAGE ? 'Image' : 'None'}
                     </dd>
                   </div>
 

@@ -17,7 +17,6 @@ import { HTTP_METHODS } from '@/constants/httpMethods';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { redirectToNotFound } from '@/utils/navigation';
-import { MediaType } from '@/types/banners/IBanner';
 
 function transformBannerToFormData(banner: IBanner): IBannerFormData {
   return {
@@ -25,7 +24,7 @@ function transformBannerToFormData(banner: IBanner): IBannerFormData {
     Title: banner.Title || '',
     Subtitle: banner.Subtitle || '',
     Description: banner.Description || '',
-    MediaType: banner.MediaType || MediaType.IMAGE,
+    MediaType: banner.MediaType,
     YouTubeUrl: banner.YouTubeUrl || '',
     LayoutStyle: banner.LayoutStyle,
     TextColour: banner.TextColour,

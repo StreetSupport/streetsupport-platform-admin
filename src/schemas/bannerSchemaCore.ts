@@ -56,7 +56,7 @@ export const UploadedFileSchemaCore = z.object({
   FileType: z.string().optional()
 }).nullable().optional();
 
-export const MediaTypeSchema = z.nativeEnum(MediaType).default(MediaType.IMAGE);
+export const MediaTypeSchema = z.nativeEnum(MediaType).optional();
 
 export const YouTubeUrlSchema = z.string()
   .refine(
@@ -90,7 +90,7 @@ export const BannerSchemaCore = z.object({
   Background: BannerBackgroundSchemaCore,
   Border: BannerBorderSchemaCore,
   TextColour: z.nativeEnum(TextColour),
-  LayoutStyle: z.enum(['split', 'full-width']),
+  LayoutStyle: z.enum(['split', 'full-width', 'compact']),
 
   StartDate: z.date().optional(),
   EndDate: z.date().optional(),
@@ -112,10 +112,16 @@ export const BannerSchemaCore = z.object({
     path: ['EndDate']
   }
 ).refine(
-  (data) => data.MediaType !== MediaType.YOUTUBE || !!data.YouTubeUrl,
+  (data) => !data.MediaType || data.MediaType !== MediaType.YOUTUBE || !!data.YouTubeUrl,
   {
     message: 'YouTube URL is required when media type is YouTube',
     path: ['YouTubeUrl']
+  }
+).refine(
+  (data) => data.LayoutStyle === 'compact' || data.MediaType !== undefined,
+  {
+    message: 'Media type is required for split and full-width layouts',
+    path: ['MediaType']
   }
 );
 
