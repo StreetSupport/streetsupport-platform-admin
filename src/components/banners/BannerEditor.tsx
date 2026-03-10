@@ -306,8 +306,11 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           newData.YouTubeUrl = '';
           newData.Subtitle = '';
           newData.Border = { ShowBorder: false, Colour: '#f8c77c' };
-          if (newData.Background.Type === BackgroundType.IMAGE) {
+          if (newData.Background.Type === BackgroundType.IMAGE || newData.Background.Type === BackgroundType.GRADIENT) {
             newData.Background = { ...newData.Background, Type: BackgroundType.SOLID, Value: '#38ae8e' };
+          }
+          if ((newData.CtaButtons?.length ?? 0) > 2) {
+            newData.CtaButtons = newData.CtaButtons?.slice(0, 2);
           }
         } else if (newLayout !== LayoutStyle.COMPACT && prevLayout === LayoutStyle.COMPACT) {
           newData.MediaType = MediaType.IMAGE;
@@ -494,16 +497,18 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4">
           <h3 className="heading-5 border-b border-brand-q pb-2 pt-4">Basic Information</h3>
 
-          <FormField label={<>Title <span className="text-brand-g">*</span></>} error={errors.Title}>
-            <Input
-              value={formData.Title}
-              onChange={(e) => updateFormData('Title', e.target.value)}
-              maxLength={100}
-            />
-            <p className="text-xs text-brand-f mt-1">
-              {formData.Title.length}/100 characters
-            </p>
-          </FormField>
+          {!isCompactLayout && (
+            <FormField label={<>Title <span className="text-brand-g">*</span></>} error={errors.Title}>
+              <Input
+                value={formData.Title}
+                onChange={(e) => updateFormData('Title', e.target.value)}
+                maxLength={100}
+              />
+              <p className="text-xs text-brand-f mt-1">
+                {formData.Title.length}/100 characters
+              </p>
+            </FormField>
+          )}
 
           {!isCompactLayout && (
             <FormField label="Subtitle">
@@ -518,17 +523,24 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </FormField>
           )}
 
-          <FormField label="Description">
+          <FormField label={isCompactLayout ? 'Banner Text' : 'Description'}>
             <RichTextEditor
               value={formData.Description || ''}
-              onChange={(value) => updateFormData('Description', value)}
-              placeholder="Enter banner description..."
+              onChange={(value) => {
+                updateFormData('Description', value);
+                if (isCompactLayout) {
+                  const stripped = value.replace(/<[^>]*>/g, '').trim();
+                  const title = stripped.substring(0, 100) || 'Compact Banner';
+                  updateFormData('Title', title);
+                }
+              }}
+              placeholder={isCompactLayout ? 'Enter banner text...' : 'Enter banner description...'}
               minHeight="120px"
               toolbarFeatures={BANNER_TOOLBAR_FEATURES}
               allowedTags={BANNER_ALLOWED_TAGS}
             />
             <p className="text-xs text-brand-f mt-1">
-              {getTextLengthFromHtml(formData.Description || '')}/600 characters
+              {getTextLengthFromHtml(formData.Description || '')}/{isCompactLayout ? 130 : 600} characters
             </p>
           </FormField>
         </div>
@@ -632,8 +644,8 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Background Type <span className="text-brand-g">*</span></label>
-            <div className={`grid ${isCompactLayout ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-              {BACKGROUND_TYPES.filter(type => !isCompactLayout || type.value !== BackgroundType.IMAGE).map(type => (
+            <div className={`grid ${isCompactLayout ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
+              {BACKGROUND_TYPES.filter(type => !isCompactLayout || (type.value !== BackgroundType.IMAGE && type.value !== BackgroundType.GRADIENT)).map(type => (
                 <Button
                   key={type.value}
                   type="button"
@@ -772,7 +784,7 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
         <div className="space-y-4 border-t border-brand-q pt-6">
           <div className="flex justify-between items-center">
             <h3 className="heading-5">Call-to-Action Buttons</h3>
-            {(formData.CtaButtons?.length ?? 0) < 3 && (
+            {(formData.CtaButtons?.length ?? 0) < (isCompactLayout ? 2 : 3) && (
               <Button type="button" variant="outline" size="sm" onClick={addCTAButton}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add Button
