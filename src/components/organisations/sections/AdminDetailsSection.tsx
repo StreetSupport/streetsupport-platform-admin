@@ -12,13 +12,11 @@ import toast from 'react-hot-toast';
 interface AdminDetailsSectionProps {
   organisation: IOrganisation;
   onUpdate?: (updatedOrg: IOrganisation) => void;
-  onClose?: () => void;
 }
 
-export function AdminDetailsSection({ 
-  organisation, 
+export function AdminDetailsSection({
+  organisation,
   onUpdate,
-  onClose,
 }: AdminDetailsSectionProps) {
   const [selectedEmail, setSelectedEmail] = useState<string>(
     organisation.Administrators?.find(admin => admin.IsSelected)?.Email || ''
@@ -103,11 +101,6 @@ export function AdminDetailsSection({
       }
       
       toast.success('Administrator updated successfully');
-      
-      // Close the modal after successful update
-      if (onClose) {
-        onClose();
-      }
     } catch (error) {
       console.error('Error updating administrator:', error);
       errorToast.generic('Failed to update administrator');
@@ -140,11 +133,6 @@ export function AdminDetailsSection({
       }
       
       toast.success('Information verified successfully');
-      
-      // Close the modal after successful confirmation
-      if (onClose) {
-        onClose();
-      }
     } catch (error) {
       console.error('Error confirming information:', error);
       errorToast.generic('Failed to confirm information');
