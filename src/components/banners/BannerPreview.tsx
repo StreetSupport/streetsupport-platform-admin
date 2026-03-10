@@ -46,13 +46,13 @@ function generateCTAClasses(variant: string, textColour: TextColour): string {
       if (textColour === 'white') {
         return `${baseClasses} bg-white/20 text-white border border-white/40 hover:bg-white/30 focus:ring-white`;
       }
-      return `${baseClasses} bg-white text-brand-a border border-brand-a hover:bg-brand-a hover:text-white hover:border-brand-a focus:ring-brand-a`;
+      return `${baseClasses} bg-white !text-brand-a border border-brand-a hover:bg-brand-a hover:!text-white hover:border-brand-a focus:ring-brand-a`;
 
     case 'outline':
       if (textColour === 'white') {
         return `${baseClasses} bg-white/10 border-2 border-white text-white hover:bg-white hover:text-gray-900 focus:ring-white`;
       }
-      return `${baseClasses} bg-transparent border-2 border-brand-a text-brand-a hover:bg-brand-a hover:text-white focus:ring-brand-a`;
+      return `${baseClasses} bg-transparent border-2 border-brand-a !text-brand-a hover:bg-brand-a hover:!text-white focus:ring-brand-a`;
 
     default:
       return baseClasses;
