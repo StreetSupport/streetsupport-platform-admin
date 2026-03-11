@@ -24,7 +24,7 @@ export interface IBanner {
   Description?: string;
   Subtitle?: string;
 
-  MediaType: MediaType;
+  MediaType?: MediaType;
   YouTubeUrl?: string;
   Logo?: IMediaAsset;
   BackgroundImage?: IMediaAsset;
@@ -70,5 +70,6 @@ export enum TextColour {
 
 export enum LayoutStyle {
   SPLIT = 'split',
-  FULL_WIDTH = 'full-width'
+  FULL_WIDTH = 'full-width',
+  COMPACT = 'compact'
 }

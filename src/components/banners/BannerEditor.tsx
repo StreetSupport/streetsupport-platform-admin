@@ -67,7 +67,8 @@ interface BannerEditorProps {
 
 const LAYOUT_STYLES = [
   { value: LayoutStyle.SPLIT, label: 'Split Layout' },
-  { value: LayoutStyle.FULL_WIDTH, label: 'Full Width' }
+  { value: LayoutStyle.FULL_WIDTH, label: 'Full Width' },
+  { value: LayoutStyle.COMPACT, label: 'Compact' }
 ];
 
 const TEXT_COLOURS = [
@@ -286,10 +287,38 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
     onDataChange(formData);
   }, [formData, onDataChange]);
 
+  const isCompactLayout = formData.LayoutStyle === LayoutStyle.COMPACT;
+
   const updateFormData = (path: string, value: unknown) => {
     setFormData(prev => {
       const keys = path.split('.');
       const newData: IBannerFormData = { ...(prev as IBannerFormData) };
+
+      if (path === 'LayoutStyle') {
+        const newLayout = value as LayoutStyle;
+        const prevLayout = prev.LayoutStyle;
+
+        if (newLayout === LayoutStyle.COMPACT && prevLayout !== LayoutStyle.COMPACT) {
+          newData.MediaType = undefined;
+          newData.MainImage = null;
+          newData.Logo = null;
+          newData.BackgroundImage = null;
+          newData.YouTubeUrl = '';
+          newData.Subtitle = '';
+          newData.Border = { ShowBorder: false, Colour: '#f8c77c' };
+          if (newData.Background.Type === BackgroundType.IMAGE || newData.Background.Type === BackgroundType.GRADIENT) {
+            newData.Background = { ...newData.Background, Type: BackgroundType.SOLID, Value: '#38ae8e' };
+          }
+          if ((newData.CtaButtons?.length ?? 0) > 2) {
+            newData.CtaButtons = newData.CtaButtons?.slice(0, 2);
+          }
+        } else if (newLayout !== LayoutStyle.COMPACT && prevLayout === LayoutStyle.COMPACT) {
+          newData.MediaType = MediaType.IMAGE;
+        }
+
+        newData.LayoutStyle = newLayout;
+        return newData;
+      }
 
       if (path === 'Background.Type') {
         const newBackgroundType = value as BackgroundType;
@@ -447,155 +476,176 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
       </div>
 
       <form onSubmit={handleSubmit} className="card-content space-y-6">
+        <div className="space-y-4 pt-4">
+          <FormField label="Layout Style" required>
+            <div className="grid grid-cols-3 gap-2">
+              {LAYOUT_STYLES.map(style => (
+                <Button
+                  key={style.value}
+                  type="button"
+                  variant={formData.LayoutStyle === style.value ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => updateFormData('LayoutStyle', style.value)}
+                >
+                  {style.label}
+                </Button>
+              ))}
+            </div>
+          </FormField>
+        </div>
+
         <div className="space-y-4">
           <h3 className="heading-5 border-b border-brand-q pb-2 pt-4">Basic Information</h3>
 
-          <FormField label={<>Title <span className="text-brand-g">*</span></>} error={errors.Title}>
-            <Input
-              value={formData.Title}
-              onChange={(e) => updateFormData('Title', e.target.value)}
-              maxLength={100}
-            />
-            <p className="text-xs text-brand-f mt-1">
-              {formData.Title.length}/100 characters
-            </p>
-          </FormField>
+          {!isCompactLayout && (
+            <FormField label={<>Title <span className="text-brand-g">*</span></>} error={errors.Title}>
+              <Input
+                value={formData.Title}
+                onChange={(e) => updateFormData('Title', e.target.value)}
+                maxLength={100}
+              />
+              <p className="text-xs text-brand-f mt-1">
+                {formData.Title.length}/100 characters
+              </p>
+            </FormField>
+          )}
 
-          <FormField label="Subtitle">
-            <Input
-              value={formData.Subtitle}
-              onChange={(e) => updateFormData('Subtitle', e.target.value)}
-              maxLength={50}
-            />
-            <p className="text-xs text-brand-f mt-1">
-              {formData.Subtitle?.length || 0}/50 characters
-            </p>
-          </FormField>
+          {!isCompactLayout && (
+            <FormField label="Subtitle">
+              <Input
+                value={formData.Subtitle}
+                onChange={(e) => updateFormData('Subtitle', e.target.value)}
+                maxLength={50}
+              />
+              <p className="text-xs text-brand-f mt-1">
+                {formData.Subtitle?.length || 0}/50 characters
+              </p>
+            </FormField>
+          )}
 
-          <FormField label="Description">
+          <FormField label={isCompactLayout ? 'Banner Text' : 'Description'}>
             <RichTextEditor
               value={formData.Description || ''}
-              onChange={(value) => updateFormData('Description', value)}
-              placeholder="Enter banner description..."
+              onChange={(value) => {
+                updateFormData('Description', value);
+                if (isCompactLayout) {
+                  const stripped = value.replace(/<[^>]*>/g, '').trim();
+                  const title = stripped.substring(0, 100) || 'Compact Banner';
+                  updateFormData('Title', title);
+                }
+              }}
+              placeholder={isCompactLayout ? 'Enter banner text...' : 'Enter banner description...'}
               minHeight="120px"
               toolbarFeatures={BANNER_TOOLBAR_FEATURES}
               allowedTags={BANNER_ALLOWED_TAGS}
             />
             <p className="text-xs text-brand-f mt-1">
-              {getTextLengthFromHtml(formData.Description || '')}/600 characters
+              {getTextLengthFromHtml(formData.Description || '')}/{isCompactLayout ? 130 : 600} characters
             </p>
           </FormField>
         </div>
 
-        <div className="space-y-4 border-t border-brand-q pt-6">
-          <h3 className="heading-5 border-b border-brand-q pb-2">Media</h3>
+        {!isCompactLayout && (
+          <div className="space-y-4 border-t border-brand-q pt-6">
+            <h3 className="heading-5 border-b border-brand-q pb-2">Media</h3>
 
-          <FormField label="Media Type">
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => updateFormData('MediaType', MediaType.IMAGE)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${
-                  formData.MediaType === MediaType.IMAGE
-                    ? 'border-brand-d bg-brand-d text-white'
-                    : 'border-brand-q hover:border-brand-d'
-                }`}
-              >
-                <ImageIcon className="w-4 h-4" />
-                Image
-              </button>
-              <button
-                type="button"
-                onClick={() => updateFormData('MediaType', MediaType.YOUTUBE)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${
-                  formData.MediaType === MediaType.YOUTUBE
-                    ? 'border-brand-d bg-brand-d text-white'
-                    : 'border-brand-q hover:border-brand-d'
-                }`}
-              >
-                <Youtube className="w-4 h-4" />
-                YouTube Video
-              </button>
-            </div>
-          </FormField>
+            <FormField label="Media Type">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateFormData('MediaType', MediaType.IMAGE)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${
+                    formData.MediaType === MediaType.IMAGE
+                      ? 'border-brand-d bg-brand-d text-white'
+                      : 'border-brand-q hover:border-brand-d'
+                  }`}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateFormData('MediaType', MediaType.YOUTUBE)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${
+                    formData.MediaType === MediaType.YOUTUBE
+                      ? 'border-brand-d bg-brand-d text-white'
+                      : 'border-brand-q hover:border-brand-d'
+                  }`}
+                >
+                  <Youtube className="w-4 h-4" />
+                  YouTube Video
+                </button>
+              </div>
+            </FormField>
 
-          {formData.MediaType === MediaType.IMAGE && (
-            <MediaUpload
-              label={<>Banner Image <InfoTooltip content="This image appears beside the text on split layouts, or below the text on full width layouts." /></>}
-              value={formData.MainImage}
-              onUpload={(file) => {
-                const imageUrl = URL.createObjectURL(file);
-                const img = new Image();
-                img.onload = () => {
-                  const newImage = {
-                    ...formData.MainImage,
-                    Filename: file.name,
-                    Alt: file.name,
-                    Size: file.size,
-                    File: file,
-                    url: imageUrl,
-                    Width: img.naturalWidth,
-                    Height: img.naturalHeight,
+            {formData.MediaType === MediaType.IMAGE && (
+              <MediaUpload
+                label={<>Banner Image <InfoTooltip content="This image appears beside the text on split layouts, or below the text on full width layouts." /></>}
+                value={formData.MainImage}
+                onUpload={(file) => {
+                  const imageUrl = URL.createObjectURL(file);
+                  const img = new Image();
+                  img.onload = () => {
+                    const newImage = {
+                      ...formData.MainImage,
+                      Filename: file.name,
+                      Alt: file.name,
+                      Size: file.size,
+                      File: file,
+                      url: imageUrl,
+                      Width: img.naturalWidth,
+                      Height: img.naturalHeight,
+                    };
+                    updateFormData('MainImage', newImage);
                   };
-                  updateFormData('MainImage', newImage);
-                };
-                img.src = imageUrl;
-              }}
-              onRemove={() => removeFile('MainImage')}
+                  img.src = imageUrl;
+                }}
+                onRemove={() => removeFile('MainImage')}
+                accept="image/*"
+                maxSize={5 * 1024 * 1024}
+              />
+            )}
+
+            {formData.MediaType === MediaType.YOUTUBE && (
+              <FormField label="YouTube URL" required error={errors.YouTubeUrl}>
+                <Input
+                  type="url"
+                  value={formData.YouTubeUrl || ''}
+                  onChange={(e) => updateFormData('YouTubeUrl', e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+                <p className="text-sm text-brand-f mt-1">
+                  Paste a YouTube video URL. The video will be embedded in the banner.
+                </p>
+              </FormField>
+            )}
+
+            <MediaUpload
+              label={<>Logo <InfoTooltip content="An optional logo displayed alongside the banner content. Use this to feature a partner or campaign logo." /></>}
+              value={formData.Logo}
+              onUpload={(file) => updateFormData('Logo', file)}
+              onRemove={() => removeFile('Logo')}
               accept="image/*"
               maxSize={5 * 1024 * 1024}
             />
-          )}
-
-          {formData.MediaType === MediaType.YOUTUBE && (
-            <FormField label="YouTube URL" required error={errors.YouTubeUrl}>
-              <Input
-                type="url"
-                value={formData.YouTubeUrl || ''}
-                onChange={(e) => updateFormData('YouTubeUrl', e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-              />
-              <p className="text-sm text-brand-f mt-1">
-                Paste a YouTube video URL. The video will be embedded in the banner.
-              </p>
-            </FormField>
-          )}
-
-          <MediaUpload
-            label={<>Logo <InfoTooltip content="An optional logo displayed alongside the banner content. Use this to feature a partner or campaign logo." /></>}
-            value={formData.Logo}
-            onUpload={(file) => updateFormData('Logo', file)}
-            onRemove={() => removeFile('Logo')}
-            accept="image/*"
-            maxSize={5 * 1024 * 1024}
-          />
-        </div>
+          </div>
+        )}
 
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Styling Options</h3>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label={<>Layout Style <InfoTooltip content="Split Layout: Content on one side, media on the other. Full Width: Content spans the entire banner with media as background or below." /></>} required>
-              <Select
-                value={formData.LayoutStyle}
-                onChange={(e) => updateFormData('LayoutStyle', e.target.value)}
-                options={LAYOUT_STYLES}
-              />
-            </FormField>
-
-            <FormField label={<>Text Colour <InfoTooltip content="Choose white text for dark backgrounds or black text for light backgrounds to ensure readability." /></>} required>
-              <Select
-                value={formData.TextColour}
-                onChange={(e) => updateFormData('TextColour', e.target.value)}
-                options={TEXT_COLOURS}
-              />
-            </FormField>
-          </div>
+          <FormField label={<>Text Colour <InfoTooltip content="Choose white text for dark backgrounds or black text for light backgrounds to ensure readability." /></>} required>
+            <Select
+              value={formData.TextColour}
+              onChange={(e) => updateFormData('TextColour', e.target.value)}
+              options={TEXT_COLOURS}
+            />
+          </FormField>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Background Type <span className="text-brand-g">*</span></label>
-            <div className="grid grid-cols-3 gap-2">
-              {BACKGROUND_TYPES.map(type => (
+            <div className={`grid ${isCompactLayout ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
+              {BACKGROUND_TYPES.filter(type => !isCompactLayout || (type.value !== BackgroundType.IMAGE && type.value !== BackgroundType.GRADIENT)).map(type => (
                 <Button
                   key={type.value}
                   type="button"
@@ -703,36 +753,38 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             </div>
           )}
 
-          <div className="space-y-3 pt-4 border-t border-brand-q">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Show Border
-                </label>
-                <InfoTooltip content="Add decorative borders at the top and bottom of the banner. This style is commonly used for campaign banners." />
-              </div>
-              <Checkbox
-                label=""
-                checked={formData.Border?.ShowBorder ?? false}
-                onChange={(e) => updateFormData('Border.ShowBorder', (e.target as HTMLInputElement).checked)}
-              />
-            </div>
-
-            {formData.Border?.ShowBorder && (
-              <FormField label="Border Colour">
-                <ColourPicker
-                  value={formData.Border?.Colour || '#f8c77c'}
-                  onChange={(value) => updateFormData('Border.Colour', value)}
+          {!isCompactLayout && (
+            <div className="space-y-3 pt-4 border-t border-brand-q">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Show Border
+                  </label>
+                  <InfoTooltip content="Add decorative borders at the top and bottom of the banner. This style is commonly used for campaign banners." />
+                </div>
+                <Checkbox
+                  label=""
+                  checked={formData.Border?.ShowBorder ?? false}
+                  onChange={(e) => updateFormData('Border.ShowBorder', (e.target as HTMLInputElement).checked)}
                 />
-              </FormField>
-            )}
-          </div>
+              </div>
+
+              {formData.Border?.ShowBorder && (
+                <FormField label="Border Colour">
+                  <ColourPicker
+                    value={formData.Border?.Colour || '#f8c77c'}
+                    onChange={(value) => updateFormData('Border.Colour', value)}
+                  />
+                </FormField>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4 border-t border-brand-q pt-6">
           <div className="flex justify-between items-center">
             <h3 className="heading-5">Call-to-Action Buttons</h3>
-            {(formData.CtaButtons?.length ?? 0) < 3 && (
+            {(formData.CtaButtons?.length ?? 0) < (isCompactLayout ? 2 : 3) && (
               <Button type="button" variant="outline" size="sm" onClick={addCTAButton}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add Button
@@ -793,69 +845,71 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           </div>
         </div>
 
-        <div className="space-y-4 border-t border-brand-q pt-6">
-          <h3 className="heading-5 border-b border-brand-q pb-2 flex items-center">Attached File (Optional) <InfoTooltip content="Upload a file to be linked from a CTA button or referenced in the banner description. The file URL will be provided after upload." className="ml-1.5" /></h3>
-          <p className="text-sm text-brand-f">
-            Upload a PDF, document, or image to link from CTA buttons.
-          </p>
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <label
-                htmlFor="uploaded-file"
-                className="btn-base btn-primary btn-md cursor-pointer inline-flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                Choose File
-              </label>
-              <input
-                type="file"
-                id="uploaded-file"
-                accept={UPLOADED_FILE_ACCEPT_STRING}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  handleUploadedFileChange(file || null);
-                  e.target.value = '';
-                }}
-                className="hidden"
-              />
-              <span className="text-sm text-brand-f">
-                {formData.UploadedFile && 'FileName' in formData.UploadedFile
-                  ? formData.UploadedFile.FileName
-                  : formData.UploadedFile instanceof File
-                    ? formData.UploadedFile.name
-                    : 'No file chosen'}
-              </span>
-            </div>
-
-            {formData.UploadedFile && (
-              <div className="flex items-center justify-between p-3 bg-brand-q rounded-md border border-brand-q">
-                <div>
-                  <span className="text-sm text-brand-k font-medium block">
-                    {'FileName' in formData.UploadedFile ? formData.UploadedFile.FileName : (formData.UploadedFile as File).name}
-                  </span>
-                  {'FileUrl' in formData.UploadedFile && (
-                    <span className="text-xs text-brand-f">
-                      Use this URL in your CTA button: {formData.UploadedFile.FileUrl}
-                    </span>
-                  )}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleUploadedFileChange(null)}
-                >
-                  Remove File
-                </Button>
-              </div>
-            )}
-
-            <p className="text-xs text-brand-f">
-              Accepted formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maximum file size: 10MB.
+        {!isCompactLayout && (
+          <div className="space-y-4 border-t border-brand-q pt-6">
+            <h3 className="heading-5 border-b border-brand-q pb-2 flex items-center">Attached File (Optional) <InfoTooltip content="Upload a file to be linked from a CTA button or referenced in the banner description. The file URL will be provided after upload." className="ml-1.5" /></h3>
+            <p className="text-sm text-brand-f">
+              Upload a PDF, document, or image to link from CTA buttons.
             </p>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="uploaded-file"
+                  className="btn-base btn-primary btn-md cursor-pointer inline-flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Choose File
+                </label>
+                <input
+                  type="file"
+                  id="uploaded-file"
+                  accept={UPLOADED_FILE_ACCEPT_STRING}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    handleUploadedFileChange(file || null);
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                />
+                <span className="text-sm text-brand-f">
+                  {formData.UploadedFile && 'FileName' in formData.UploadedFile
+                    ? formData.UploadedFile.FileName
+                    : formData.UploadedFile instanceof File
+                      ? formData.UploadedFile.name
+                      : 'No file chosen'}
+                </span>
+              </div>
+
+              {formData.UploadedFile && (
+                <div className="flex items-center justify-between p-3 bg-brand-q rounded-md border border-brand-q">
+                  <div>
+                    <span className="text-sm text-brand-k font-medium block">
+                      {'FileName' in formData.UploadedFile ? formData.UploadedFile.FileName : (formData.UploadedFile as File).name}
+                    </span>
+                    {'FileUrl' in formData.UploadedFile && (
+                      <span className="text-xs text-brand-f">
+                        Use this URL in your CTA button: {formData.UploadedFile.FileUrl}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUploadedFileChange(null)}
+                  >
+                    Remove File
+                  </Button>
+                </div>
+              )}
+
+              <p className="text-xs text-brand-f">
+                Accepted formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Maximum file size: 10MB.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Publishing Options</h3>
