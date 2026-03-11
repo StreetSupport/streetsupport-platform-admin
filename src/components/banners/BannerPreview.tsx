@@ -239,15 +239,30 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
                     title={props.title}
                   />
                 </div>
-              ) : props.image ? (
+              ) : props.image ? (() => {
+              const imgWidth = props.image.width || 600;
+              const imgHeight = props.image.height || 400;
+              const aspectRatio = imgWidth / imgHeight;
+              let splitMaxHeight: string | undefined;
+              if (isSplitLayout) {
+                if (aspectRatio <= 1.0) {
+                  splitMaxHeight = '320px';
+                } else if (aspectRatio <= 1.2) {
+                  splitMaxHeight = '420px';
+                }
+              }
+
+              return (
                 <Image
                   src={props.image.url}
                   alt={props.image.alt || props.title}
-                  width={props.image.width || 600}
-                  height={props.image.height || 400}
+                  width={imgWidth}
+                  height={imgHeight}
                   className="rounded-lg object-cover shadow-lg"
+                  style={splitMaxHeight ? { maxHeight: splitMaxHeight, objectFit: 'contain' } : undefined}
                 />
-              ) : null}
+              );
+            })() : null}
             </div>
           </div>
         </div>
