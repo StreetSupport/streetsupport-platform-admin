@@ -6,6 +6,7 @@ import { IBannerFormData, LayoutStyle, MediaType } from '@/types/banners/IBanner
 import { BackgroundType, CTAVariant, type IMediaAsset } from '@/types';
 import { sanitizeHtmlForDisplay } from '@/components/ui/RichTextEditor';
 import { getButtonClasses } from '@/components/ui/button-styles';
+import { isExternalDomain } from '@/utils/urlUtils';
 
 interface BannerPreviewProps {
   data: IBannerFormData;
@@ -73,7 +74,6 @@ function transformToPublicFormat(data: IBannerFormData) {
     label: btn.Label || '',
     url: btn.Url,
     variant: btn.Variant?.toLowerCase() || CTAVariant.PRIMARY,
-    external: btn.External || false
   })) || [];
 
   return {
@@ -167,11 +167,11 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
                   key={index}
                   href={btn.url}
                   className={generateCTAClasses(btn.variant, props.textColour as TextColour)}
-                  target={btn.external ? '_blank' : undefined}
-                  rel={btn.external ? 'noopener noreferrer' : undefined}
+                  target={isExternalDomain(btn.url) ? '_blank' : undefined}
+                  rel={isExternalDomain(btn.url) ? 'noopener noreferrer' : undefined}
                 >
                   {btn.label}
-                  {btn.external && <ExternalLinkIcon />}
+                  {isExternalDomain(btn.url) && <ExternalLinkIcon />}
                 </a>
               ))}
             </div>
@@ -217,11 +217,11 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({ data, className = 
                       key={index}
                       href={btn.url}
                       className={generateCTAClasses(btn.variant, props.textColour as TextColour)}
-                      target={btn.external ? '_blank' : undefined}
-                      rel={btn.external ? 'noopener noreferrer' : undefined}
+                      target={isExternalDomain(btn.url) ? '_blank' : undefined}
+                      rel={isExternalDomain(btn.url) ? 'noopener noreferrer' : undefined}
                     >
                       {btn.label}
-                      {btn.external && <ExternalLinkIcon />}
+                      {isExternalDomain(btn.url) && <ExternalLinkIcon />}
                     </a>
                   ))}
                 </div>
