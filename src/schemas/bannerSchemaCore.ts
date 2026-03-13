@@ -46,7 +46,6 @@ export const CTAButtonSchemaCore = z.object({
       'URL must be a valid URL or relative path'
     ),
   Variant: z.nativeEnum(CTAVariant).default(CTAVariant.PRIMARY),
-  External: z.boolean().optional().default(false)
 }).optional();
 
 export const UploadedFileSchemaCore = z.object({
