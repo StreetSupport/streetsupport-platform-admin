@@ -490,6 +490,14 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
               ))}
             </div>
           </FormField>
+
+          {isCompactLayout && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-sm text-blue-800">
+                Compact banners appear directly under the location hero banner, above the &ldquo;Help Someone Sleeping Rough&rdquo; section. They are text-only and do not display images or videos.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -904,6 +912,14 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
 
         <div className="space-y-4 border-t border-brand-q pt-6">
           <h3 className="heading-5 border-b border-brand-q pb-2">Publishing Options</h3>
+
+          {isCompactLayout && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-sm text-blue-800">
+                This compact banner will appear directly under the location hero banner, above the &ldquo;Help Someone Sleeping Rough&rdquo; section.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Location" required>
