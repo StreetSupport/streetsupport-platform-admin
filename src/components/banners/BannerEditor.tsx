@@ -157,7 +157,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
           Label: 'Click',
           Url: '/',
           Variant: CTAVariant.PRIMARY,
-          External: false
         }
       ],
       IsActive: true,
@@ -364,7 +363,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
             Label: '',
             Url: '',
             Variant: CTAVariant.SECONDARY,
-            External: false
           }
         ]
       }));
@@ -840,13 +838,6 @@ export function BannerEditor({ initialData, onDataChange, onSave, saving = false
                   >
                     <Trash className="w-4 h-4 text-brand-g" />
                   </Button>
-                </div>
-                <div className="mt-2">
-                  <Checkbox
-                    label="External link (opens in new tab)"
-                    checked={button.External}
-                    onChange={(e) => updateCTAButton(index, 'External', (e.target as HTMLInputElement).checked)}
-                  />
                 </div>
               </div>
             ))}
